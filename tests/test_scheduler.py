@@ -30,3 +30,11 @@ def test_jobs_registered_single_instance(tmp_path):
     assert all(j.max_instances == 1 and j.coalesce for j in sched.get_jobs())
     nightly = sched.get_job("nightly").trigger.get_next_fire_time(None, datetime(2026, 11, 3, 6, 0, tzinfo=UTC))
     assert nightly.astimezone(UTC) == datetime(2026, 11, 4, 2, 0, tzinfo=UTC)
+
+
+def test_digest_job_uses_setting(tmp_path):
+    ctx = make_ctx(tmp_path)
+    ctx.settings.digest_time = "19:30"
+    trigger = build_scheduler(ctx).get_job("digest").trigger
+    nxt = trigger.get_next_fire_time(None, datetime(2026, 11, 3, 6, 0, tzinfo=UTC))
+    assert nxt.astimezone(UTC) == datetime(2026, 11, 3, 18, 30, tzinfo=UTC)  # 19:30 Tunis

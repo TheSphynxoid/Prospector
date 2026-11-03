@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
+from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.notify.run import send_digest
 from prospector.pipeline import nightly, tick
@@ -26,8 +27,9 @@ def _guard(name, fn, ctx):
 def build_scheduler(ctx: AppContext) -> BackgroundScheduler:
     sched = BackgroundScheduler(timezone=TZ)
     once = {"max_instances": 1, "coalesce": True}
+    at = parse_hhmm(ctx.settings.digest_time)
     sched.add_job(_guard("tick", tick, ctx), IntervalTrigger(minutes=15, timezone=TZ), id="tick",
                   next_run_time=datetime.now(TZ), **once)
-    sched.add_job(_guard("digest", send_digest, ctx), CronTrigger(hour=8, minute=0, timezone=TZ), id="digest", **once)
+    sched.add_job(_guard("digest", send_digest, ctx), CronTrigger(hour=at.hour, minute=at.minute, timezone=TZ), id="digest", **once)
     sched.add_job(_guard("nightly", nightly, ctx), CronTrigger(hour=3, minute=0, timezone=TZ), id="nightly", **once)
     return sched

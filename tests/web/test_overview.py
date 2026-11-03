@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -55,9 +55,10 @@ def test_nav_marks_current_page(client):
     assert 'aria-current="page" href="/"' in client.get("/").text
 
 
-@pytest.mark.parametrize("now, expected", [
-    (datetime(2026, 11, 3, 6, 59, tzinfo=UTC), datetime(2026, 11, 3, 7, tzinfo=UTC)),  # 07:59 Tunis
-    (datetime(2026, 11, 3, 7, 0, tzinfo=UTC), datetime(2026, 11, 4, 7, tzinfo=UTC)),
+@pytest.mark.parametrize("now, at, expected", [
+    (datetime(2026, 11, 3, 6, 59, tzinfo=UTC), time(8, 0), datetime(2026, 11, 3, 7, tzinfo=UTC)),  # 07:59 Tunis
+    (datetime(2026, 11, 3, 7, 0, tzinfo=UTC), time(8, 0), datetime(2026, 11, 4, 7, tzinfo=UTC)),
+    (datetime(2026, 11, 3, 7, 0, tzinfo=UTC), time(19, 30), datetime(2026, 11, 3, 18, 30, tzinfo=UTC)),
 ])
-def test_next_digest_is_0800_tunis(now, expected):
-    assert next_digest(now) == expected
+def test_next_digest_at_configured_tunis_time(now, at, expected):
+    assert next_digest(now, at) == expected

@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
 from prospector.store.stats import TZ, StatsRepo
@@ -14,15 +15,14 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
 _ACTIONS = {"star": Status.STARRED, "dismiss": Status.DISMISSED, "applied": Status.APPLIED, "reset": Status.NEW}
 TABS = [Status.NEW, Status.STARRED, Status.APPLIED, Status.FILTERED, Status.DISMISSED]
-DIGEST_AT = time(8, 0)  # keep in step with scheduler.build_scheduler
 
 
-def next_digest(now: datetime) -> datetime:
+def next_digest(now: datetime, at: time) -> datetime:
     local = now.astimezone(TZ)
-    at = datetime.combine(local.date(), DIGEST_AT, TZ)
-    if at <= local:
-        at += timedelta(days=1)
-    return at.astimezone(UTC)
+    nxt = datetime.combine(local.date(), at, TZ)
+    if nxt <= local:
+        nxt += timedelta(days=1)
+    return nxt.astimezone(UTC)
 
 
 def _local(ts: datetime | str | None) -> str:
@@ -47,7 +47,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         return templates.TemplateResponse(request, "overview.html", {
             "nav": "overview", "o": stats.overview(now), "cap": ctx.settings.llm_daily_cap,
             "top": ctx.leads.list(Status.NEW, limit=5),
-            "last_digest": ctx.kv.get("last_digest_at"), "next_digest": next_digest(now),
+            "last_digest": ctx.kv.get("last_digest_at"), "next_digest": next_digest(now, parse_hhmm(ctx.settings.digest_time)),
             "sources": ctx.health.all(), "needs_you": ctx.mail.needs_you(),
         })
 
