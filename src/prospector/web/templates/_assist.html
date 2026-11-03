@@ -14,9 +14,7 @@
   {% include "_assist_bid.html" %}
 
   <div class="assist-chat">
-    <div id="assist-log" class="assist-log" aria-live="polite">
-      {% include "_assist_messages.html" %}
-    </div>
+    <div id="assist-log" class="assist-log" aria-live="polite">{% include "_assist_messages.html" %}</div>
     <form class="assist-send" hx-post="/lead/{{ lead_id }}/assist/message" hx-target="#assist-log" hx-swap="beforeend"
           hx-disabled-elt="find button, find textarea" hx-indicator="#assist-wait"
           hx-on::after-request="if (event.detail.successful) this.reset()">

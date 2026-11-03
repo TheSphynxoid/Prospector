@@ -129,3 +129,8 @@ def test_refresh_posting_stores_result(actx, make_lead, monkeypatch):
     refresh_posting(actx, lid)
     row = actx.assist.get(lid)
     assert row.fetch_tried and row.posting == "full" and row.posting_origin == "source"
+
+
+def test_not_found_note(lead):
+    r = run(lead, Site({"https://jobs.example/1": html("no", status=404)}))
+    assert r.note == "The page wasn't found (HTTP 404) — it may have been taken down."

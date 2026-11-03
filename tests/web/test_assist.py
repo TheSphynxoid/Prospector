@@ -120,3 +120,8 @@ def test_overview_shows_assistant_usage(ctx, client):
     ctx.kv.set(f"assistant_calls:{datetime.now(UTC).date().isoformat()}", 3)
     page = client.get("/").text
     assert "Assistant today" in page and "3<small>/100</small>" in page
+
+
+def test_empty_log_has_no_whitespace(client, lid, fetched):
+    page = client.get(f"/lead/{lid}").text
+    assert '<div id="assist-log" class="assist-log" aria-live="polite"></div>' in page

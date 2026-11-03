@@ -98,6 +98,8 @@ def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, reso
                 if resp.is_redirect:
                     url = httpx.URL(urljoin(str(url), resp.headers.get("location", "")))
                     continue
+                if resp.status_code in (404, 410):
+                    raise _Refused(f"The page wasn't found (HTTP {resp.status_code}) — it may have been taken down.")
                 if resp.status_code >= 400:
                     raise _Refused(f"The site blocked the request (HTTP {resp.status_code}).")
                 break
