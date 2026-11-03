@@ -35,12 +35,15 @@ class LLMClient:
         self._headers = {"Authorization": f"Bearer {api_key}", "User-Agent": f"prospector/{__version__}"}
 
     def complete(self, system: str, user: str, session_id: str) -> str:
+        return self.chat(system, [{"role": "user", "content": user}], session_id, temperature=0)
+
+    def chat(self, system: str, messages: list[dict], session_id: str, temperature: float = 0.4) -> str:
         try:
             resp = self._http.post(
                 f"{self.base_url}/chat/completions",
                 headers={**self._headers, "x-opencode-session": session_id},
-                json={"model": self.model, "temperature": 0,
-                      "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]},
+                json={"model": self.model, "temperature": temperature,
+                      "messages": [{"role": "system", "content": system}, *messages]},
                 timeout=60,
             )
             resp.raise_for_status()
