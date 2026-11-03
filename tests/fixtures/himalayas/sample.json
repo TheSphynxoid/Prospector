@@ -1,0 +1,199 @@
+{
+ "comments": "21/08/2026: Cursor pagination is now available and is the preferred way to page through the feed. Pass the nextCursor value from each response back as ?cursor=. It is faster than offset and will never return the same job twice. The offset parameter is deprecated and will be removed in a future release. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+ "updatedAt": 1793675561,
+ "offset": 0,
+ "limit": 5,
+ "totalCount": 116773,
+ "nextCursor": "MjAyNi0xMS0wM1QwMzoxMDoxNC45MjMxOTBafDI1MDQ4Nzg",
+ "jobs": [
+  {
+   "title": "Document Annotation Specialist (Northern Europe)",
+   "excerpt": "• Review and annotate document images to accurately identify text, paragraphs, tables, and other document elements.",
+   "companyName": "Lifted (an Upwork Company)",
+   "companySlug": "lifted-an-upwork-company",
+   "companyLogo": "",
+   "employmentType": "Contractor",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "Canada"
+   ],
+   "timezoneRestrictions": [
+    -7,
+    -6,
+    -5,
+    -4,
+    -3.5
+   ],
+   "categories": [
+    "Document-Annotation-Specialist",
+    "Data-Annotator",
+    "OCR-Correction-Specialist",
+    "Transcriptionist",
+    "Data-Quality-Reviewer"
+   ],
+   "parentCategories": [
+    "Data Science",
+    "Content Creator"
+   ],
+   "description": "<ul>\n<li>Review and annotate document images to accurately identify text, paragraphs, tables, and other document elements.</li>\n<li>Correct Optical Character Recognition (OCR) errors, including spelling mistakes, missing characters, formatting inconsistencies, and transcription inaccuracies.</li>\n<li>Create, review, and adjust bounding boxes to precisely capture text blocks, paragraphs, tables, and other document regions.</li>\n<li>Transcribe text exactly as it appears in source documents, preserving original characters, symbols, punctuation, diacritics, and formatting.</li>\n<li>Review and annotate tables, mathematical expressions, and LaTeX equations while maintaining structural and textual accuracy.</li>\n<li>Apply Markdown formatting consistently to represent document structures, including headings, lists, tables, and other elements.</li>\n<li>Process multilingual documents while preserving language-specific characters, writing systems, and special symbols.</li>\n<li>Follow project guidelines and annotation standards to ensure consistent, accurate, and reliable outputs.</li>\n<li>Identify discrepancies in annotated data and make corrections in accordance with established instructions.</li>\n<li>Maintain high levels of transcription accuracy and data quality while meeting project deadlines.</li>\n<li>Review complex document layouts and technical content to ensure the integrity of digitized information.</li>\n<li>Collaborate with project stakeholders and follow quality requirements throughout the document annotation process.</li>\n</ul><ul>\n<li>Native or near-native proficiency in Danish, Finnish, Icelandic, Luxembourgish, Norwegian, Norwegian Bokmål, Norwegian Nynorsk, or Swedish.</li>\n<li>Strong attention to detail and the ability to identify minor errors in text, formatting, and document layouts.</li>\n<li>Demonstrated ability to transcribe text accurately and reproduce exact characters, punctuation, symbols, tables, and mathematical expressions.</li>\n<li>Familiarity with OCR text correction, document annotation, bounding box adjustment, or related data quality tasks.</li>\n<li>Understanding of Markdown formatting and structured document representation.</li>\n<li>Ability to review multilingual text while preserving special characters, diacritics, and language-specific writing conventions.</li>\n<li>Strong reading comprehension and the ability to follow detailed instructions and annotation guidelines.</li>\n<li>Ability to work independently, maintain consistent quality, and meet project deadlines.</li>\n<li>Strong analytical and problem-solving skills, particularly when identifying discrepancies in document data.</li>\n<li>Ability to work with complex document layouts, scanned images, tables, mathematical notation, and technical content.</li>\n</ul><h3>Preferred Qualifications</h3><ul>\n<li>Previous experience in data annotation, OCR correction, document digitization, transcription, or data quality review.</li>\n<li>Familiarity with scanned documents, complex layouts, tables, mathematical notation, and LaTeX equations.</li>\n<li>Experience working with multiple languages, multilingual documents, or non-Latin scripts.</li>\n<li>Experience following structured quality assurance procedures and annotation guidelines.</li>\n<li>Ability to maintain high accuracy and consistency when processing large volumes of document data.</li>\n</ul><p>An enterprise client is seeking detail-oriented and quality-focused specialists to support document digitization and data accuracy initiatives. The role involves reviewing, annotating, and transcribing text and document regions from scanned images, ensuring accurate representation of written content through OCR correction, bounding box adjustment, and consistent Markdown formatting. The organization is looking for candidates with native or near-native proficiency in Danish, Finnish, Icelandic, Luxembourgish, Norwegian, Norwegian Bokmål, Norwegian Nynorsk, or Swedish, strong attention to detail, and the ability to accurately process complex document layouts, tables, mathematical expressions, and multilingual text.</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1793675561,
+   "expiryDate": 1798859559,
+   "applicationLink": "https://himalayas.app/companies/lifted-an-upwork-company/jobs/document-annotation-specialist-northern-europe?utm_source=api",
+   "guid": "https://himalayas.app/companies/lifted-an-upwork-company/jobs/document-annotation-specialist-northern-europe"
+  },
+  {
+   "title": "Video Editor | WFH, Day shift",
+   "excerpt": "Discover your 100% YOU with MicroSourcing! Position: Video Editor Work setup & shift: ﻿WFH, Day shift Why join MicroSourcing?",
+   "companyName": "MicroSourcing",
+   "companySlug": "microsourcing",
+   "companyLogo": "https://cdn-images.himalayas.app/ljb1cfz67e0mktgbg8fiz42jr9hk",
+   "employmentType": "Full Time",
+   "minSalary": 46000,
+   "maxSalary": 70000,
+   "salaryPeriod": "monthly",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "PHP",
+   "locationRestrictions": [
+    "Philippines"
+   ],
+   "timezoneRestrictions": [
+    8
+   ],
+   "categories": [
+    "Video-Editor",
+    "Production-Editor",
+    "Social-Media-Video-Editor",
+    "Video-Content-Editor"
+   ],
+   "parentCategories": [
+    "Content Creator"
+   ],
+   "description": "<h3>Discover your 100% YOU with <a href=\"https://himalayas.app/companies/microsourcing\">MicroSourcing</a>!</h3><p><strong>Position:</strong> Video Editor<br><strong>Work setup &amp; shift: </strong>﻿WFH, Day shift</p><h3>Why join <a href=\"https://himalayas.app/companies/microsourcing\">MicroSourcing</a>?</h3><h3>You'll have:</h3><p><strong>Competitive Rewards:</strong> Enjoy above-market compensation, healthcare coverage on day one, plus one or more dependents, paid time-off with cash conversion, group life insurance, and performance bonuses.</p><p><strong>A Collaborative Spirit:</strong> Contribute to a positive and engaging work environment by participating in company-sponsored events and activities.</p><p><strong>Work-Life Harmony:</strong> Enjoy the balance between work and life that suits you with flexible work arrangements.</p><p><strong>Career Growth:</strong> Take advantage of opportunities for continuous learning and career advancement.</p><p><strong>Inclusive Teamwork:</strong> Be part of a company that celebrates diversity and fosters an inclusive culture.</p><h3>Your Role:</h3><p>As a <strong>Video Editor</strong>, you will:</p><ul>\n<li>Edit engaging <strong>short- and long-form video content</strong> for YouTube, Facebook, and other relevant social platforms.</li>\n<li>Transform long-form television and digital content into compelling <strong>social-first video edits</strong> designed to drive audience retention, engagement, and performance.</li>\n<li>Create strong hooks, openings, narrative structures, and pacing that keep audiences engaged.</li>\n<li>Produce platform-appropriate versions of content tailored to different formats, audiences, and distribution requirements.</li>\n<li>Work closely with Channel Managers and the Content team to interpret briefs, develop concepts, and deliver high-quality video content.</li>\n<li>Apply creative judgment when selecting footage, structuring stories, and shaping edits based on audience and performance insights.</li>\n<li>Use social analytics, including views and retention data, to evaluate editing performance and refine future editing approaches.</li>\n<li>Complete revisions accurately and efficiently based on feedback while maintaining creative and technical standards.</li>\n<li>Support thumbnail creation and other visual assets when required.</li>\n<li>Conduct thorough quality checks across captions, graphics, audio, aspect ratios, formatting, and other technical elements.</li>\n<li>Ensure content follows brand guidelines, licensing restrictions, platform requirements, and approved content standards.</li>\n<li>Manage multiple projects and deadlines through Monday.com and other project-management systems while maintaining organized files, naming conventions, and version control.</li>\n<li>Communicate proactively regarding progress, priorities, feedback, risks, and delivery timelines.</li>\n<li>Participate in creative brainstorming, content reviews, coaching, and team discussions.</li>\n<li>Stay current with social video trends, platform best practices, audience behaviour, Adobe Creative Cloud capabilities, and emerging AI-assisted editing tools.</li>\n<li>Identify opportunities to improve editing quality, production efficiency, and workflow processes.</li>\n</ul><h3>What You Need:</h3><h3>Non-negotiables</h3><ul>\n<li>Proven experience editing video content for <strong>digital or social media platforms</strong>.</li>\n<li>Strong proficiency in <strong>Adobe Premiere Pro</strong> and relevant Adobe Creative Cloud applications.</li>\n<li>Demonstrated ability to create both <strong>short- and long-form content</strong> for YouTube, Facebook, and similar platforms.</li>\n<li>Strong understanding of video editing fundamentals, including <strong>pacing, storytelling, narrative structure, audio, and visual composition</strong>.</li>\n<li>Strong storytelling ability with a good eye for identifying compelling hooks and structuring content to support audience retention.</li>\n<li>Strong creative judgment and exceptional attention to detail.</li>\n<li>Ability to interpret creative briefs, apply feedback, and complete revisions accurately.</li>\n<li>Strong organizational, prioritization, and time-management skills.</li>\n<li>Ability to manage multiple edits, projects, and deadlines in a structured, high-volume production environment.</li>\n<li>Clear, proactive, and professional communication skills.</li>\n</ul><h3>Preferred skills/expertise</h3><ul>\n<li>Experience working in entertainment, social-first content, digital publishing, or a similar environment.</li>\n<li>Experience using analytics and performance data to improve video editing decisions.</li>\n<li>Motion graphics and graphic design skills.</li>\n<li>Familiarity with AI-assisted video editing and creative tools.</li>\n<li>Experience using project-management platforms such as <strong>Monday.com</strong>.</li>\n<li>Experience working with content calendars, structured production workflows, and version-control processes.</li>\n<li>Strong understanding of social media trends, platform formats, audience behaviour, and content performance.</li>\n<li>Collaborative, accountable, and solutions-focused approach to work.</li>\n</ul><h3>Key Performance Indicators</h3><p>Success in this role will be demonstrated through:</p><ul>\n<li>Consistently high-quality edits that meet creative, technical, and brand standards.</li>\n<li>Video content that supports strong <strong>retention, engagement, and channel performance</strong>.</li>\n<li>Accurate and timely completion of assigned content.</li>\n<li>Content that is appropriately structured, formatted, and optimized for each platform and audience.</li>\n<li>Minimal avoidable errors, revisions, and rework through effective quality checks.</li>\n<li>Clear and constructive collaboration with Channel Managers, Video Editors, and Content Leadership.</li>\n<li>Organized project files, versions, task records, and final deliverables.</li>\n<li>Continuous application of feedback, performance insights, platform trends, and emerging tools to improve future work.</li>\n</ul><h3>About <a href=\"https://himalayas.app/companies/microsourcing\">MicroSourcing</a>\n</h3><p>With over 9,000 professionals across 13 delivery centers, <a href=\"https://himalayas.app/companies/microsourcing\">MicroSourcing</a> is the pioneer and largest offshore provider of managed services in the Philippines.</p><h3>Our commitment to 100% YOU</h3><p><a href=\"https://himalayas.app/companies/microsourcing\">MicroSourcing</a> firmly believes that our company's strength lies in our people's diversity and talent. We are proud to foster an inclusive culture that embraces individuals o</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1793675542,
+   "expiryDate": 1798859540,
+   "applicationLink": "https://himalayas.app/companies/microsourcing/jobs/video-editor-wfh-day-shift?utm_source=api",
+   "guid": "https://himalayas.app/companies/microsourcing/jobs/video-editor-wfh-day-shift"
+  },
+  {
+   "title": "PSSP Content Consultant",
+   "excerpt": "About Nova Pioneer Nova Pioneer is a pan-African network of schools reimagining education to develop innovators and leaders who will shape the future.",
+   "companyName": "Nova Pioneer",
+   "companySlug": "nova-pioneer",
+   "companyLogo": "",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "Kenya"
+   ],
+   "timezoneRestrictions": [
+    3
+   ],
+   "categories": [
+    "Content-Consultant",
+    "Education-Consultant",
+    "Instructional-Designer",
+    "Curriculum-Designer",
+    "Content-Quality-Lead"
+   ],
+   "parentCategories": [
+    "Education"
+   ],
+   "description": "<b>About <a href=\"https://himalayas.app/companies/nova-pioneer\">Nova Pioneer</a></b><br><a href=\"https://himalayas.app/companies/nova-pioneer\">Nova Pioneer</a> is a pan-African network of schools reimagining education to develop innovators and leaders who will shape the future. With campuses across Kenya and South Africa, we deliver rigorous, values-driven learning that equips students to thrive in a rapidly changing world. We are extending this impact through blended digital and in-person programmes that help young people thrive after school.<br><b>About the Role</b><br>We are looking for a senior content leader to hold the quality bar across everything learners see in Quest and Quest Ascend. You will own final editorial review and approval of all learner-facing content before it is published, set the standards the content team works to, and make the judgement calls on what is ready and what is not.<br>This is an oversight role, not a production role. Content designers and contracted writers produce the material; you decide whether it is good enough, explain why when it is not, and raise the team's capability over time. You will work closely with the PSSP Lead and the content team across Quest, Quest Ascend and Quest Launchpad.<h3>KEY RESPONSIBILITIES</h3><ul>\n<li>Own the final editorial review and approval of all learner-facing content across Quest, Quest Ascend and Quest Launchpad before it is published.</li>\n<li>Set and maintain the content standards covering learning outcomes, voice, reading level, format-specific word limits, factual accuracy and cultural relevance; document them as a style guide the team works to.</li>\n<li>Review content for pedagogical soundness, ensuring every activity has a clear learning outcome, sensible progression and assessment that measures what it claims to measure.</li>\n<li>Verify that content intended for AI scoring is structured so that automated evaluation returns accurate, specific and useful feedback to learners.</li>\n<li>Coach the Content Designer, Content Owner and contracted writers through structured feedback that improves the writer, not only the piece in front of you.</li>\n<li>Validate the accuracy of post-school, university-application and careers guidance against current requirements in Kenya and the other markets we serve.</li>\n<li>Run a predictable review cadence with agreed turnaround times and clear approve-or-revise decisions, so that review never becomes the bottleneck in the content pipeline.</li>\n<li>Audit published content periodically against learner completion data and feedback, and commission revisions where the evidence shows it is not working.</li>\n<li>Advise the PSSP Lead on content strategy, sequencing and gaps across both products, and flag risks to quality early.</li>\n</ul><br><h3>REQUIRED SKILLS</h3><ul>\n<li>Senior experience in curriculum leadership, instructional design or editorial direction for education products, with a track record of setting standards that others work to.</li>\n<li>Deep understanding of pedagogy, learning progression and assessment design, with the judgement to tell genuinely good content from content that merely looks finished.</li>\n<li>Demonstrated experience reviewing and approving the work of others at volume, with feedback that is specific, actionable and developmental.</li>\n<li>Excellent command of written English, editorial precision, and the discipline to hold a defined house style consistently across many contributors.</li>\n<li>Familiarity with digital and blended learning formats, and a practical sense of how content behaves differently on a mobile product than on a page.</li>\n<li>Ability to work independently and remotely, managing a review queue to agreed turnaround times without day-to-day supervision.</li>\n</ul><h3>CORE SKILLS AND COMPETENCIES</h3><br><b>Nice-to-haves</b><ul>\n<li>Experience in post-school transition, university applications, careers guidance or entrepreneurship education.</li>\n<li>Experience reviewing AI-generated or AI-assisted learning content, with the judgement to see where automation helps and where it quietly degrades quality.</li>\n<li>Working knowledge of the Kenyan secondary and tertiary landscape, including CBE pathways, KCSE and university placement.</li>\n</ul><h3>SUCCESS MEASURES</h3><ul>\n<li>All learner-facing content is reviewed and approved against a documented standard before publication.</li>\n<li>A content style guide exists, is kept current, and the team works to it without needing individual direction on every piece.</li>\n<li>Review turnaround keeps pace with production, so content ships on schedule and the pipeline does not stall at approval.</li>\n<li>Content quality is visible in learner completion and feedback, and revisions can be traced to that evidence.</li>\n</ul><h3>ADDITIONAL SKILLS AND REQUIREMENTS</h3><ul>\n<li>Excellent communication, attention to detail and a collaborative approach to working with content designers, programme staff and product teams.</li>\n<li>Commitment to youth safeguarding, learner privacy, accessible learning and the responsible use of AI.</li>\n<li>Alignment with <a href=\"https://himalayas.app/companies/nova-pioneer\">Nova Pioneer</a>'s mission to develop the next generation of African innovators and leaders.</li>\n</ul><p><strong><a href=\"https://himalayas.app/companies/nova-pioneer\">Nova Pioneer</a> will never request an application fee from candidates. If you are contacted with a request to pay a fee from someone claiming to be a <a href=\"https://himalayas.app/companies/nova-pioneer\">Nova Pioneer</a> Talent or Recruitment representative, please do not pay them and report it to us immediately on  or .</strong></p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1793675498,
+   "expiryDate": 1798859496,
+   "applicationLink": "https://himalayas.app/companies/nova-pioneer/jobs/pssp-content-consultant?utm_source=api",
+   "guid": "https://himalayas.app/companies/nova-pioneer/jobs/pssp-content-consultant"
+  },
+  {
+   "title": "Senior Client Operations Manager - Biotech",
+   "excerpt": "Job Title: Senior Client Operations Manager - Biotech Job Location: Livingston, West Lothian, United Kingdom Job Location Type: Remote Job Contract Type: Full-time Job Seniority Level: We are seeking a Snr Client Operations Manager to join IQVIA Laboratories.",
+   "companyName": "Lifelancer",
+   "companySlug": "lifelancer",
+   "companyLogo": "https://cdn-images.himalayas.app/ztdsyzatuliky237a5zq922sir0k",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "United Kingdom"
+   ],
+   "timezoneRestrictions": [
+    0
+   ],
+   "categories": [
+    "Client-Operations-Manager",
+    "Clinical-Operations-Manager",
+    "Project-Manager",
+    "Clinical-Research-Project-Manager"
+   ],
+   "parentCategories": [
+    "Operations"
+   ],
+   "description": "<p><b>Job Title: </b>Senior Client Operations Manager - Biotech</p><p><b>Job Location: </b>Livingston, West Lothian, United Kingdom</p><p><b>Job Location Type: </b>Remote</p><p><b>Job Contract Type: </b>Full-time</p><h3>Job Seniority Level: </h3><p>We are seeking a Snr Client Operations Manager to join IQVIA Laboratories.</p><br><p>We hire passionate innovators who drive healthcare forward through thoughtful and inclusive collaboration. If you want to discover a career with greater purpose, join us as we transform and accelerate research and development.</p><br><p>The successful candidate will manage and enhance the client relationships and maintain an overview of project delivery across all projects from an operational &amp; financial perspective.</p><br><h3>What you’ll be doing:</h3><ul>\n<li>Establish a close working relationship with the IQVIA Laboratories global project team, Business Development, Operational teams and appropriate CRO counterpart to ensure consistent, quality, global delivery of all studies.</li>\n<li>Participate on client specific operational committees, with accountability for developing a true partnership and ensure senior management is frequently informed on the current status and progress with portfolio health of the client relationship.</li>\n<li>Participate in client meetings including bid defense, capabilities and audits as needed</li>\n<li>Regularly review with internal team members for IQVIA Laboratories global project team and Business Development to include lessons learned, best practices, standards, client specific requirements, budget management, KPI’s, Master Service Agreement, customer surveys etc</li>\n<li>Ensure client standards are clearly defined and proactively manage and communicate changes to client standards and/or client requirements.</li>\n<li>Track and manage performance metrics and/or service level agreements and manage process improvement to ensure excellent service commitment to delivery</li>\n<li>Participate in technical reviews and proposal development as needed to ensure standards are captured.</li>\n<li>Drive specific client requests across the internal IQVIA Laboratories organization and where appropriate to implement best practices and process improvements across all clients.</li>\n</ul><br><h3>What We Are Looking For:</h3><ul>\n<li>Bachelor's Degree Sciences or related field</li>\n<li>Min 7 years of clinical or research industry experience, including 5 years project management experience</li>\n<li>Other Equivalent combination of education, training and experience may be accepted in lieu of degree</li>\n</ul><br><p><b>The Knowledge, Skills and Abilities needed for this role:</b></p><ul>\n<li>Excellent organizational, analytical and problem solving skills.</li>\n<li>Adaptability and flexibility in a fast-paced working environment.</li>\n<li>Ability to deliver high quality project management tasks globally with a sense of urgency and ability to drive activities to closure with minimal supervision.</li>\n<li>Ability to communicate clearly and regularly internally across departments and regions and as well as externally with global client teams.</li>\n<li>Ability to establish and maintain effective working relationships with coworkers, managers and clients.</li>\n</ul><br><p><b>What We Offer You</b>:</p><p>We put our employees at the center of everything we do and are committed to providing them, and their families, with benefits that meet their diverse and changing needs. We invest in integrated benefits programs and resources to take care of our employees’ physical, mental and emotional, financial and social well-being so they can thrive at home and at work, at any stage of their well-being journey.</p><br><p>To learn more about our benefits, visit </p><p>If you’re looking to unleash your potential, join IQVIA Laboratories , to help make the extraordinary possible!</p><br><p>IQVIA is a leading global provider of clinical research services, commercial insights and healthcare intelligence to the life sciences and healthcare industries. We create intelligent connections to accelerate the development and commercialization of innovative medical treatments to help improve patient outcomes and population health worldwide. Learn more at </p><p>IQVIA is committed to integrity in our hiring process and maintains a zero tolerance policy for candidate fraud. All information and credentials submitted in your application must be truthful and complete. Any false statements, misrepresentations, or material omissions during the recruitment process will result in immediate disqualification of your application, or termination of employment if discovered later, in accordance with applicable law. We appreciate your honesty and professionalism.</p><br><br><h3>This job is curated by <a href=\"https://himalayas.app/companies/lifelancer\">Lifelancer</a>.</h3><p><strong><a href=\"https://himalayas.app/companies/lifelancer\">Lifelancer</a> is a talent-hiring platform in Life Sciences, Pharma and IT. The platform connects talent with opportunities in pharma, biotech, health sciences, healthtech and IT domains.</strong></p><p><strong>Please apply via <a href=\"https://himalayas.app/companies/lifelancer\">Lifelancer</a> platform to get connected to the application page and to find  similar roles.</strong></p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1793675451,
+   "expiryDate": 1798859447,
+   "applicationLink": "https://himalayas.app/companies/lifelancer/jobs/senior-client-operations-manager-biotech-4822754697?utm_source=api",
+   "guid": "https://himalayas.app/companies/lifelancer/jobs/senior-client-operations-manager-biotech-4822754697"
+  },
+  {
+   "title": "Technical Product Manager - AI Stockbroking App",
+   "excerpt": "About KIRAOur mission is to make money smart, reliable and within reach for everyone.",
+   "companyName": "Bjak",
+   "companySlug": "bjak",
+   "companyLogo": "https://cdn-images.himalayas.app/8ub8wtihrfrm3vfivlkcojai4np3",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level",
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "Malaysia"
+   ],
+   "timezoneRestrictions": [
+    8
+   ],
+   "categories": [
+    "AI-Stockbroking-Product-Lead",
+    "Trading-Product-Manager",
+    "WealthTech-Product-Manager",
+    "Investment-Technology-Product-Management",
+    "Fintech-Product-Manager",
+    "Brokerage-Product-Manager",
+    "AI-Product-Manager",
+    "Product-Manager",
+    "Technical-Product-Manager",
+    "Product"
+   ],
+   "parentCategories": [
+    "Product"
+   ],
+   "description": "<h3>About KIRA</h3><p>Our mission is to make money smart, reliable and within reach for everyone.</p><p>In 2019, we built the first mobile-first, insurance platform, enabling insurance to be accessible online by millions in the region. Today, it's the leading insurance platform in Southeast Asia.</p><p>Today, we are expanding ways to help people in Asia and it includes spending, saving, investing, exchanging, travelling, and more. Our objective is to build tools that will help people get more from their money and at ease and self reliance, become an expert. We believe AI will help us achieve this in our generation.</p><p>We are looking for the most talented and driven people we can find. We are looking for people who work for their passion, not counting hours. Who loves building great next-generation products, not status quo. Who cares about redefining how everyone around us can get the best financial applications, not for an exclusive few.</p><p>We have teams working around the world, with over 20 nationalities and growing from our offices and remotely. Join us and build a better future.</p><p>If you're this person, we'd love to talk to you.</p><h3><strong>The Role</strong></h3><p>KIRA is building a AI Stockbroking Superapp for Southeast Asia across payments, remittance, insurance, wealth, and trading.</p><p>These products move real money. Reliability, regulatory requirements, and third-party financial rails are fundamental to the product - not considerations around the edges.</p><p>The Technical Product Manager owns a product vertical <strong>end-to-end</strong>, from strategy and outcomes through technical design, delivery, and launch.</p><p>We are AI-native by default, but AI is a means, not the goal. The bar is knowing where AI genuinely improves an outcome, where deterministic systems must remain in control, and how to build products that are reliable, auditable, and trusted.</p><h3><strong>What You'll Own</strong></h3><ul>\n<li><p>Owning a product vertical end-to-end, including strategy, metrics, roadmap, priorities and delivery.</p></li>\n<li><p>Shaping technical design with engineering across APIs, data flows, ledgering, reconciliation, failure handling, security and scalability.</p></li>\n<li><p>Driving trade-offs across correctness, speed, cost, reliability, regulatory requirements and user experience.</p></li>\n<li><p>Building regulatory requirements into the product across KYC, transaction monitoring, limits, privacy and licensing.</p></li>\n<li><p>Applying AI where it improves outcomes, with clear evaluation, safeguards, human oversight and failure handling.</p></li>\n<li><p>Shipping products around external dependencies, including regulatory approvals, financial rails and third-party partners.</p></li>\n<li><p>Aligning Engineering, Design, Compliance, Operations, Treasury and Finance around clear product decisions and launch requirements.</p></li>\n</ul><h3><strong>What We're Looking For</strong></h3><ul>\n<li><p>5+ years of product management experience, including ownership of complex technical products from strategy through production.</p></li>\n<li><p>Strong technical foundation across system architecture, APIs, databases, workflows, failure modes and distributed systems.</p></li>\n<li><p>Experience working closely with engineers and ability to review, challenge and contribute to technical designs.</p></li>\n<li><p>Experience in payments, banking, remittance, insurance, trading or another regulated, high-consequence product domain.</p></li>\n<li><p>Strong product judgment and ability to make difficult trade-offs under technical, regulatory and operational constraints.</p></li>\n<li><p>Experience building with LLMs or AI products, including evaluation, reliability and understanding when AI should not be used.</p></li>\n</ul><h3><strong>Nice to have</strong></h3><ul>\n<li><p>Engineering or highly technical product background.</p></li>\n<li><p>Experience building zero-to-one fintech or consumer products.</p></li>\n<li><p>Experience defining evaluation frameworks for ML or LLM-powered products.</p></li>\n</ul><h3><strong>Outcome</strong></h3><ul>\n<li><p>Clear vertical strategy and legible roadmap</p></li>\n<li><p>Ships fast and clears the gates that actually block launch</p></li>\n<li><p>Money is correct and users are never misled about the state of their funds</p></li>\n<li><p>AI features are valuable, predictable and trusted</p></li>\n<li><p>Trade-offs made deliberately under uncertainty and hold up when challenged</p></li>\n<li><p>Engineering, design, compliance, and operations are aligned with minimal friction</p></li>\n</ul><h3>Location</h3><p>This is a <strong>hybrid role</strong>. You are expected to work from our local office at least <strong>3 days per week</strong>, with the remaining days offering flexibility to work remotely.</p><p>Candidates should be based in, or able to work from, the location where the role is advertised.</p><h3>Language</h3><p>English is our main working language across global teams. Strong English communication is required.</p><h3>Interview Process</h3><h3>Our process is designed to move fast:</h3><ol>\n<li><h3>Online assessment or practical task</h3></li>\n<li><h3>Technical interview</h3></li>\n<li><h3>CEO / final round</h3></li>\n</ol><p>For strong candidates, we aim to complete the process and make an offer within <strong>1 week</strong> from the start of the interview process. Candidates who complete assessments quickly will be prioritized.</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1793675414,
+   "expiryDate": 1798859413,
+   "applicationLink": "https://himalayas.app/companies/bjak/jobs/technical-product-manager-ai-stockbroking-app-7812757493?utm_source=api",
+   "guid": "https://himalayas.app/companies/bjak/jobs/technical-product-manager-ai-stockbroking-app-7812757493"
+  }
+ ]
+}
