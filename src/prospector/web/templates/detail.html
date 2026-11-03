@@ -4,6 +4,7 @@
 {% block content %}
 <p class="crumbs"><a href="/leads">← Leads</a></p>
 <div class="detail-grid">
+  <div class="detail-main">
   <article class="card detail">
     <h1>{{ l.title }}</h1>
     <div class="lead-meta">
@@ -18,6 +19,8 @@
     <h2>Description</h2>
     <div class="body">{% for kind, block in l.body|paragraphs %}{% if kind == "ul" %}<ul>{% for item in block %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ block }}</p>{% endif %}{% else %}<p class="muted">No description.</p>{% endfor %}</div>
   </article>
+  {% include "_assist.html" %}
+  </div>
 
   <aside class="detail-side">
     <section class="card">

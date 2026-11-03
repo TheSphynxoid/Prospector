@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from prospector.assist.usage import used_today
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
@@ -58,6 +59,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         now = datetime.now(UTC)
         return templates.TemplateResponse(request, "overview.html", {
             "nav": "overview", "o": stats.overview(now), "cap": ctx.settings.llm_daily_cap,
+            "assistant_used": used_today(ctx), "assistant_cap": ctx.settings.assistant_daily_cap,
             "top": ctx.leads.list(Status.NEW, limit=5),
             "last_digest": ctx.kv.get("last_digest_at"), "next_digest": next_digest(now, parse_hhmm(ctx.settings.digest_time)),
             "sources": ctx.health.all(), "needs_you": ctx.mail.needs_you(),
@@ -87,8 +89,10 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         row = ctx.leads.get_row(lead_id)
         if row is None:
             raise HTTPException(404)
+        from prospector.web.assist import assist_context  # web.assist imports this module's templates
         return templates.TemplateResponse(request, "detail.html", {
-            "nav": "leads", "row": row, "breakdown": ctx.scores.breakdown(lead_id) or {},
+            "nav": "leads", "row": row, "breakdown": ctx.scores.breakdown(lead_id) or {}, "lead_id": lead_id,
+            **assist_context(ctx, lead_id),
         })
 
     def fragment(request: Request, lead_id: int, headers: dict | None = None):

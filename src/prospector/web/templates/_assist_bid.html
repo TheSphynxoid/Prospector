@@ -1,0 +1,23 @@
+{% macro money(usd) %}<b>${{ usd }}</b> <span class="muted">≈ {{ (usd * usd_tnd + 0.5)|int }} TND</span>{% endmacro %}
+<div id="assist-bid" class="assist-bid">
+  {% if error %}<p class="notice notice-bad">{{ error }}</p>{% endif %}
+  {% if bid %}
+  <div class="bid-prices">
+    <div class="bid-price"><span class="tile-label">Fair</span><span>{{ money(bid.fair) }}</span>
+      <button type="button" class="btn btn-sm" data-copy="{{ bid.fair }}">Copy</button></div>
+    <div class="bid-price"><span class="tile-label">Competitive</span><span>{{ money(bid.competitive) }}</span>
+      <button type="button" class="btn btn-sm" data-copy="{{ bid.competitive }}">Copy</button></div>
+    <div class="bid-price"><span class="tile-label">Delivery</span><span><b>{{ bid.delivery_days }} day{{ "s" if bid.delivery_days != 1 }}</b> <span class="muted">· about {{ "%g"|format(bid.hours) }} h</span></span>
+      <button type="button" class="btn btn-sm" data-copy="{{ bid.delivery_days }}">Copy</button></div>
+  </div>
+  {% if bid.warning %}<p class="notice notice-bad small">{{ bid.warning }}</p>{% endif %}
+  {% if bid.rationale %}<p class="small muted">{{ bid.rationale }}</p>{% endif %}
+  <label class="small" for="bid-proposal">Proposal</label>
+  <textarea id="bid-proposal" rows="9" data-count>{{ bid.proposal }}</textarea>
+  <div class="assist-send-bar">
+    <span class="small muted" data-count-for="bid-proposal"></span>
+    <button type="button" class="btn btn-sm" data-copy-from="bid-proposal">Copy proposal</button>
+  </div>
+  {% endif %}
+</div>
+{% if oob_messages %}<div hx-swap-oob="beforeend:#assist-log">{% with messages = oob_messages %}{% include "_assist_messages.html" %}{% endwith %}</div>{% endif %}

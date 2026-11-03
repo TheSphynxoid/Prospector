@@ -1,0 +1,6 @@
+{% for m in messages %}
+<div class="msg msg-{{ m.role }}">
+  <span class="msg-who">{{ {"user": "You", "assistant": "Assistant", "error": "Problem"}[m.role] }}</span>
+  <div class="msg-body">{% for kind, block in m.content|paragraphs %}{% if kind == "ul" %}<ul>{% for item in block %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ block }}</p>{% endif %}{% endfor %}</div>
+</div>
+{% endfor %}

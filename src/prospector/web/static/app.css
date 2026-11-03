@@ -271,3 +271,34 @@ section[id], .field[id] { scroll-margin-top: 4.5rem; }
 .pricing-row { display: flex; flex-wrap: wrap; gap: .75rem; }
 .pricing-row .stack { display: flex; flex-direction: column; gap: .25rem; }
 .pricing-row input { width: 9rem; }
+
+/* Lead assistant */
+.detail-main { display: grid; gap: 1rem; min-width: 0; }
+.assistant textarea { width: 100%; font: inherit; font-size: .92rem; padding: .55rem .7rem; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--card); color: var(--fg); resize: vertical; box-sizing: border-box; }
+.assist-posting { margin-bottom: .75rem; }
+.assist-posting p { margin: 0 0 .4rem; }
+.assist-posting details { margin-bottom: .25rem; }
+.assist-posting summary { cursor: pointer; color: var(--accent); }
+.assist-posting form { margin-top: .5rem; }
+.warn-text { color: var(--warn); }
+.assist-bid-bar { display: flex; align-items: center; gap: .6rem; margin: .5rem 0; }
+.assist-bid-bar form { display: flex; align-items: center; gap: .6rem; }
+.assist-bid { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.assist-bid:empty { display: none; }
+.bid-prices { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .5rem; }
+.bid-price { display: flex; flex-direction: column; gap: .2rem; background: var(--soft); border-radius: 8px; padding: .6rem .75rem; }
+.bid-price .btn { align-self: flex-start; }
+.assist-send-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; margin-top: .4rem; }
+.assist-send-bar > :first-child { margin-right: auto; }
+.assist-log { display: grid; gap: .5rem; max-height: 28rem; overflow-y: auto; margin-bottom: .5rem; }
+.assist-log:empty::before { content: "Ask anything about this lead, or draft a bid."; color: var(--muted); font-size: .9rem; }
+.msg { padding: .55rem .75rem; border-radius: 10px; background: var(--soft); max-width: 92%; overflow-wrap: anywhere; }
+.msg-user { justify-self: end; background: var(--accent-soft); }
+.msg-error { background: var(--bad-soft); color: var(--bad); }
+.msg-who { display: block; font-size: .72rem; font-weight: 600; color: var(--muted); margin-bottom: .15rem; }
+.msg-body p { margin: 0 0 .5em; white-space: pre-line; }
+.msg-body ul { margin: 0 0 .5em; padding-left: 1.2rem; }
+.msg-body > :last-child { margin-bottom: 0; }
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }

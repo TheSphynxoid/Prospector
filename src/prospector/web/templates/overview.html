@@ -23,6 +23,11 @@
     <span class="meter" aria-hidden="true"><span style="width: {{ [100, (o.llm_used * 100 // cap) if cap else 0]|min }}%"></span></span>
   </div>
   <div class="tile">
+    <span class="tile-label">Assistant today</span>
+    <span class="tile-value">{{ assistant_used }}<small>/{{ assistant_cap }}</small></span>
+    <span class="meter" aria-hidden="true"><span style="width: {{ [100, assistant_used * 100 // assistant_cap]|min }}%"></span></span>
+  </div>
+  <div class="tile">
     <span class="tile-label">Digest</span>
     <span class="tile-sub">Next {{ next_digest|local }}</span>
     <span class="tile-sub muted">Last {{ last_digest|local }}</span>

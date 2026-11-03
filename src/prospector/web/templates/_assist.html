@@ -1,0 +1,32 @@
+{# The lead assistant card. Context: lead_id, assist, messages, bid, usd_tnd. #}
+<section class="card assistant" id="assistant">
+  <h2 class="card-title">Assistant <span class="muted">· drafts only, you copy and send</span></h2>
+
+  {% include "_assist_posting.html" %}
+
+  <div class="assist-bid-bar">
+    <form hx-post="/lead/{{ lead_id }}/assist/bid" hx-target="#assist-bid" hx-swap="outerHTML"
+          hx-disabled-elt="find button" hx-indicator="#assist-bid-wait">
+      <button type="submit" class="btn btn-primary">Draft bid</button>
+      <span id="assist-bid-wait" class="htmx-indicator muted small">Drafting…</span>
+    </form>
+  </div>
+  {% include "_assist_bid.html" %}
+
+  <div class="assist-chat">
+    <div id="assist-log" class="assist-log" aria-live="polite">
+      {% include "_assist_messages.html" %}
+    </div>
+    <form class="assist-send" hx-post="/lead/{{ lead_id }}/assist/message" hx-target="#assist-log" hx-swap="beforeend"
+          hx-disabled-elt="find button, find textarea" hx-indicator="#assist-wait"
+          hx-on::after-request="if (event.detail.successful) this.reset()">
+      <textarea name="text" rows="2" data-enter-send placeholder="Ask about this lead — e.g. is it legit? what should I ask the client?" aria-label="Message the assistant"></textarea>
+      <div class="assist-send-bar">
+        <span id="assist-wait" class="htmx-indicator muted small">Thinking…</span>
+        <button type="button" class="btn btn-sm" hx-post="/lead/{{ lead_id }}/assist/clear" hx-target="#assist-log"
+                hx-swap="innerHTML" hx-confirm="Clear this chat and the bid draft?">Clear chat</button>
+        <button type="submit" class="btn btn-primary btn-sm">Send</button>
+      </div>
+    </form>
+  </div>
+</section>

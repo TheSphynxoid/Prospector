@@ -116,6 +116,35 @@
     if (fn && fn() !== false) e.preventDefault();
   });
 
+  // Lead assistant: Enter sends (Shift+Enter for a new line), live character count, copy buttons.
+  document.addEventListener("keydown", (e) => {
+    const box = e.target.closest?.("[data-enter-send]");
+    if (box && e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      if (box.value.trim()) box.form.requestSubmit();
+    }
+  });
+  function updateCounts() {
+    document.querySelectorAll("[data-count-for]").forEach((out) => {
+      const n = document.getElementById(out.dataset.countFor)?.value.length ?? 0;
+      out.textContent = `${n} characters${n < 100 ? " — the minimum is usually 100" : ""}`;
+    });
+  }
+  document.addEventListener("input", (e) => { if (e.target.matches?.("[data-count]")) updateCounts(); });
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-copy], [data-copy-from]");
+    if (!btn) return;
+    const text = btn.dataset.copy ?? document.getElementById(btn.dataset.copyFrom)?.value ?? "";
+    navigator.clipboard?.writeText(text).then(() => {
+      const label = btn.textContent;
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = label; }, 1500);
+    });
+  });
+  function scrollLog() { const log = document.getElementById("assist-log"); if (log) log.scrollTop = log.scrollHeight; }
+  document.addEventListener("DOMContentLoaded", () => { updateCounts(); scrollLog(); });
+  document.body.addEventListener("htmx:afterSettle", () => { updateCounts(); scrollLog(); });
+
   function rowIndex(row) {
     const m = row.querySelector("[name]")?.name.match(/\[(\d+)\]/);
     return m ? Number(m[1]) : 0;

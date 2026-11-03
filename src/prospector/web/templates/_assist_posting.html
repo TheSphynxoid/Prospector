@@ -1,0 +1,21 @@
+{% set origin_text = {"source": "from Freelancer", "fetched": "fetched from the site", "pasted": "pasted by you"} %}
+<div id="assist-posting" class="assist-posting"
+     {% if not assist.fetch_tried and not assist.posting %}hx-get="/lead/{{ lead_id }}/assist/posting-status" hx-trigger="load delay:2s" hx-swap="outerHTML"{% endif %}>
+  <p class="small">
+    {% if assist.posting %}Using the full posting ({{ origin_text.get(assist.posting_origin, assist.posting_origin) }}).
+    {% elif not assist.fetch_tried %}<span class="muted">Fetching the full posting…</span>
+    {% else %}<span class="warn-text">{{ assist.fetch_note or "No full posting yet." }}</span> Using the short description for now.{% endif %}
+  </p>
+  <details {% if assist.fetch_tried and not assist.posting %}open{% endif %}>
+    <summary class="small">Paste the full posting / bid form</summary>
+    <form hx-post="/lead/{{ lead_id }}/assist/posting" hx-target="#assist-posting" hx-swap="outerHTML"
+          hx-disabled-elt="find button">
+      <textarea name="posting" rows="6" maxlength="20000" placeholder="Paste the posting text, including any questions on the bid form.">{{ assist.posting or "" }}</textarea>
+      <div class="assist-send-bar">
+        <button type="button" class="btn btn-sm" hx-post="/lead/{{ lead_id }}/assist/fetch" hx-target="#assist-posting"
+                hx-swap="outerHTML" hx-disabled-elt="this">Try fetching again</button>
+        <button type="submit" class="btn btn-sm btn-primary">Save posting</button>
+      </div>
+    </form>
+  </details>
+</div>
