@@ -1,0 +1,38 @@
+:root {
+  --bg: #fafaf9; --fg: #1c1917; --muted: #78716c; --line: #e7e5e4; --accent: #2563eb;
+  --good: #15803d; --warn: #b45309; --bad: #b91c1c; --card: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0c0a09; --fg: #e7e5e4; --muted: #a8a29e; --line: #292524; --accent: #60a5fa;
+          --good: #4ade80; --warn: #fbbf24; --bad: #f87171; --card: #1c1917; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+header { display: flex; gap: 1rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--line); }
+header .brand { font-weight: 700; color: var(--fg); text-decoration: none; }
+header nav a { margin-right: .75rem; }
+main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+a { color: var(--accent); }
+.tabs { display: flex; gap: .25rem; flex-wrap: wrap; margin: .5rem 0; }
+.tabs a { padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--fg); }
+.tabs a.active { background: var(--fg); color: var(--bg); }
+.filters { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0; }
+.filters input, .filters select, button { font: inherit; padding: .3rem .5rem; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--card); color: var(--fg); }
+button { cursor: pointer; }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: .5rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.leads .score { font-variant-numeric: tabular-nums; width: 3.5rem; color: var(--muted); }
+.leads .actions { white-space: nowrap; width: 1%; }
+.meta, .muted, .reason { color: var(--muted); font-size: .9em; }
+.verdict { font-size: .9em; }
+.v-strong { color: var(--good); } .v-maybe { color: var(--warn); } .v-weak { color: var(--muted); }
+.status-dismissed { opacity: .5; }
+.needs-you { border: 1px solid var(--warn); border-radius: 8px; padding: .5rem 1rem; margin-bottom: 1rem; }
+.needs-you h2 { margin: .25rem 0; font-size: 1rem; }
+.health tr.bad td { color: var(--bad); } .health tr.warn td { color: var(--warn); }
+.detail .body { white-space: pre-wrap; background: var(--card); border: 1px solid var(--line); padding: 1rem; border-radius: 8px; }
+.facts th { width: 9rem; color: var(--muted); font-weight: 500; }
+.pager { display: flex; gap: 1rem; margin-top: 1rem; }
+.empty { color: var(--muted); text-align: center; }
+@media (max-width: 640px) { .leads .actions { white-space: normal; } }

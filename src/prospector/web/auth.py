@@ -1,0 +1,69 @@
+import ipaddress
+import time
+
+import httpx
+import jwt
+from fastapi import Request
+from fastapi.responses import PlainTextResponse
+
+TAILNET = ipaddress.ip_network("100.64.0.0/10")
+EXEMPT = {"/healthz"}
+_CERTS_TTL = 3600
+
+
+class AccessVerifier:
+    """Validates Cloudflare Access JWTs against the team's published signing keys."""
+
+    def __init__(self, team_domain: str, aud: str, http: httpx.Client):
+        self.issuer = f"https://{team_domain}"
+        self.certs_url = f"https://{team_domain}/cdn-cgi/access/certs"
+        self.aud = aud
+        self._http = http
+        self._keys: jwt.PyJWKSet | None = None
+        self._fetched = 0.0
+
+    def _keyset(self, force: bool = False) -> jwt.PyJWKSet:
+        if force or self._keys is None or time.time() - self._fetched > _CERTS_TTL:
+            resp = self._http.get(self.certs_url)
+            resp.raise_for_status()
+            self._keys = jwt.PyJWKSet.from_dict({"keys": resp.json()["keys"]})
+            self._fetched = time.time()
+        return self._keys
+
+    def verify(self, token: str) -> dict:
+        try:
+            kid = jwt.get_unverified_header(token).get("kid")
+            keys = self._keyset()
+            key = next((k for k in keys.keys if k.key_id == kid), None)
+            if key is None:  # keys rotated
+                key = next((k for k in self._keyset(force=True).keys if k.key_id == kid), None)
+            if key is None:
+                raise PermissionError("unknown signing key")
+            return jwt.decode(token, key.key, algorithms=["RS256"], audience=self.aud, issuer=self.issuer)
+        except (jwt.PyJWTError, httpx.HTTPError, KeyError, ValueError) as e:
+            raise PermissionError(str(e)) from e
+
+
+def _from_tailnet(request: Request) -> bool:
+    try:
+        return request.client is not None and ipaddress.ip_address(request.client.host) in TAILNET
+    except ValueError:
+        return False
+
+
+def make_access_middleware(verifier: AccessVerifier | None):
+    """Tailnet clients pass; everyone else needs a valid Cf-Access-Jwt-Assertion. Fails closed."""
+
+    async def middleware(request: Request, call_next):
+        if request.url.path in EXEMPT or _from_tailnet(request):
+            return await call_next(request)
+        token = request.headers.get("cf-access-jwt-assertion")
+        if verifier is None or not token:
+            return PlainTextResponse("forbidden", status_code=403)
+        try:
+            verifier.verify(token)
+        except PermissionError:
+            return PlainTextResponse("forbidden", status_code=403)
+        return await call_next(request)
+
+    return middleware

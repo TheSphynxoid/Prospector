@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set l = row.lead %}
+{% block title %}{{ l.title }} — Prospector{% endblock %}
+{% block content %}
+<article class="detail">
+  <h1>{{ l.title }}</h1>
+  <p class="meta">{{ l.company or "Unknown company" }} · {{ l.kind.value }} · remote: {{ l.remote.value }}{% if l.remote_region %} ({{ l.remote_region }}){% endif %}</p>
+  <p><a href="{{ l.canonical_url }}" target="_blank" rel="noopener noreferrer">Open original posting ↗</a></p>
+
+  <table class="facts">
+    <tr><th>Locations</th><td>{{ l.locations|join(", ") or "–" }}</td></tr>
+    <tr><th>Pay</th><td>{% if l.pay %}{{ l.pay.min or "?" }}–{{ l.pay.max or "?" }} {{ l.pay.currency }}{% if l.pay.period %} / {{ l.pay.period }}{% endif %}{% else %}not stated{% endif %}</td></tr>
+    <tr><th>Languages</th><td>{{ l.languages|join(", ") or "–" }}</td></tr>
+    <tr><th>Posted</th><td>{{ l.posted_at.strftime("%Y-%m-%d") if l.posted_at else "–" }}</td></tr>
+    <tr><th>Deadline</th><td>{{ l.deadline or "–" }}</td></tr>
+    <tr><th>Seen on</th><td>{{ l.sources|join(", ") }}</td></tr>
+    <tr><th>Status</th><td>{{ l.status.value }}{% if l.filter_reason %} ({{ l.filter_reason }}){% endif %}</td></tr>
+  </table>
+
+  <h2>AI review</h2>
+  {% if row.stage2 %}
+    <p class="verdict v-{{ row.stage2.verdict }}"><b>{{ row.stage2.verdict }}</b> — {{ row.stage2.fit_summary }}</p>
+    {% if row.stage2.lead_with_project %}<p>Lead with: <b>{{ row.stage2.lead_with_project }}</b></p>{% endif %}
+    {% if row.stage2.red_flags %}<p>Red flags:</p><ul>{% for f in row.stage2.red_flags %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+    {% if row.stage2.pay_estimate %}<p>Pay estimate: {{ row.stage2.pay_estimate }}</p>{% endif %}
+  {% else %}
+    <p class="muted">Unreviewed — below the review threshold or not reached yet.</p>
+  {% endif %}
+
+  <h2>Score breakdown</h2>
+  <table class="facts">
+    {% for k, v in breakdown.items() %}<tr><th>{{ k }}</th><td>{{ "%.2f"|format(v) }}</td></tr>{% else %}<tr><td>Not scored.</td></tr>{% endfor %}
+  </table>
+
+  <h2>Description</h2>
+  <div class="body">{{ l.body }}</div>
+</article>
+{% endblock %}

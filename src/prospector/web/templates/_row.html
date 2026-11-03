@@ -1,0 +1,15 @@
+{% set l = row.lead %}
+<tr id="lead-{{ l.id }}" class="status-{{ l.status.value }}">
+  <td class="score">{{ "%.2f"|format(row.stage1) if row.stage1 is not none else "–" }}</td>
+  <td>
+    <a href="/lead/{{ l.id }}">{{ l.title }}</a>
+    <div class="meta">{{ l.company or "?" }} · {{ l.kind.value }} · {{ l.remote.value }}{% if l.remote_region %} ({{ l.remote_region }}){% endif %}{% if l.locations %} · {{ l.locations|join(", ") }}{% endif %}</div>
+    {% if row.stage2 %}<div class="verdict v-{{ row.stage2.verdict }}">{{ row.stage2.verdict }} — {{ row.stage2.fit_summary }}</div>{% endif %}
+    {% if l.filter_reason %}<div class="reason">filtered: {{ l.filter_reason }}</div>{% endif %}
+  </td>
+  <td class="actions">
+    {% for action, label in [("star", "★"), ("applied", "Applied"), ("dismiss", "✕"), ("reset", "↺")] %}
+    <button hx-post="/lead/{{ l.id }}/{{ action }}" hx-target="#lead-{{ l.id }}" hx-swap="outerHTML">{{ label }}</button>
+    {% endfor %}
+  </td>
+</tr>

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Sources — Prospector{% endblock %}
+{% block content %}
+<h1>Sources</h1>
+<table class="health">
+  <thead><tr><th>Source</th><th>State</th><th>Last run</th><th>Last OK</th><th>Leads</th><th>Failures</th><th>Last error</th></tr></thead>
+  <tbody>
+  {% for s in sources %}
+  <tr class="{{ 'bad' if s.paused else ('warn' if s.drift or s.consecutive_failures else '') }}">
+    <td>{{ s.source_id }}</td>
+    <td>{% if s.paused %}paused{% elif s.drift %}suspicious results{% elif s.consecutive_failures %}failing{% else %}ok{% endif %}</td>
+    <td>{{ (s.last_run or "–")[:16] }}</td>
+    <td>{{ (s.last_ok or "–")[:16] }}</td>
+    <td>{{ s.last_count if s.last_count is not none else "–" }}</td>
+    <td>{{ s.consecutive_failures }}</td>
+    <td>{{ s.last_error or "" }}</td>
+  </tr>
+  {% else %}<tr><td colspan="7">No source has run yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}
