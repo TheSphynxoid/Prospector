@@ -30,6 +30,7 @@ def test_canonical_url_keeps_meaningful_query():
     ("up to 120,000 USD", Pay(None, 120000, "USD", None)),
     ("€50,000 - €70,000 per year", Pay(50000, 70000, "EUR", "year")),
     ("2000 DT par mois", Pay(2000, 2000, "TND", "month")),
+    ("250-750 USD fixed", Pay(250, 750, "USD", "fixed")),
     ("Competitive", None),
     (None, None),
     ("", None),

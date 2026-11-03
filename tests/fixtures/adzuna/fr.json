@@ -1,0 +1,7 @@
+{
+ "count": 2,
+ "results": [
+  {"id": "4711", "title": "D&eacute;veloppeur <strong>Go</strong> H/F", "description": "Nous recherchons un d&eacute;veloppeur Go pour notre plateforme de r&eacute;servation.", "redirect_url": "https://www.adzuna.fr/land/ad/4711?se=abc&utm_medium=api", "company": {"display_name": "Voyages SA"}, "location": {"display_name": "Paris, Ile-de-France"}, "salary_min": 45000, "salary_max": 55000, "created": "2026-11-01T10:00:00Z", "contract_type": "permanent"},
+  {"id": "4712", "title": "Ing&eacute;nieur C++ embarqu&eacute;", "description": "Poste en CDI, temps r&eacute;el, Linux.", "redirect_url": "https://www.adzuna.fr/land/ad/4712", "company": {"display_name": "Robotix"}, "location": {"display_name": "Lyon"}, "created": "2026-10-30T08:30:00Z", "contract_type": "contract"}
+ ]
+}

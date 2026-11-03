@@ -15,6 +15,7 @@ _PERIODS: list[tuple[PayPeriod, str]] = [
     ("day", r"\b(day|daily|jour)s?\b"),
     ("month", r"\b(mo|month|monthly|mois)\b"),
     ("year", r"\b(yr|year|yearly|annual|annum|an|ans)\b|/a\b"),
+    ("fixed", r"\bfixed\b|\bforfait"),
 ]
 # "1 500", "120,000", "50.000" (thousands groups) or a plain/decimal number, optional k suffix
 _NUMBER = re.compile(r"(\d{1,3}(?:[   ,.]\d{3})+|\d+(?:\.\d+)?)\s*(k)?(?![a-z])")
