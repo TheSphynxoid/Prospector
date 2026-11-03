@@ -1,0 +1,17 @@
+<section class="card" id="tests">
+  <h2 class="card-title">Tests</h2>
+  <p class="muted small">These use the saved settings Prospector is running with — save (and let it restart) first.</p>
+  <ul class="plain test-list">
+    {% for path, label in [("llm", "Check LLM key"), ("telegram", "Send test Telegram message"), ("email", "Send test digest email")] %}
+    <li><button type="button" class="btn btn-sm" hx-post="/settings/test/{{ path }}" hx-target="#test-{{ path }}"
+                hx-swap="innerHTML" hx-disabled-elt="this">{{ label }}</button> <span id="test-{{ path }}" aria-live="polite"></span></li>
+    {% endfor %}
+  </ul>
+  <h3 class="small">Run a source now</h3>
+  <ul class="plain test-list">
+    {% for sid in running_sources %}
+    <li><button type="button" class="btn btn-sm" hx-post="/settings/test/source/{{ sid }}" hx-target="#test-src-{{ sid }}"
+                hx-swap="innerHTML" hx-disabled-elt="this">Run {{ sid }}</button> <span id="test-src-{{ sid }}" aria-live="polite"></span></li>
+    {% else %}<li class="muted">No source is running.</li>{% endfor %}
+  </ul>
+</section>

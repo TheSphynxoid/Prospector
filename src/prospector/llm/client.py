@@ -51,11 +51,13 @@ class LLMClient:
         return content
 
     def list_models(self) -> list[str]:
+        causes = []
         for url in (f"{self.base_url}/models", MODELS_FALLBACK_URL):
             try:
                 resp = self._http.get(url, headers=self._headers, timeout=20)
                 resp.raise_for_status()
                 return [m["id"] for m in resp.json()["data"]]
-            except (httpx.HTTPError, KeyError, ValueError):
-                continue
-        raise LLMError("could not list models")
+            except (httpx.HTTPError, KeyError, ValueError) as e:
+                causes.append(describe_error(e))
+        # Report the configured endpoint's failure (e.g. "HTTP 401 from opencode.ai"); never a URL.
+        raise LLMError(f"could not list models ({causes[0]})")

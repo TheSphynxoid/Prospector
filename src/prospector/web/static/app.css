@@ -224,3 +224,5 @@ code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; b
 .rows[data-group="projects"] .row-edit { padding: .6rem; border: 1px dashed var(--line); border-radius: 10px; }
 .form-actions { gap: .6rem; align-items: center; flex-wrap: wrap; }
 .test-ok { color: var(--good); font-size: .9rem; } .test-err { color: var(--bad); font-size: .9rem; }
+.test-list { display: grid; gap: .5rem; }
+.test-list li { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }

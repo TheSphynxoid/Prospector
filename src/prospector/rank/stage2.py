@@ -57,9 +57,14 @@ def review(lead: Lead, profile: Profile, client: LLMClient, kv: KV, session_id: 
             repair = f"{user}\n\nYour previous reply was invalid:\n{reply[:2000]}\n\n" \
                      "Return only valid JSON matching this schema: " + SYSTEM.split("JSON: ", 1)[1]
             result = Stage2Result.model_validate(extract_json(client.complete(SYSTEM, repair, session_id)))
-    except (LLMError, ValueError, ValidationError) as e:
+    except LLMError as e:
+        kv.set("llm_last_error", str(e))  # the setup checklist flags a rejected key
         log.warning("stage2 review failed for lead %s: %s", lead.id, e)
         return None
+    except (ValueError, ValidationError) as e:
+        log.warning("stage2 review failed for lead %s: %s", lead.id, e)
+        return None
+    kv.set("llm_last_error", None)
     kv.set(_cache_key(lead), result.model_dump())
     return result
 

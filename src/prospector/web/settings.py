@@ -6,11 +6,17 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from fastapi import APIRouter, Request
+import httpx
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from prospector.config import EDITABLE, SECRETS, Settings
 from prospector.context import AppContext
+from prospector.http import describe_error
+from prospector.llm.client import LLMError
+from prospector.notify.digest import build_digest, render_email
+from prospector.notify.email import send_email_via_bridge
+from prospector.notify.telegram import send_telegram
 from prospector.models import Kind
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
@@ -114,6 +120,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
             "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
             "periods": ["hour", "day", "month", "year", "fixed"], "rescore": ctx.kv.get("rescore_status"),
+            "running_sources": [x.id for x in ctx.sources],
         }, status_code=status)
 
     def apply(request: Request, new: dict):
@@ -183,6 +190,59 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
     @router.get("/settings/rescore-status")
     def rescore_status():
         return rescore_fragment(ctx.kv.get("rescore_status"))
+
+    def result(ok: bool, text: str, extra: str = "") -> HTMLResponse:
+        return HTMLResponse(f'<span class="{"test-ok" if ok else "test-err"}">{html.escape(text)}</span>{extra}')
+
+    @router.post("/settings/test/llm")
+    def test_llm():
+        if ctx.llm is None:
+            return result(False, "LLM client not available (no models matched at startup, or no key).")
+        try:
+            models = ctx.llm.list_models()
+        except LLMError as e:
+            ctx.kv.set("llm_last_error", str(e))
+            return result(False, str(e))
+        ctx.kv.set("llm_last_error", None)
+        s = ctx.settings
+        status = ", ".join(f"{m}: {'available' if m in models else 'missing'}" for m in (s.llm_model, s.llm_fallback_model))
+        options = "".join(f'<option value="{html.escape(m)}">' for m in models)
+        return result(True, f"{len(models)} models · {status}",
+                      f'<datalist id="llm-models" hx-swap-oob="true">{options}</datalist>')
+
+    @router.post("/settings/test/telegram")
+    def test_telegram():
+        s = ctx.settings
+        if not (s.telegram_token and s.telegram_chat_id):
+            return result(False, "Telegram token or chat id not set.")
+        try:
+            send_telegram(ctx.http, s.telegram_token.get_secret_value(), s.telegram_chat_id, "Prospector test message ✓")
+        except httpx.HTTPError as e:
+            return result(False, describe_error(e))
+        return result(True, "Sent — check Telegram.")
+
+    @router.post("/settings/test/email")
+    def test_email():
+        s = ctx.settings
+        if not s.bridge_url:
+            return result(False, "Worker URL not set.")
+        subject, text, body = render_email(build_digest(ctx.leads, ctx.health, ctx.kv, datetime.now(UTC), s.dashboard_url))
+        try:
+            send_email_via_bridge(ctx.http, s.bridge_url, s.bridge_secret.get_secret_value().encode(),
+                                  f"[test] {subject}", text, body)
+        except httpx.HTTPError as e:
+            return result(False, describe_error(e))
+        return result(True, "Sent the current digest — check your inbox.")
+
+    @router.post("/settings/test/source/{source_id}")
+    def test_source(source_id: str):
+        from prospector.pipeline import ingest
+
+        source = next((x for x in ctx.sources if x.id == source_id), None)
+        if source is None:
+            raise HTTPException(404)
+        ctx.run_background(lambda: ingest(ctx, source, datetime.now(UTC)))
+        return result(True, "Queued — results appear on the Sources page in a minute.")
 
     @router.post("/settings/reveal-bridge-secret")
     def reveal():
