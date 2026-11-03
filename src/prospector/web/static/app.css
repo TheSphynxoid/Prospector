@@ -226,3 +226,7 @@ code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; b
 .test-ok { color: var(--good); font-size: .9rem; } .test-err { color: var(--bad); font-size: .9rem; }
 .test-list { display: grid; gap: .5rem; }
 .test-list li { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.setup { border-color: var(--accent); background: var(--accent-soft); margin-bottom: 1rem; }
+.setup-list { margin: 0; padding-left: 1.25rem; display: grid; gap: .3rem; }
+.setup-list a { color: var(--fg); font-weight: 500; }
+.setup-list a:hover { color: var(--accent); }

@@ -10,6 +10,7 @@ from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
 from prospector.store.stats import TZ, StatsRepo
+from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
@@ -49,6 +50,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
             "top": ctx.leads.list(Status.NEW, limit=5),
             "last_digest": ctx.kv.get("last_digest_at"), "next_digest": next_digest(now, parse_hhmm(ctx.settings.digest_time)),
             "sources": ctx.health.all(), "needs_you": ctx.mail.needs_you(),
+            "setup": setup_items(ctx.settings, ctx.kv, ctx.settings.profile_path, EXAMPLE_PROFILE),
         })
 
     @router.get("/leads")

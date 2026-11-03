@@ -3,6 +3,14 @@
 {% block content %}
 {% set paused = sources|selectattr("paused")|list %}
 {% include "_needs_you.html" %}
+{% if setup %}
+<section class="card setup" id="setup">
+  <h2 class="card-title">Finish setting up <span class="muted">· {{ setup|length }} left</span></h2>
+  <ol class="setup-list">
+    {% for item in setup %}<li><a href="{{ item.href }}">{{ item.text }}</a></li>{% endfor %}
+  </ol>
+</section>
+{% endif %}
 
 <section class="tiles" aria-label="Key numbers">
   <a class="tile" href="/leads?sort=date"><span class="tile-label">New today</span><span class="tile-value">{{ o.new_today }}</span></a>
