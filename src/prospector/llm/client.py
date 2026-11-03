@@ -4,6 +4,7 @@ import re
 import httpx
 
 from prospector import __version__
+from prospector.http import describe_error
 
 MODELS_FALLBACK_URL = "https://opencode.ai/inference/go/v1/models"
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)
@@ -29,6 +30,7 @@ class LLMClient:
     def __init__(self, base_url: str, api_key: str, model: str, http: httpx.Client):
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.answered = 0  # completions that returned a reply (used to charge the daily cap)
         self._http = http
         self._headers = {"Authorization": f"Bearer {api_key}", "User-Agent": f"prospector/{__version__}"}
 
@@ -42,9 +44,11 @@ class LLMClient:
                 timeout=60,
             )
             resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"] or ""
+            content = resp.json()["choices"][0]["message"]["content"] or ""
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
-            raise LLMError(str(e)) from e
+            raise LLMError(describe_error(e)) from e
+        self.answered += 1
+        return content
 
     def list_models(self) -> list[str]:
         for url in (f"{self.base_url}/models", MODELS_FALLBACK_URL):

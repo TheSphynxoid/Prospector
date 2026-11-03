@@ -3,6 +3,7 @@ import { handleDigest, handleEmail, handleQueueMessage, type Env } from "../src/
 import { sign } from "../src/sign";
 
 const enc = new TextEncoder();
+const SECRET = "x".repeat(32);
 
 function fakeEnv() {
   const store = new Map<string, Uint8Array>();
@@ -12,7 +13,7 @@ function fakeEnv() {
     INGEST_URL: "https://prospector.test/ingest/mail",
     FROM_ADDRESS: "digest@prospector.test",
     OWNER_EMAIL: "owner@example.com",
-    BRIDGE_SECRET: "sec",
+    BRIDGE_SECRET: SECRET,
     ACCESS_CLIENT_ID: "cid",
     ACCESS_CLIENT_SECRET: "csecret",
     SPOOL: {
@@ -52,7 +53,7 @@ describe("email", () => {
     expect(h.get("CF-Access-Client-Id")).toBe("cid");
     expect(h.get("CF-Access-Client-Secret")).toBe("csecret");
     const ts = h.get("X-Prospector-Timestamp")!;
-    expect(h.get("X-Prospector-Signature")).toBe("sha256=" + (await sign("sec", ts, enc.encode("RAW MIME"))));
+    expect(h.get("X-Prospector-Signature")).toBe("sha256=" + (await sign(SECRET, ts, enc.encode("RAW MIME"))));
     expect(queued).toEqual([]);
   });
 
@@ -114,7 +115,7 @@ describe("digest", () => {
   beforeEach(() => ({ env, sent } = fakeEnv()));
 
   async function req(body: string, ts = String(Math.floor(Date.now() / 1000)), sig?: string) {
-    sig ??= "sha256=" + (await sign("sec", ts, enc.encode(body)));
+    sig ??= "sha256=" + (await sign(SECRET, ts, enc.encode(body)));
     return new Request("https://bridge.test/digest", {
       method: "POST", body,
       headers: { "X-Prospector-Timestamp": ts, "X-Prospector-Signature": sig },
@@ -129,6 +130,13 @@ describe("digest", () => {
 
   it("rejects stale timestamp", async () => {
     const r = await handleDigest(await req("{}", String(Math.floor(Date.now() / 1000) - 400)), env);
+    expect(r.status).toBe(401);
+  });
+
+  it("refuses to work with a short secret", async () => {
+    env.BRIDGE_SECRET = "short";
+    const ts = String(Math.floor(Date.now() / 1000));
+    const r = await handleDigest(await req("{}", ts, "sha256=" + (await sign("short", ts, enc.encode("{}")))), env);
     expect(r.status).toBe(401);
   });
 

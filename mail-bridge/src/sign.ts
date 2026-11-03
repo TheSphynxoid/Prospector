@@ -18,7 +18,10 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+export const MIN_SECRET_LENGTH = 32;
+
 export async function verify(secret: string, headers: Headers, body: Uint8Array, nowSeconds: number): Promise<boolean> {
+  if (!secret || secret.length < MIN_SECRET_LENGTH) return false; // a guessable secret would let anyone mail the owner
   const ts = headers.get("X-Prospector-Timestamp");
   const sig = headers.get("X-Prospector-Signature") ?? "";
   if (!ts || !/^\d+$/.test(ts) || !sig.startsWith("sha256=")) return false;

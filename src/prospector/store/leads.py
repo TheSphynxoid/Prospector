@@ -59,7 +59,7 @@ class LeadRepo:
         cur = self.conn.execute(
             """INSERT INTO leads(canonical_url, title, company, company_norm, kind, remote, remote_region,
                locations, pay, languages, deadline, posted_at, body, content_hash, sources, status,
-               filter_reason, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               filter_reason, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id""",
             (
                 lead.canonical_url, lead.title, lead.company, company_norm(lead.company),
                 lead.kind.value, lead.remote.value, lead.remote_region,
@@ -70,8 +70,9 @@ class LeadRepo:
                 lead.filter_reason, now_iso(),
             ),
         )
-        lead.id = cur.lastrowid
-        return cur.lastrowid
+        # RETURNING, not lastrowid: lastrowid is per-connection and races across threads
+        lead.id = cur.fetchone()[0]
+        return lead.id
 
     def get(self, id: int) -> Lead | None:
         row = self.conn.execute("SELECT * FROM leads WHERE id = ?", (id,)).fetchone()

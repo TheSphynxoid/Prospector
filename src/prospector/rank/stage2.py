@@ -72,17 +72,25 @@ def run_stage2(leads: LeadRepo, scores: ScoreRepo, kv: KV, client: LLMClient, pr
     if used >= cap:
         return 0
     reviewed = 0
-    for lead_id in scores.top_unreviewed(threshold, cap - used):
+    for lead_id in scores.top_unreviewed(threshold, (cap - used) * 3):
+        if used >= cap:
+            break
         lead = leads.get(lead_id)
         if lead is None:
             continue
-        if not kv.get(_cache_key(lead)):
+        failed_key = f"llm_failed:{lead.content_hash}"
+        if kv.get(failed_key) == today.isoformat():
+            continue  # failed earlier today; retry tomorrow instead of draining the cap
+        answered_before = client.answered
+        result = review(lead, profile, client, kv, f"prospector-{today.isoformat()}")
+        if client.answered > answered_before:  # only replies count; transport errors are free
             used += 1
             kv.set(used_key, used)
-        result = review(lead, profile, client, kv, f"prospector-{today.isoformat()}")
-        if result is not None:
-            scores.save_stage2(lead_id, result.model_dump())
-            reviewed += 1
+        if result is None:
+            kv.set(failed_key, today.isoformat())
+            continue
+        scores.save_stage2(lead_id, result.model_dump())
+        reviewed += 1
     return reviewed
 
 

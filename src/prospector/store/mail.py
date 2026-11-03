@@ -18,8 +18,8 @@ class MailRepo:
         self.conn = conn
 
     def insert(self, raw: bytes, received_at: datetime) -> int:
-        return self.conn.execute("INSERT INTO mails(raw, received_at) VALUES (?, ?)",
-                                 (raw, received_at.isoformat())).lastrowid
+        return self.conn.execute("INSERT INTO mails(raw, received_at) VALUES (?, ?) RETURNING id",
+                                 (raw, received_at.isoformat())).fetchone()[0]
 
     def pending(self) -> list[tuple[int, bytes]]:
         rows = self.conn.execute("SELECT id, raw FROM mails WHERE state = 'pending' ORDER BY id").fetchall()

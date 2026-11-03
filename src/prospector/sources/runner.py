@@ -3,12 +3,14 @@ from datetime import datetime, timedelta
 
 import httpx
 
+from prospector.http import describe_error
 from prospector.models import RawLead
 from prospector.sources.base import Source
 from prospector.store.health import HealthRepo, SourceHealth
 
 log = logging.getLogger(__name__)
 PAUSE_AFTER = 3
+SCHEDULE_SLACK = timedelta(minutes=2)
 
 
 def _missing_ratio(leads: list[RawLead]) -> float:
@@ -21,8 +23,9 @@ def run_source(source: Source, http: httpx.Client, health: HealthRepo, now: date
     try:
         leads = source.fetch(http)
     except Exception as e:  # noqa: BLE001 — any adapter failure must stay contained
-        log.warning("source %s failed: %s", source.id, e)
-        st = health.record_failure(source.id, f"{type(e).__name__}: {e}")
+        error = describe_error(e)
+        log.warning("source %s failed: %s", source.id, error)
+        st = health.record_failure(source.id, error)
         if st.consecutive_failures >= PAUSE_AFTER:
             health.set_paused(source.id, True)
         return []
@@ -34,7 +37,8 @@ def run_source(source: Source, http: httpx.Client, health: HealthRepo, now: date
 def should_run(h: SourceHealth, source: Source, now: datetime) -> bool:
     if h.last_run is None:
         return True
-    elapsed = now - datetime.fromisoformat(h.last_run)
+    # last_run is stamped when the fetch ends, so allow for fetch duration / tick jitter.
+    elapsed = now - datetime.fromisoformat(h.last_run) + SCHEDULE_SLACK
     if h.paused:
         return elapsed >= timedelta(hours=24)
     return elapsed >= timedelta(hours=source.interval_hours)

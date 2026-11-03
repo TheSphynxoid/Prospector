@@ -4,18 +4,12 @@ from datetime import datetime
 import httpx
 
 from prospector.context import AppContext
+from prospector.http import describe_error as _describe  # never the URL: Telegram's embeds the bot token
 from prospector.notify.digest import build_digest, render_email, render_telegram
 from prospector.notify.email import send_email_via_bridge
 from prospector.notify.telegram import send_telegram
 
 log = logging.getLogger(__name__)
-
-
-def _describe(e: httpx.HTTPError) -> str:
-    """Error text without the request URL (the Telegram URL embeds the bot token)."""
-    if isinstance(e, httpx.HTTPStatusError):
-        return f"HTTP {e.response.status_code}"
-    return type(e).__name__
 
 
 def send_digest(ctx: AppContext, now: datetime) -> None:

@@ -24,6 +24,16 @@ def configure_logging() -> None:
     logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
+MIN_SECRET_LEN = 32
+
+
+def check_secrets(settings: Settings) -> None:
+    """Refuse to serve with a guessable HMAC secret (it guards /ingest/mail and the Worker's /digest)."""
+    if len(settings.bridge_secret.get_secret_value()) < MIN_SECRET_LEN:
+        raise SystemExit(f"BRIDGE_SECRET must be at least {MIN_SECRET_LEN} characters "
+                         "(e.g. `openssl rand -hex 32`)")
+
+
 def build_context(settings: Settings, with_embedder: bool = True, with_sources: bool = True) -> AppContext:
     from prospector.sources.registry import build_sources
     from prospector.web.auth import AccessVerifier
@@ -51,6 +61,7 @@ def cmd_serve(settings: Settings, args) -> int:
     from prospector.scheduler import build_scheduler
     from prospector.web.app import create_app
 
+    check_secrets(settings)
     ctx = build_context(settings)
     model = select_model(ctx.llm, settings.llm_model, settings.llm_fallback_model)
     if model is None:
