@@ -256,3 +256,8 @@ kbd { font: .8rem ui-monospace, SFMono-Regular, Menlo, monospace; padding: .1rem
   .search { order: 3; flex: 1 1 100%; margin-left: 0; }
   .kbd-help { display: none; }
 }
+.detail .body { white-space: normal; }
+.detail .body p { margin: 0 0 .75em; white-space: pre-line; }
+.detail .body ul { margin: 0 0 .75em; padding-left: 1.25rem; }
+.detail .body > :last-child { margin-bottom: 0; }
+.pay { color: var(--good); font-weight: 500; }

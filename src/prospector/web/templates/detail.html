@@ -16,7 +16,7 @@
       {% include "_detail_actions.html" %}
     </div>
     <h2>Description</h2>
-    <div class="body">{{ l.body }}</div>
+    <div class="body">{% for kind, block in l.body|paragraphs %}{% if kind == "ul" %}<ul>{% for item in block %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ block }}</p>{% endif %}{% else %}<p class="muted">No description.</p>{% endfor %}</div>
   </article>
 
   <aside class="detail-side">
@@ -36,9 +36,10 @@
       <h2 class="card-title">Facts</h2>
       <table class="facts">
         <tr><th>Locations</th><td>{{ l.locations|join(", ") or "–" }}</td></tr>
-        <tr><th>Pay</th><td>{% if l.pay %}{{ l.pay.min or "?" }}–{{ l.pay.max or "?" }} {{ l.pay.currency }}{% if l.pay.period %} / {{ l.pay.period }}{% endif %}{% else %}not stated{% endif %}</td></tr>
+        <tr><th>Pay</th><td>{{ l.pay|pay }}</td></tr>
         <tr><th>Languages</th><td>{{ l.languages|join(", ") or "–" }}</td></tr>
-        <tr><th>Posted</th><td>{{ l.posted_at.strftime("%Y-%m-%d") if l.posted_at else "–" }}</td></tr>
+        <tr><th>Posted</th><td>{% if l.posted_at %}<span title="{{ l.posted_at|local }}">{{ l.posted_at|ago }}</span>{% else %}–{% endif %}</td></tr>
+        <tr><th>First seen</th><td>{% if row.created_at %}<span title="{{ row.created_at|local }}">{{ row.created_at|ago }}</span>{% else %}–{% endif %}</td></tr>
         <tr><th>Deadline</th><td>{{ l.deadline or "–" }}</td></tr>
         <tr><th>Seen on</th><td>{{ l.sources|join(", ") }}</td></tr>
         <tr><th>Status</th><td>{{ l.status.value }}{% if l.filter_reason %} ({{ l.filter_reason }}){% endif %}</td></tr>

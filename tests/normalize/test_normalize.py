@@ -90,7 +90,7 @@ def test_detect_languages_en():
 def test_normalize_strips_html_and_hashes():
     lead = normalize(raw(body="<p>Hello&nbsp;<b>world</b></p>\n\n  again", company="Acme",
                          url="https://www.x.com/1?utm_source=a", location_text="Remote (EU only)"))
-    assert lead.body == "Hello world again"
+    assert lead.body == "Hello world\n\nagain"  # paragraph breaks kept (settings/UX spec §7)
     assert lead.canonical_url == "https://x.com/1"
     assert lead.sources == ["s"]
     assert lead.remote is Remote.YES and lead.remote_region == "EU only"
@@ -118,3 +118,19 @@ def test_dedupe_same_url():
     a = normalize(raw(title="X", url="https://a.com/1?utm_source=z"))
     b = normalize(raw(title="Totally different", url="http://a.com/1/"))
     assert is_duplicate(a, b)
+
+
+def test_clean_text_keep_lines():
+    from prospector.normalize.normalize import clean_text
+    assert clean_text("a  b\n\n\n\nc\t d", keep_lines=True) == "a b\n\nc d"
+    assert clean_text("<p>x</p><p>y</p>", keep_lines=True) == "x\n\ny"
+    assert clean_text("<p>Intro</p><ul><li>one</li><li>two</li></ul>", keep_lines=True) == "Intro\n\n- one\n- two"
+    assert clean_text("a  b\n\nc") == "a b c"  # default still collapses everything
+
+
+def test_normalize_keeps_body_lines_but_not_title():
+    from prospector.models import RawLead
+    from prospector.normalize.normalize import normalize
+    lead = normalize(RawLead(source_id="x", external_id="1", url="https://e.com/1", title="Go\n  dev", company="A\nB",
+                             body="<p>One</p><p>Two</p>"))
+    assert lead.title == "Go dev" and lead.company == "A B" and lead.body == "One\n\nTwo"

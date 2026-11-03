@@ -15,6 +15,7 @@ class LeadRow:
     lead: Lead
     stage1: float | None
     stage2: dict | None
+    created_at: str | None = None  # first seen (UTC ISO)
 
 
 def _lead(row: sqlite3.Row) -> Lead:
@@ -45,6 +46,7 @@ def _row(row: sqlite3.Row) -> LeadRow:
         lead=_lead(row),
         stage1=row["stage1"],
         stage2=json.loads(row["stage2"]) if row["stage2"] else None,
+        created_at=row["created_at"],
     )
 
 

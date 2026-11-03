@@ -12,6 +12,7 @@ from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
 from prospector.store.stats import TZ, StatsRepo
 from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
+from prospector.web.format import fmt_ago, fmt_pay, paragraphs
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
@@ -36,6 +37,9 @@ def _local(ts: datetime | str | None) -> str:
 
 
 templates.env.filters["local"] = _local
+templates.env.filters["pay"] = fmt_pay
+templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
+templates.env.filters["paragraphs"] = paragraphs
 
 
 def make_dashboard_router(ctx: AppContext) -> APIRouter:

@@ -10,6 +10,9 @@
       <span class="chip">{{ l.kind.value }}</span>
       <span class="chip chip-{{ l.remote.value }}">remote: {{ l.remote.value }}{% if l.remote_region %} · {{ l.remote_region }}{% endif %}</span>
       {% if l.locations %}<span class="muted">{{ l.locations|join(", ") }}</span>{% endif %}
+      {% if l.pay %}<span class="pay">{{ l.pay|pay }}</span>{% endif %}
+      {% set when = l.posted_at or row.created_at %}
+      {% if when %}<span class="muted" title="{{ when|local }}">{{ "posted" if l.posted_at else "seen" }} {{ when|ago }}</span>{% endif %}
       {% if l.status.value != "new" %}<span class="chip chip-status">{{ l.status.value }}</span>{% endif %}
     </div>
     {% if row.stage2 %}
