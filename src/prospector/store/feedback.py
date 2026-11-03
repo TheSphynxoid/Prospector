@@ -13,9 +13,13 @@ class FeedbackRepo:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
-    def record(self, lead_id: int, action: Action) -> None:
-        self.conn.execute("INSERT INTO feedback(lead_id, action, at) VALUES (?,?,?)",
-                          (lead_id, action, now_iso()))
+    def record(self, lead_id: int, action: Action) -> int:
+        return self.conn.execute("INSERT INTO feedback(lead_id, action, at) VALUES (?,?,?) RETURNING id",
+                                 (lead_id, action, now_iso())).fetchone()[0]
+
+    def delete(self, feedback_id: int, lead_id: int) -> None:
+        """Drop one feedback row (undo), only if it belongs to `lead_id`."""
+        self.conn.execute("DELETE FROM feedback WHERE id = ? AND lead_id = ?", (feedback_id, lead_id))
 
     def _latest(self, actions: tuple[str, ...]) -> list[int]:
         return [r["lead_id"] for r in self.conn.execute(_LATEST).fetchall() if r["action"] in actions]

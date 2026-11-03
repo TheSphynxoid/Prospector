@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from urllib.parse import urlencode
@@ -15,6 +16,7 @@ from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
 _ACTIONS = {"star": Status.STARRED, "dismiss": Status.DISMISSED, "applied": Status.APPLIED, "reset": Status.NEW}
+_TOAST = {"star": "Starred", "dismiss": "Dismissed", "applied": "Marked applied", "reset": "Moved back to new"}
 TABS = [Status.NEW, Status.STARRED, Status.APPLIED, Status.FILTERED, Status.DISMISSED]
 
 
@@ -78,14 +80,32 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
             "nav": "leads", "row": row, "breakdown": ctx.scores.breakdown(lead_id) or {},
         })
 
+    def fragment(request: Request, lead_id: int, headers: dict | None = None):
+        # The detail page swaps its action bar; lists swap the whole row.
+        name = "_detail_actions.html" if request.headers.get("hx-target") == "detail-actions" else "_row.html"
+        return templates.TemplateResponse(request, name, {"row": ctx.leads.get_row(lead_id)}, headers=headers)
+
+    @router.post("/lead/{lead_id}/undo")
+    def undo(request: Request, lead_id: int, to: Status, fb: int):
+        if ctx.leads.get(lead_id) is None:
+            raise HTTPException(404)
+        ctx.leads.set_status(lead_id, to)
+        ctx.feedback.delete(fb, lead_id)  # so undo does not train the ranker
+        return fragment(request, lead_id)
+
     @router.post("/lead/{lead_id}/{action}")
     def act(request: Request, lead_id: int, action: str):
         status = _ACTIONS.get(action)
-        if status is None or ctx.leads.get(lead_id) is None:
+        lead = ctx.leads.get(lead_id)
+        if status is None or lead is None:
             raise HTTPException(404)
+        previous = lead.status
         ctx.leads.set_status(lead_id, status)
-        ctx.feedback.record(lead_id, action)
-        return templates.TemplateResponse(request, "_row.html", {"row": ctx.leads.get_row(lead_id)})
+        fb = ctx.feedback.record(lead_id, action)
+        target = "#detail-actions" if request.headers.get("hx-target") == "detail-actions" else f"#lead-{lead_id}"
+        trigger = {"toast": {"msg": _TOAST[action], "target": target,
+                             "undo": f"/lead/{lead_id}/undo?{urlencode({'to': previous.value, 'fb': fb})}"}}
+        return fragment(request, lead_id, {"HX-Trigger": json.dumps(trigger)})
 
     @router.get("/health")
     def health(request: Request):

@@ -28,6 +28,42 @@
     }
   });
 
+  // Toasts: the server sends HX-Trigger {"toast": {msg, undo, target}} after each lead action.
+  let toastTimer = null;
+  function toastBox() {
+    let box = document.getElementById("toast");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "toast";
+      box.className = "toast";
+      box.setAttribute("role", "status");
+      box.setAttribute("aria-live", "polite");
+      document.body.appendChild(box);
+    }
+    return box;
+  }
+  function hideToast() { const b = document.getElementById("toast"); if (b) b.classList.remove("show"); }
+  document.body.addEventListener("toast", (e) => {
+    const { msg, undo, target } = e.detail;
+    const box = toastBox();
+    box.replaceChildren(document.createTextNode(msg));
+    if (undo) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "toast-undo";
+      btn.textContent = "Undo";
+      btn.addEventListener("click", () => {
+        hideToast();
+        htmx.ajax("POST", undo, { target, swap: "outerHTML", headers: { "HX-Target": target.slice(1) } });
+      });
+      box.append(" ", btn);
+    }
+    box.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 6000);
+  });
+  window.prospectorUndo = () => document.querySelector("#toast.show .toast-undo")?.click();
+
   function rowIndex(row) {
     const m = row.querySelector("[name]")?.name.match(/\[(\d+)\]/);
     return m ? Number(m[1]) : 0;

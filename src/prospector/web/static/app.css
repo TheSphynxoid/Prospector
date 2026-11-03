@@ -230,3 +230,11 @@ code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; b
 .setup-list { margin: 0; padding-left: 1.25rem; display: grid; gap: .3rem; }
 .setup-list a { color: var(--fg); font-weight: 500; }
 .setup-list a:hover { color: var(--accent); }
+.detail-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: .75rem 0 .25rem; }
+.detail-actions { flex-wrap: wrap; align-items: center; }
+.toast { position: fixed; left: 50%; bottom: 1.25rem; transform: translate(-50%, 1rem); opacity: 0; pointer-events: none;
+  background: var(--fg); color: var(--bg); padding: .6rem .9rem; border-radius: 10px; font-size: .9rem; font-weight: 500;
+  box-shadow: 0 6px 24px rgb(0 0 0 / .2); transition: opacity .15s, transform .15s; z-index: 50; max-width: calc(100vw - 2rem); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.toast-undo { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0 0 0 .5rem; }
+@media (prefers-color-scheme: dark) { .toast-undo { color: #4f46e5; } }

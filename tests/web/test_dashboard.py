@@ -84,3 +84,58 @@ def test_needs_you_shows_confirmation_link(ctx, client):
 def test_static_htmx_served(client):
     r = client.get("/static/htmx.min.js")
     assert r.status_code == 200 and "htmx" in r.text[:2000]
+
+
+def toast(r):
+    import json
+    return json.loads(r.headers["HX-Trigger"])["toast"]
+
+
+def test_action_sends_toast_with_undo(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead())
+    t = toast(client.post(f"/lead/{lid}/dismiss"))
+    assert t["msg"] == "Dismissed" and t["undo"].startswith(f"/lead/{lid}/undo?to=new&fb=")
+    assert t["target"] == f"#lead-{lid}"
+
+
+def test_undo_restores_and_removes_feedback(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead(title="Undo me"))
+    undo = toast(client.post(f"/lead/{lid}/star"))["undo"]
+    r = client.post(undo)
+    assert r.status_code == 200 and "Undo me" in r.text
+    assert ctx.leads.get(lid).status is Status.NEW and ctx.feedback.count() == 0
+
+
+def test_undo_twice(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead())
+    undo = toast(client.post(f"/lead/{lid}/applied"))["undo"]
+    client.post(undo)
+    r = client.post(undo)
+    assert r.status_code == 200 and ctx.leads.get(lid).status is Status.NEW
+
+
+def test_undo_other_leads_feedback_untouched(ctx, client, make_lead):
+    a = ctx.leads.insert(make_lead(canonical_url="a"))
+    b = ctx.leads.insert(make_lead(canonical_url="b"))
+    client.post(f"/lead/{a}/star")
+    fb_a = toast(client.post(f"/lead/{a}/dismiss"))["undo"].split("fb=")[1]
+    client.post(f"/lead/{b}/undo?to=new&fb={fb_a}")
+    assert ctx.feedback.count() == 2
+
+
+def test_undo_rejects_bad_status(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead())
+    assert client.post(f"/lead/{lid}/undo?to=bogus&fb=1").status_code == 422
+
+
+def test_detail_has_actions(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead())
+    page = client.get(f"/lead/{lid}").text
+    assert f'hx-post="/lead/{lid}/star"' in page and 'id="detail-actions"' in page
+
+
+def test_detail_action_returns_detail_fragment(ctx, client, make_lead):
+    lid = ctx.leads.insert(make_lead())
+    r = client.post(f"/lead/{lid}/star", headers={"HX-Target": "detail-actions"})
+    assert 'id="detail-actions"' in r.text and 'class="lead ' not in r.text
+    assert toast(r)["target"] == "#detail-actions"

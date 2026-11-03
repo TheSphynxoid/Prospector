@@ -11,7 +11,10 @@
       <span class="chip">{{ l.kind.value }}</span>
       <span class="chip chip-{{ l.remote.value }}">remote: {{ l.remote.value }}{% if l.remote_region %} · {{ l.remote_region }}{% endif %}</span>
     </div>
-    <p><a class="btn btn-primary" href="{{ l.canonical_url }}" target="_blank" rel="noopener noreferrer">Open original posting ↗</a></p>
+    <div class="detail-bar">
+      <a class="btn btn-primary" href="{{ l.canonical_url }}" target="_blank" rel="noopener noreferrer">Open original posting ↗</a>
+      {% include "_detail_actions.html" %}
+    </div>
     <h2>Description</h2>
     <div class="body">{{ l.body }}</div>
   </article>
