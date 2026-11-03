@@ -1,0 +1,23 @@
+From: Jobs Board <noreply@jobs-board.example>
+To: alerts@prospector.thesphynx.net
+Subject: 2 new jobs match your alert
+Date: Mon, 03 Nov 2026 09:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset=utf-8
+
+2 new jobs
+
+--b1
+Content-Type: text/html; charset=utf-8
+
+<html><body>
+<h1>2 new jobs match your alert</h1>
+<a href="https://jobs-board.example/job/101?utm_source=alert">Senior Go Backend Engineer at Acme</a>
+<a href="https://jobs-board.example/offre/202">Développeur C++ temps réel - Tunis</a>
+<a href="https://jobs-board.example/unsubscribe">Unsubscribe from these emails now</a>
+<a href="https://jobs-board.example/job/303">Apply</a>
+</body></html>
+--b1--

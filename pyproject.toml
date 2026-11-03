@@ -41,3 +41,4 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["slow: downloads models or hits the network"]
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]

@@ -1,5 +1,6 @@
 """Importing this module registers every source adapter with the registry."""
 from prospector.sources.adzuna import Adzuna
+from prospector.sources.alerts import AlertsSource
 from prospector.sources.arbeitnow import Arbeitnow
 from prospector.sources.freelancer import Freelancer
 from prospector.sources.github_bounties import GitHubBounties
@@ -19,3 +20,4 @@ register("hn")(lambda s, m: HackerNewsHiring())
 register("github_bounties")(lambda s, m: GitHubBounties(s.github_token.get_secret_value())
                             if s.github_token else None)
 register("freelancer")(lambda s, m: Freelancer())
+register("alerts")(lambda s, m: AlertsSource(m))
