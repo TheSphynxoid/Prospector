@@ -6,6 +6,7 @@ from prospector.sources.freelancer import Freelancer
 from prospector.sources.github_bounties import GitHubBounties
 from prospector.sources.hn import HackerNewsHiring
 from prospector.sources.himalayas import Himalayas
+from prospector.sources.keejob import Keejob
 from prospector.sources.registry import register
 from prospector.sources.remoteok import RemoteOK
 from prospector.sources.remotive import Remotive
@@ -21,3 +22,4 @@ register("github_bounties")(lambda s, m: GitHubBounties(s.github_token.get_secre
                             if s.github_token else None)
 register("freelancer")(lambda s, m: Freelancer())
 register("alerts")(lambda s, m: AlertsSource(m))
+register("keejob")(lambda s, m: Keejob())
