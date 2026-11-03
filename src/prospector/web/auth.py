@@ -1,5 +1,6 @@
 import ipaddress
 import time
+from urllib.parse import urlsplit
 
 import httpx
 import jwt
@@ -49,6 +50,27 @@ def _from_tailnet(request: Request) -> bool:
         return request.client is not None and ipaddress.ip_address(request.client.host) in TAILNET
     except ValueError:
         return False
+
+
+_SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def make_same_origin_middleware(exempt: frozenset[str] = frozenset({"/ingest/mail"})):
+    """Refuse state-changing requests a browser marks as coming from another site (CSRF).
+
+    Requests with neither header (curl, very old browsers) pass; the access check still applies to them.
+    """
+
+    async def middleware(request: Request, call_next):
+        if request.method not in _SAFE_METHODS and request.url.path not in exempt:
+            site = request.headers.get("sec-fetch-site")
+            origin = request.headers.get("origin")
+            if (site is not None and site != "same-origin") or (
+                    origin is not None and urlsplit(origin).netloc != request.headers.get("host")):
+                return PlainTextResponse("cross-origin request refused", status_code=403)
+        return await call_next(request)
+
+    return middleware
 
 
 def make_access_middleware(verifier: AccessVerifier | None):
