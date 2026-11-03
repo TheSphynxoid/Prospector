@@ -25,7 +25,7 @@ def test_e2e_smoke(tmp_path):
     respx.post("https://llm.test/v1/chat/completions").mock(
         return_value=httpx.Response(200, json={"choices": [{"message": {"content": json.dumps(GOOD)}}]}))
     s = Settings(_env_file=None, llm_api_key="k", bridge_secret="s", access_team_domain="t", access_aud="a",
-                 profile_path=tmp_path / "p", data_dir=tmp_path, stage2_threshold=0.0)
+                 profile_path=tmp_path / "p", data_dir=tmp_path, stage2_threshold=0.0, allowed_hosts=["testserver"])
     prof = Profile(skills={"go": 1}, projects=[Project(name="P", writeup="go services")],
                    targets=Targets(kinds=list(Kind), regions=[]))
     http = httpx.Client()

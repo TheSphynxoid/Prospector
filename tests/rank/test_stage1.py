@@ -104,3 +104,10 @@ def test_reweight_moves_toward_positive_component_and_sums_to_one():
     assert w.sim > Weights().sim
     assert sum(w.as_dict().values()) == pytest.approx(1.0)
     assert all(0.05 <= v <= 0.60 for v in w.as_dict().values())
+
+
+def test_boost_keyword_with_spaces_matches_list_items(make_lead, prof):
+    prof.boost_keywords = {" go ": 1.0}
+    lead = make_lead(title="Backend engineer", body="Skills:\n- go\n- kubernetes")
+    _, bd = score(lead, prof, FakeEmbedder())
+    assert bd["keywords"] > 0

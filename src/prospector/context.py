@@ -42,6 +42,7 @@ class AppContext:
     profile_vecs: Any = None  # np.ndarray, computed lazily by the pipeline
     loaded: "LoadedSettings | None" = None  # where each setting came from; set by serve
     env_file: str | None = ".env"
+    sched: Any = None  # the BackgroundScheduler, set by serve
     # serve swaps these for a real process restart and the scheduler's thread pool; tests keep them inline.
     restart: Callable[[], None] = lambda: None
     run_background: Callable[[Callable[[], None]], None] = lambda fn: fn()

@@ -24,7 +24,8 @@ def score_stage1(lead: Lead, lead_vec: np.ndarray, profile_vecs: np.ndarray, pos
     lo, hi = sim_range
     sim = _clamp(((_max_cos(lead_vec, profile_vecs) or 0.0) - lo) / (hi - lo))
 
-    text = f"{lead.title}\n{lead.body}".lower()
+    # One line padded with spaces, so " go " also matches list items and words at line ends.
+    text = " " + " ".join(f"{lead.title}\n{lead.body}".lower().split()) + " "
     keywords = _clamp(sum(w for kw, w in profile.boost_keywords.items() if kw.lower() in text) / 3)
 
     meets = pay_meets_min(lead.pay, profile)

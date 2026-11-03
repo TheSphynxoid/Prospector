@@ -108,3 +108,12 @@ def test_run_stage2_continues_after_failure(client, prof, make_lead):
         side_effect=[httpx.Response(503), reply(json.dumps(GOOD))])
     conn, leads, scores = seeded(make_lead, 2)
     assert run_stage2(leads, scores, KV(conn), client, prof, cap=20, threshold=0.5, today=date(2026, 11, 3)) == 1
+
+
+def test_list_models_bad_url_is_llm_error():
+    import httpx
+
+    from prospector.llm.client import LLMClient, LLMError
+    client = LLMClient("https://opencode.ai:443x/v1", "k", "m", httpx.Client())
+    with pytest.raises(LLMError):
+        client.list_models()

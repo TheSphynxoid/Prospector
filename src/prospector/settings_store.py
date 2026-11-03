@@ -5,9 +5,10 @@ pydantic-settings ranks keyword arguments above env and .env, so overrides are s
 import json
 import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 
 from pydantic import ValidationError
 
@@ -17,6 +18,7 @@ log = logging.getLogger(__name__)
 FILENAME = "settings.json"
 MIN_SECRET_LEN = 32
 Origin = Literal["override", "env", "default"]
+T = TypeVar("T")
 
 
 @dataclass
@@ -46,14 +48,28 @@ def load_settings(env_file: str | None = ".env") -> LoadedSettings:
         raw = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValueError("not a JSON object")
-        overrides = {k: v for k, v in raw.items() if k in EDITABLE}
-        settings = Settings(_env_file=env_file, **overrides)
-    except ValidationError as e:
-        reason = "; ".join(f"{k}: {m}" for k, m in _errors(e).items())
-        return _reject(path, env_only, reason)
     except (OSError, ValueError) as e:  # JSONDecodeError is a ValueError
         return _reject(path, env_only, f"{type(e).__name__}: {e}")
+    overrides = {k: v for k, v in raw.items() if k in EDITABLE}
+    settings, errors = validate_overrides(env_file, overrides)  # same checks as a save from the page
+    if errors:
+        return _reject(path, env_only, "; ".join(f"{k}: {m}" for k, m in errors.items()))
     return LoadedSettings(settings, overrides, _origins(env_only, overrides))
+
+
+def start_with_fallback(loaded: LoadedSettings, env_file: str | None, start: Callable[[Settings], T]
+                        ) -> tuple[T, LoadedSettings]:
+    """Run `start` with the saved settings; if it fails and overrides were in play, set them aside and retry
+    with env/.env only, so one bad saved value cannot crash-loop the container."""
+    try:
+        return start(loaded.settings), loaded
+    except Exception as e:  # noqa: BLE001 — anything that stops startup
+        if not loaded.overrides:
+            raise
+        log.exception("startup failed with saved settings; retrying without them")
+        reason = f"startup failed: {type(e).__name__}"
+        fallback = _reject(Path(loaded.settings.data_dir) / FILENAME, Settings(_env_file=env_file), reason)
+        return start(fallback.settings), fallback
 
 
 def _reject(path: Path, env_only: Settings, reason: str) -> LoadedSettings:

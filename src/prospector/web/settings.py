@@ -91,7 +91,10 @@ def merge_form(form, loaded: LoadedSettings) -> tuple[dict, dict[str, str]]:
         except ValueError:
             errors[name] = "must be a number"
             continue
-        if name in new or value != _current(loaded.settings, name):
+        current = _current(loaded.settings, name)
+        if name in _OPTIONAL_STR:  # .env passes "KEY=" as "", the form posts it back as None: same thing
+            current = current or None
+        if name in new or value != current:
             new[name] = value
     if form.get("enabled_sources_present"):
         chosen = form.getlist("enabled_sources")

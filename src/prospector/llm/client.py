@@ -47,6 +47,8 @@ class LLMClient:
             content = resp.json()["choices"][0]["message"]["content"] or ""
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
             raise LLMError(describe_error(e)) from e
+        except httpx.InvalidURL as e:
+            raise LLMError("invalid LLM endpoint URL") from e
         self.answered += 1
         return content
 
@@ -57,7 +59,7 @@ class LLMClient:
                 resp = self._http.get(url, headers=self._headers, timeout=20)
                 resp.raise_for_status()
                 return [m["id"] for m in resp.json()["data"]]
-            except (httpx.HTTPError, KeyError, ValueError) as e:
-                causes.append(describe_error(e))
+            except (httpx.HTTPError, httpx.InvalidURL, KeyError, ValueError) as e:
+                causes.append(describe_error(e) if isinstance(e, httpx.HTTPError) else type(e).__name__)
         # Report the configured endpoint's failure (e.g. "HTTP 401 from opencode.ai"); never a URL.
         raise LLMError(f"could not list models ({causes[0]})")

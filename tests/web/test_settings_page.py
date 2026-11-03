@@ -16,7 +16,7 @@ MARKERS = {"LLM_API_KEY": "SECRET-LLM-123", "TELEGRAM_TOKEN": "SECRET-TG-456",
 def env(tmp_path, monkeypatch):
     for k, v in {"DATA_DIR": str(tmp_path), "PROFILE_PATH": str(tmp_path / "p.yaml"),
                  "ACCESS_TEAM_DOMAIN": "team.cloudflareaccess.com", "ACCESS_AUD": "aud-tag",
-                 "TELEGRAM_CHAT_ID": "42", **MARKERS}.items():
+                 "TELEGRAM_CHAT_ID": "42", "ALLOWED_HOSTS": '["testserver"]', **MARKERS}.items():
         monkeypatch.setenv(k, v)
     return tmp_path
 
@@ -227,3 +227,20 @@ def test_rescore_button_queues(example_profile, ctx):
     ctx.run_background = queued.append
     r = client.post("/settings/rescore")
     assert r.status_code == 200 and len(queued) == 1 and "Re-scoring" in r.text
+
+
+def test_untouched_save_with_empty_env_optionals(setup, env, monkeypatch):
+    client, restarts, reload = setup
+    for k in ("TELEGRAM_CHAT_ID", "BRIDGE_URL", "ADZUNA_APP_ID"):
+        monkeypatch.setenv(k, "")  # compose passes empty .env entries as ""
+    reload()
+    r = client.post("/settings", data=form_of(client))
+    assert "Nothing changed" in r.text and saved(env) is None and restarts == []
+
+
+def test_foreign_host_refused(setup):
+    client, _, _ = setup
+    assert client.get("/settings", headers={"Host": "evil.example:8080"}).status_code == 400
+    assert client.post("/settings/reveal-bridge-secret",
+                       headers={"Host": "evil.example", "Origin": "http://evil.example"}).status_code == 400
+    assert client.get("/healthz", headers={"Host": "127.0.0.1:8080"}).status_code == 200

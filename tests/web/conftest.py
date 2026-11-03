@@ -47,7 +47,8 @@ def make_token(rsa_key):
 @pytest.fixture
 def ctx(certs_transport, tmp_path):
     settings = Settings(_env_file=None, llm_api_key="k", bridge_secret="s", access_team_domain=TEAM,
-                        access_aud=AUD, profile_path=tmp_path / "p.yaml", data_dir=tmp_path)
+                        access_aud=AUD, profile_path=tmp_path / "p.yaml", data_dir=tmp_path,
+                        allowed_hosts=["testserver"])
     profile = Profile(skills={"go": 1}, projects=[Project(name="P", writeup="w")],
                       targets=Targets(kinds=list(Kind), regions=[]))
     http = httpx.Client(transport=certs_transport)

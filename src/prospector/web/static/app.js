@@ -109,10 +109,11 @@
       "/": () => document.getElementById("search")?.focus(),
       "?": () => toggleShortcuts(),
       Escape: () => toggleShortcuts(false),
-      Enter: () => { const a = current()?.querySelector(".lead-title"); if (a && t === current()) a.click(); },
+      // Only when a lead row itself has focus; links and buttons keep their own Enter.
+      Enter: () => { const a = current()?.querySelector(".lead-title"); if (!a || t !== current()) return false; a.click(); },
     };
     const fn = keys[e.key];
-    if (fn) { e.preventDefault(); fn(); }
+    if (fn && fn() !== false) e.preventDefault();
   });
 
   function rowIndex(row) {

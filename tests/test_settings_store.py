@@ -79,3 +79,43 @@ def test_save_atomic_and_private(env):
     assert not list(env.glob("*.tmp"))
     if os.name == "posix":
         assert (env / "settings.json").stat().st_mode & 0o777 == 0o600
+
+
+@pytest.mark.parametrize("field", ["llm_base_url", "bridge_url", "dashboard_url"])
+@pytest.mark.parametrize("bad", ["https://ｏｐｅｎ.ai/v1", "https://opencode.ai:443x/v1", "ftp://x.example",
+                                 "not a url", "https://a\x00b.example"])
+def test_url_fields_validated(env, field, bad):
+    assert field in validate_overrides(None, {field: bad})[1]
+
+
+def test_good_urls_accepted(env):
+    assert validate_overrides(None, {"llm_base_url": "https://opencode.ai/inference/go/openai/v1",
+                                     "bridge_url": "https://b.example.workers.dev", "dashboard_url": "http://100.1.2.3:8080"})[1] == {}
+
+
+def test_load_applies_full_validation(env):
+    write(env, {"bridge_secret": "short-but-valid-pydantic"})
+    ls = load_settings(env_file=None)
+    assert ls.rejected and "bridge_secret" in ls.rejected
+    assert ls.settings.bridge_secret.get_secret_value() == "e" * 32
+
+
+def test_start_with_fallback_rejects_overrides_that_break_startup(env):
+    from prospector.settings_store import start_with_fallback
+    write(env, {"llm_model": "boom"})
+    loaded = load_settings(env_file=None)
+
+    def start(settings):
+        if settings.llm_model == "boom":
+            raise RuntimeError("startup failed")
+        return "ctx"
+
+    result, loaded = start_with_fallback(loaded, None, start)
+    assert result == "ctx" and loaded.rejected and "startup failed" in loaded.rejected
+    assert (env / "settings.json.rejected").exists() and loaded.settings.llm_model != "boom"
+
+
+def test_start_with_fallback_reraises_without_overrides(env):
+    from prospector.settings_store import start_with_fallback
+    with pytest.raises(RuntimeError):
+        start_with_fallback(load_settings(env_file=None), None, lambda s: (_ for _ in ()).throw(RuntimeError("x")))

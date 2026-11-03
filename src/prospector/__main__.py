@@ -14,7 +14,7 @@ from prospector.context import AppContext
 from prospector.http import make_client
 from prospector.llm.client import LLMClient
 from prospector.profile.model import load_profile
-from prospector.settings_store import load_settings
+from prospector.settings_store import LoadedSettings, load_settings, start_with_fallback
 from prospector.store.db import connect
 
 log = logging.getLogger("prospector")
@@ -73,15 +73,21 @@ def cmd_serve(settings: Settings, args) -> int:
     from prospector.scheduler import build_scheduler
     from prospector.web.app import create_app
 
-    check_secrets(settings)
-    ctx = build_context(settings)
-    model = select_model(ctx.llm, settings.llm_model, settings.llm_fallback_model)
-    if model is None:
-        ctx.llm = None
-    else:
-        ctx.llm.model = model
-    sched = build_scheduler(ctx)
-    ctx.loaded = getattr(args, "loaded", None)
+    def start(s: Settings) -> AppContext:
+        check_secrets(s)
+        ctx = build_context(s)
+        model = select_model(ctx.llm, s.llm_model, s.llm_fallback_model)
+        if model is None:
+            ctx.llm = None
+        else:
+            ctx.llm.model = model
+        ctx.sched = build_scheduler(ctx)
+        return ctx
+
+    # A saved setting that breaks startup is set aside (banner on every page) instead of crash-looping.
+    ctx, ctx_loaded = start_with_fallback(getattr(args, "loaded", None) or LoadedSettings(settings), ".env", start)
+    sched = ctx.sched
+    ctx.loaded = ctx_loaded
     ctx.restart = _restart_soon
     ctx.run_background = lambda fn: sched.add_job(fn)  # one-off job on the scheduler pool
 

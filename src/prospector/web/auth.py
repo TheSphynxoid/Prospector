@@ -55,6 +55,28 @@ def _from_tailnet(request: Request) -> bool:
 _SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 
+def allowed_hosts(settings) -> set[str]:
+    hosts = {"localhost", "127.0.0.1", "::1", *(h.lower() for h in settings.allowed_hosts)}
+    if settings.dashboard_url:
+        hosts.add(urlsplit(settings.dashboard_url).hostname or "")
+    if settings.tailscale_ip:
+        hosts.add(settings.tailscale_ip)
+    return hosts - {""}
+
+
+def make_host_middleware(hosts: set[str]):
+    """Answer only to known hostnames. Trust is by peer IP (tailnet) and Origin is compared with Host, so a
+    DNS-rebound attacker name pointing at the server would otherwise pass both checks."""
+
+    async def middleware(request: Request, call_next):
+        host = urlsplit(f"//{request.headers.get('host', '')}").hostname or ""
+        if host.lower() not in hosts:
+            return PlainTextResponse("unknown host", status_code=400)
+        return await call_next(request)
+
+    return middleware
+
+
 def make_same_origin_middleware(exempt: frozenset[str] = frozenset({"/ingest/mail"})):
     """Refuse state-changing requests a browser marks as coming from another site (CSRF).
 

@@ -3,6 +3,7 @@ import re
 from datetime import time
 from pathlib import Path
 
+import httpx
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -53,6 +54,24 @@ class Settings(BaseSettings):
     ]
     embed_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
     digest_time: str = "08:00"  # HH:MM, Africa/Tunis
+
+    # Not editable from the dashboard: hostnames the app answers to (DNS-rebinding guard, see web.app).
+    tailscale_ip: str | None = None
+    allowed_hosts: list[str] = []
+
+    @field_validator("llm_base_url", "bridge_url", "dashboard_url")
+    @classmethod
+    def _http_url(cls, v: str | None) -> str | None:
+        # Checked the way httpx will parse it later, so a saved value cannot crash startup.
+        if v is None or v == "":
+            return v
+        try:
+            url = httpx.URL(v)
+        except (httpx.InvalidURL, TypeError) as e:
+            raise ValueError(f"not a valid URL ({e.__class__.__name__})") from None
+        if url.scheme not in ("http", "https") or not url.host:
+            raise ValueError("must be an http(s) URL with a host")
+        return v
 
     @field_validator("digest_time")
     @classmethod
