@@ -1,0 +1,14 @@
+services:
+  prospector:
+    build: .
+    env_file: .env
+    environment:
+      TZ: Africa/Tunis
+    volumes:
+      - ./data:/data
+    ports:
+      # cloudflared on the host reaches it on localhost; your devices reach it over Tailscale.
+      - "127.0.0.1:8080:8080"
+      - "${TAILSCALE_IP:?set TAILSCALE_IP in .env}:8080:8080"
+    mem_limit: 3g
+    restart: unless-stopped

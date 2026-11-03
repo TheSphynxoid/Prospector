@@ -1,0 +1,7 @@
+# Add this rule to your existing cloudflared config (above the final catch-all rule),
+# then restart cloudflared. Protect the hostname with Cloudflare Access (see README).
+ingress:
+  - hostname: prospector.thesphynx.net
+    service: http://localhost:8080
+  # ... your other rules ...
+  - service: http_status:404
