@@ -1,0 +1,15 @@
+{% if needs_you or paused %}
+<section class="card needs-you">
+  <h2 class="card-title">Needs you</h2>
+  <ul class="plain">
+    {% for item in needs_you %}
+    <li id="ny-{{ item.id }}">
+      <span>{% if item.kind == "confirmation" %}Confirm alert: <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.note }}</a>
+      {% else %}Unparsed alert email: {{ item.note }}{% endif %}</span>
+      <button class="btn btn-sm" hx-post="/needs-you/{{ item.id }}/dismiss" hx-target="#ny-{{ item.id }}" hx-swap="outerHTML">Done</button>
+    </li>
+    {% endfor %}
+    {% for h in paused %}<li><span>Source <b>{{ h.source_id }}</b> is paused: {{ h.last_error }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}

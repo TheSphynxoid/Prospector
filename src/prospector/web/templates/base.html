@@ -3,14 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}Prospector{% endblock %}</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
 </head>
 <body>
-  <header>
-    <a class="brand" href="/">Prospector</a>
-    <nav><a href="/">Leads</a> <a href="/health">Sources</a></nav>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">◆</span> Prospector</a>
+      <nav class="mainnav" aria-label="Main">
+        {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("health", "/health", "Sources")] %}
+        <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}</a>
+        {% endfor %}
+      </nav>
+    </div>
   </header>
   <main>{% block content %}{% endblock %}</main>
 </body>

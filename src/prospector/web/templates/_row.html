@@ -1,15 +1,29 @@
 {% set l = row.lead %}
-<tr id="lead-{{ l.id }}" class="status-{{ l.status.value }}">
-  <td class="score">{{ "%.2f"|format(row.stage1) if row.stage1 is not none else "–" }}</td>
-  <td>
-    <a href="/lead/{{ l.id }}">{{ l.title }}</a>
-    <div class="meta">{{ l.company or "?" }} · {{ l.kind.value }} · {{ l.remote.value }}{% if l.remote_region %} ({{ l.remote_region }}){% endif %}{% if l.locations %} · {{ l.locations|join(", ") }}{% endif %}</div>
-    {% if row.stage2 %}<div class="verdict v-{{ row.stage2.verdict }}">{{ row.stage2.verdict }} — {{ row.stage2.fit_summary }}</div>{% endif %}
-    {% if l.filter_reason %}<div class="reason">filtered: {{ l.filter_reason }}</div>{% endif %}
-  </td>
-  <td class="actions">
-    {% for action, label in [("star", "★"), ("applied", "Applied"), ("dismiss", "✕"), ("reset", "↺")] %}
-    <button hx-post="/lead/{{ l.id }}/{{ action }}" hx-target="#lead-{{ l.id }}" hx-swap="outerHTML">{{ label }}</button>
+{% set s = row.stage1 %}
+<article id="lead-{{ l.id }}" class="lead status-{{ l.status.value }}">
+  <div class="score-badge {{ 'hi' if s is not none and s >= 0.7 else ('mid' if s is not none and s >= 0.5 else 'lo') }}"
+       title="Match score">{{ "%.2f"|format(s) if s is not none else "–" }}</div>
+  <div class="lead-main">
+    <a class="lead-title" href="/lead/{{ l.id }}">{{ l.title }}</a>
+    <div class="lead-meta">
+      <span>{{ l.company or "Unknown company" }}</span>
+      <span class="chip">{{ l.kind.value }}</span>
+      <span class="chip chip-{{ l.remote.value }}">remote: {{ l.remote.value }}{% if l.remote_region %} · {{ l.remote_region }}{% endif %}</span>
+      {% if l.locations %}<span class="muted">{{ l.locations|join(", ") }}</span>{% endif %}
+      {% if l.status.value != "new" %}<span class="chip chip-status">{{ l.status.value }}</span>{% endif %}
+    </div>
+    {% if row.stage2 %}
+    <div class="verdict v-{{ row.stage2.verdict }}"><b>{{ row.stage2.verdict }}</b> — {{ row.stage2.fit_summary }}
+      {% if row.stage2.lead_with_project %}<span class="muted">· Lead with {{ row.stage2.lead_with_project }}</span>{% endif %}</div>
+    {% endif %}
+    {% if l.filter_reason %}<div class="reason">Filtered: {{ l.filter_reason }}</div>{% endif %}
+  </div>
+  <div class="actions" role="group" aria-label="Actions">
+    {% for action, label, title in [("star", "★", "Star"), ("applied", "Applied", "Mark applied"), ("dismiss", "✕", "Dismiss"), ("reset", "↺", "Back to new")] %}
+    {% if not (action == "reset" and l.status.value == "new") %}
+    <button class="btn btn-sm act-{{ action }}" title="{{ title }}" aria-label="{{ title }}"
+            hx-post="/lead/{{ l.id }}/{{ action }}" hx-target="#lead-{{ l.id }}" hx-swap="outerHTML">{{ label }}</button>
+    {% endif %}
     {% endfor %}
-  </td>
-</tr>
+  </div>
+</article>

@@ -1,21 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Sources — Prospector{% endblock %}
 {% block content %}
-<h1>Sources</h1>
+<div class="page-head"><h1>Sources</h1></div>
+<div class="card table-wrap">
 <table class="health">
   <thead><tr><th>Source</th><th>State</th><th>Last run</th><th>Last OK</th><th>Leads</th><th>Failures</th><th>Last error</th></tr></thead>
   <tbody>
   {% for s in sources %}
-  <tr class="{{ 'bad' if s.paused else ('warn' if s.drift or s.consecutive_failures else '') }}">
-    <td>{{ s.source_id }}</td>
-    <td>{% if s.paused %}paused{% elif s.drift %}suspicious results{% elif s.consecutive_failures %}failing{% else %}ok{% endif %}</td>
-    <td>{{ (s.last_run or "–")[:16] }}</td>
-    <td>{{ (s.last_ok or "–")[:16] }}</td>
-    <td>{{ s.last_count if s.last_count is not none else "–" }}</td>
-    <td>{{ s.consecutive_failures }}</td>
-    <td>{{ s.last_error or "" }}</td>
+  {% set state = "bad" if s.paused else ("warn" if s.drift or s.consecutive_failures else "ok") %}
+  <tr>
+    <td><span class="dot dot-{{ state }}" aria-hidden="true"></span> {{ s.source_id }}</td>
+    <td class="state-{{ state }}">{% if s.paused %}paused{% elif s.drift %}suspicious results{% elif s.consecutive_failures %}failing{% else %}ok{% endif %}</td>
+    <td>{{ s.last_run|local }}</td>
+    <td>{{ s.last_ok|local }}</td>
+    <td class="num">{{ s.last_count if s.last_count is not none else "–" }}</td>
+    <td class="num">{{ s.consecutive_failures }}</td>
+    <td class="muted">{{ s.last_error or "" }}</td>
   </tr>
-  {% else %}<tr><td colspan="7">No source has run yet.</td></tr>{% endfor %}
+  {% else %}<tr><td colspan="7" class="muted">No source has run yet.</td></tr>{% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}
