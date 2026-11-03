@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mail-bridge",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // Prospector endpoints and addresses. OWNER_EMAIL: your Zoho address.
+  "vars": {
+    "INGEST_URL": "https://prospector.thesphynx.net/ingest/mail",
+    "FROM_ADDRESS": "digest@prospector.thesphynx.net",
+    "OWNER_EMAIL": "SET-ME@thesphynx.net"
+  },
+  // Secrets (wrangler secret put …): BRIDGE_SECRET, ACCESS_CLIENT_ID, ACCESS_CLIENT_SECRET
+
+  "send_email": [{ "name": "EMAIL" }],
+  "r2_buckets": [{ "binding": "SPOOL", "bucket_name": "mail-bridge-spool" }],
+  "queues": {
+    "producers": [{ "binding": "RETRY_QUEUE", "queue": "mail-bridge-retry" }],
+    "consumers": [{ "queue": "mail-bridge-retry", "max_batch_size": 1, "max_retries": 150 }]
+  }
+}
