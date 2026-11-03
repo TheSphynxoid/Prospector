@@ -1,0 +1,2 @@
+{% if row.closed_reason %}<div class="reason closed">{{ "Expired" if l.status.value == "expired" else "May have closed" }}: {{ row.closed_reason }}
+  {% if l.status.value in ("starred", "applied") %}<button class="btn btn-sm" hx-post="/lead/{{ l.id }}/still-open" hx-target="{{ target }}" hx-swap="outerHTML" {% if target == "#detail-actions" %}hx-headers='{"HX-Target": "detail-actions"}'{% endif %}>Still open</button>{% endif %}</div>{% endif %}

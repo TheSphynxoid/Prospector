@@ -20,6 +20,7 @@
       {% if row.stage2.lead_with_project %}<span class="muted">· Lead with {{ row.stage2.lead_with_project }}</span>{% endif %}</div>
     {% endif %}
     {% if l.filter_reason %}<div class="reason">Filtered: {{ l.filter_reason }}</div>{% endif %}
+    {% with target = "#lead-" ~ l.id %}{% include "_closed_badge.html" %}{% endwith %}
   </div>
   <div class="actions" role="group" aria-label="Actions">
     {% for action, label, title in [("star", "★", "Star"), ("applied", "Applied", "Mark applied"), ("dismiss", "✕", "Dismiss"), ("reset", "↺", "Back to new")] %}

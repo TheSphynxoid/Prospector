@@ -80,6 +80,25 @@ def _read(client: httpx.Client, url: httpx.URL) -> tuple[httpx.Response, str | N
         return resp, body.decode(resp.encoding or "utf-8", errors="replace")
 
 
+def _client(transport: httpx.BaseTransport | None) -> httpx.Client:
+    # trust_env=False: an env proxy would connect for us, so the address check would not describe the request.
+    return httpx.Client(transport=transport, follow_redirects=False, timeout=10, trust_env=False,
+                        headers={"User-Agent": USER_AGENT})
+
+
+def _follow(client: httpx.Client, url: httpx.URL, resolve) -> tuple[httpx.Response, str | None]:
+    """GET with redirects followed by hand, every hop checked. Raises _Refused or httpx errors."""
+    for _ in range(MAX_HOPS + 1):
+        _check_public(url, resolve)
+        if not _robots_ok(client, url):
+            raise _Refused("The site's robots.txt disallows fetching this page.")
+        resp, body = _read(client, url)
+        if not resp.is_redirect:
+            return resp, body
+        url = httpx.URL(urljoin(str(url), resp.headers.get("location", "")))
+    raise _Refused("Too many redirects.")
+
+
 def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, resolve=socket.getaddrinfo) -> FetchResult:
     if "freelancer" in lead.sources:  # the API already returned the full description
         return FetchResult(lead.body, "source", None)
@@ -87,24 +106,13 @@ def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, reso
         url = httpx.URL(lead.canonical_url)
     except httpx.InvalidURL:
         return FetchResult(None, None, NOT_WEB)
-    with httpx.Client(transport=transport, follow_redirects=False, timeout=10, trust_env=False,
-                      headers={"User-Agent": USER_AGENT}) as client:
+    with _client(transport) as client:
         try:
-            for _ in range(MAX_HOPS + 1):
-                _check_public(url, resolve)
-                if not _robots_ok(client, url):
-                    raise _Refused("The site's robots.txt disallows fetching this page.")
-                resp, body = _read(client, url)
-                if resp.is_redirect:
-                    url = httpx.URL(urljoin(str(url), resp.headers.get("location", "")))
-                    continue
-                if resp.status_code in (404, 410):
-                    raise _Refused(f"The page wasn't found (HTTP {resp.status_code}) — it may have been taken down.")
-                if resp.status_code >= 400:
-                    raise _Refused(f"The site blocked the request (HTTP {resp.status_code}).")
-                break
-            else:
-                raise _Refused("Too many redirects.")
+            resp, body = _follow(client, url, resolve)
+            if resp.status_code in (404, 410):
+                raise _Refused(f"The page wasn't found (HTTP {resp.status_code}) — it may have been taken down.")
+            if resp.status_code >= 400:
+                raise _Refused(f"The site blocked the request (HTTP {resp.status_code}).")
         except _Refused as e:
             return FetchResult(None, None, str(e))
         except (httpx.HTTPError, httpx.InvalidURL) as e:
@@ -114,6 +122,16 @@ def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, reso
     if len(text) < MIN_CHARS or any(w in head for w in JUNK):
         return FetchResult(None, None, JUNK_NOTE)
     return FetchResult(text, "fetched", None)
+
+
+def page_gone(url: str, transport: httpx.BaseTransport | None = None, resolve=socket.getaddrinfo) -> bool:
+    """True only when the page itself answers 404/410; anything we can't check counts as not gone."""
+    try:
+        with _client(transport) as client:
+            resp, _ = _follow(client, httpx.URL(url), resolve)
+    except (_Refused, httpx.HTTPError, httpx.InvalidURL):
+        return False
+    return resp.status_code in (404, 410)
 
 
 def refresh_posting(ctx: AppContext, lead_id: int, keep_pasted: bool = False) -> None:

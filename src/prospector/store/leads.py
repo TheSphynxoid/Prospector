@@ -16,6 +16,7 @@ class LeadRow:
     stage1: float | None
     stage2: dict | None
     created_at: str | None = None  # first seen (UTC ISO)
+    closed_reason: str | None = None  # expired, or "may have closed" on a starred/applied lead
 
 
 def _lead(row: sqlite3.Row) -> Lead:
@@ -47,10 +48,12 @@ def _row(row: sqlite3.Row) -> LeadRow:
         stage1=row["stage1"],
         stage2=json.loads(row["stage2"]) if row["stage2"] else None,
         created_at=row["created_at"],
+        closed_reason=row["closed_reason"],
     )
 
 
-_SELECT = "SELECT l.*, s.stage1, s.stage2 FROM leads l LEFT JOIN scores s ON s.lead_id = l.id"
+_SELECT = ("SELECT l.*, s.stage1, s.stage2, f.closed_reason FROM leads l LEFT JOIN scores s ON s.lead_id = l.id "
+           "LEFT JOIN lead_flags f ON f.lead_id = l.id")
 
 
 class LeadRepo:

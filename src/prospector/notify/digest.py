@@ -2,6 +2,7 @@ import html
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from prospector.store.expiry import ExpiryRepo
 from prospector.store.health import HealthRepo
 from prospector.store.kv import KV
 from prospector.store.leads import LeadRepo, LeadRow
@@ -16,9 +17,11 @@ class Digest:
     deadlines: list[LeadRow]
     warnings: list[str]
     dashboard_url: str
+    closed: list[LeadRow] = ()  # starred/applied leads that may have closed
 
 
-def build_digest(leads: LeadRepo, health: HealthRepo, kv: KV, now: datetime, dashboard_url: str) -> Digest:
+def build_digest(leads: LeadRepo, health: HealthRepo, kv: KV, now: datetime, dashboard_url: str,
+                 expiry: ExpiryRepo | None = None) -> Digest:
     last = kv.get("last_digest_at")
     since = datetime.fromisoformat(last) if last else now - timedelta(hours=24)
     warnings = []
@@ -32,6 +35,7 @@ def build_digest(leads: LeadRepo, health: HealthRepo, kv: KV, now: datetime, das
         deadlines=leads.starred_with_deadline_within(3, now.date()),
         warnings=warnings,
         dashboard_url=dashboard_url.rstrip("/"),
+        closed=[r for i in (expiry.flagged_since(since.isoformat()) if expiry else []) if (r := leads.get_row(i))],
     )
 
 
@@ -55,6 +59,11 @@ def render_telegram(d: Digest) -> list[str]:
         for row in d.deadlines:
             _, text, url = _line(row, d.dashboard_url, html.escape)
             blocks.append(f"⏰ {row.lead.deadline} {text}\n{url}")
+    if d.closed:
+        blocks.append("<b>May have closed</b>")
+        for row in d.closed:
+            _, text, url = _line(row, d.dashboard_url, html.escape)
+            blocks.append(f"🚫 {text}\n{html.escape(row.closed_reason or '')}\n{url}")
     blocks += [f"⚠ {html.escape(w)}" for w in d.warnings]
     blocks.append(d.dashboard_url)
 
@@ -89,6 +98,15 @@ def render_email(d: Digest) -> tuple[str, str, str]:
             _, etext, _ = _line(row, d.dashboard_url, html.escape)
             text_lines.append(f"  {row.lead.deadline}  {text}  {url}")
             html_lines.append(f'<li>{row.lead.deadline} <a href="{url}">{etext}</a></li>')
+        html_lines.append("</ul>")
+    if d.closed:
+        text_lines.append("\nMay have closed:")
+        html_lines.append("<h3>May have closed</h3><ul>")
+        for row in d.closed:
+            _, text, url = _line(row, d.dashboard_url, lambda s: s)
+            _, etext, _ = _line(row, d.dashboard_url, html.escape)
+            text_lines.append(f"  {text} — {row.closed_reason}  {url}")
+            html_lines.append(f'<li><a href="{url}">{etext}</a> — {html.escape(row.closed_reason or "")}</li>')
         html_lines.append("</ul>")
     for w in d.warnings:
         text_lines.append(f"⚠ {w}")

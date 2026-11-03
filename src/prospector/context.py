@@ -8,6 +8,7 @@ import httpx
 from prospector.config import Settings
 from prospector.profile.model import Profile
 from prospector.store.assist import AssistRepo
+from prospector.store.expiry import ExpiryRepo
 from prospector.store.feedback import FeedbackRepo
 from prospector.store.health import HealthRepo
 from prospector.store.kv import KV
@@ -37,6 +38,7 @@ class AppContext:
     mail: MailRepo
     kv: KV
     assist: AssistRepo
+    expiry: ExpiryRepo
     verifier: "AccessVerifier | None" = None
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
@@ -55,5 +57,5 @@ class AppContext:
                **extra) -> "AppContext":
         return cls(settings=settings, conn=conn, profile=profile, http=http,
                    leads=LeadRepo(conn), scores=ScoreRepo(conn), feedback=FeedbackRepo(conn),
-                   health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn),
+                   health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn), expiry=ExpiryRepo(conn),
                    **extra)

@@ -7,4 +7,5 @@
           hx-swap="outerHTML">{{ label }}</button>
   {% endif %}
   {% endfor %}
+  {% with target = "#detail-actions" %}{% include "_closed_badge.html" %}{% endwith %}
 </div>

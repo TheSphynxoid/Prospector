@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 def send_digest(ctx: AppContext, now: datetime) -> None:
     """Send the digest on both channels independently; each reports the other's failure."""
     s = ctx.settings
-    d = build_digest(ctx.leads, ctx.health, ctx.kv, now, s.dashboard_url)
+    d = build_digest(ctx.leads, ctx.health, ctx.kv, now, s.dashboard_url, ctx.expiry)
     tg_ok = email_ok = False
     tg_error = email_error = None
 

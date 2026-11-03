@@ -1,5 +1,5 @@
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -8,6 +8,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
+from prospector.expiry import check_links, run_expiry
 from prospector.notify.run import send_digest
 from prospector.pipeline import nightly, tick
 
@@ -32,4 +33,10 @@ def build_scheduler(ctx: AppContext) -> BackgroundScheduler:
                   next_run_time=datetime.now(TZ), **once)
     sched.add_job(_guard("digest", send_digest, ctx), CronTrigger(hour=at.hour, minute=at.minute, timezone=TZ), id="digest", **once)
     sched.add_job(_guard("nightly", nightly, ctx), CronTrigger(hour=3, minute=0, timezone=TZ), id="nightly", **once)
+    # Expiry runs half an hour before the digest, so the digest never lists a lead that just expired.
+    before = (datetime.combine(date(2000, 1, 2), at) - timedelta(minutes=30)).time()
+    sched.add_job(_guard("expiry", run_expiry, ctx), CronTrigger(hour=before.hour, minute=before.minute, timezone=TZ),
+                  id="expiry", **once)
+    sched.add_job(_guard("links", check_links, ctx), CronTrigger(day_of_week="sun", hour=4, minute=0, timezone=TZ),
+                  id="links", **once)
     return sched

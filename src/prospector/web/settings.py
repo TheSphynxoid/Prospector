@@ -55,6 +55,9 @@ TUNING = [
     FieldInfo("assistant_model", "Assistant model", "model", "Blank uses the LLM model."),
     FieldInfo("assistant_daily_cap", "Assistant messages per day", "int", "1–2000."),
     FieldInfo("usd_tnd_rate", "USD → TND rate", "float", "Used only to show TND equivalents."),
+    FieldInfo("expire_days_short", "Expire gigs and bounties after (days)", "int", "Since posted, or first seen. 1–365."),
+    FieldInfo("expire_days_jobs", "Expire jobs and contracts after (days)", "int", "1–365."),
+    FieldInfo("expire_days_long", "Expire PFE and AI-training offers after (days)", "int", "1–365."),
 ]
 _OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "adzuna_app_id", "assistant_model"}
 assert {f.name for f in KEYS + TUNING} | {"enabled_sources"} == set(EDITABLE)
@@ -232,7 +235,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         s = ctx.settings
         if not s.bridge_url:
             return result(False, "Worker URL not set.")
-        subject, text, body = render_email(build_digest(ctx.leads, ctx.health, ctx.kv, datetime.now(UTC), s.dashboard_url))
+        subject, text, body = render_email(build_digest(ctx.leads, ctx.health, ctx.kv, datetime.now(UTC), s.dashboard_url, ctx.expiry))
         try:
             send_email_via_bridge(ctx.http, s.bridge_url, s.bridge_secret.get_secret_value().encode(),
                                   f"[test] {subject}", text, body)

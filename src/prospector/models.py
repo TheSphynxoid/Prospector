@@ -34,6 +34,7 @@ class Status(StrEnum):
     DISMISSED = "dismissed"
     APPLIED = "applied"
     FILTERED = "filtered"
+    EXPIRED = "expired"
 
 
 PayPeriod = Literal["hour", "day", "month", "year", "fixed"]

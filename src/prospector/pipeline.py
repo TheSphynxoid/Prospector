@@ -87,10 +87,14 @@ def ingest(ctx: AppContext, source: Source, now: datetime) -> IngestStats:
             existing = _find_existing(ctx, lead)
             if existing:
                 ctx.leads.add_source(existing.id, raw.source_id)
+                if raw.external_id:
+                    ctx.expiry.add_ref(existing.id, raw.source_id, raw.external_id)
                 stats.merged += 1
                 continue
             ctx.leads.insert(lead)
             ctx.leads.put_raw(lead.id, raw.source_id, raw.raw_payload)
+            if raw.external_id:
+                ctx.expiry.add_ref(lead.id, raw.source_id, raw.external_id)
             reason = apply_hard_filters(lead, ctx.profile)
             if reason:
                 ctx.leads.set_status(lead.id, Status.FILTERED, reason)
@@ -120,7 +124,7 @@ def tick(ctx: AppContext, now: datetime) -> None:
 
 
 def digest_preview(ctx: AppContext, now: datetime) -> list[str]:
-    return render_telegram(build_digest(ctx.leads, ctx.health, ctx.kv, now, ctx.settings.dashboard_url))
+    return render_telegram(build_digest(ctx.leads, ctx.health, ctx.kv, now, ctx.settings.dashboard_url, ctx.expiry))
 
 
 def nightly(ctx: AppContext, now: datetime) -> None:

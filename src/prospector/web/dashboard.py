@@ -20,7 +20,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
 _ACTIONS = {"star": Status.STARRED, "dismiss": Status.DISMISSED, "applied": Status.APPLIED, "reset": Status.NEW}
 _TOAST = {"star": "Starred", "dismiss": "Dismissed", "applied": "Marked applied", "reset": "Moved back to new"}
-TABS = [Status.NEW, Status.STARRED, Status.APPLIED, Status.FILTERED, Status.DISMISSED]
+TABS = [Status.NEW, Status.STARRED, Status.APPLIED, Status.FILTERED, Status.EXPIRED, Status.DISMISSED]
 
 
 def next_digest(now: datetime, at: time) -> datetime:
@@ -108,6 +108,14 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         ctx.feedback.delete(fb, lead_id)  # so undo does not train the ranker
         return fragment(request, lead_id)
 
+    @router.post("/lead/{lead_id}/still-open")
+    def still_open(request: Request, lead_id: int):
+        """The "may have closed" badge was wrong: drop it and don't raise that reason again."""
+        if ctx.leads.get(lead_id) is None:
+            raise HTTPException(404)
+        ctx.expiry.keep_open(lead_id)
+        return fragment(request, lead_id)
+
     @router.post("/lead/{lead_id}/{action}")
     def act(request: Request, lead_id: int, action: str):
         status = _ACTIONS.get(action)
@@ -115,6 +123,8 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         if status is None or lead is None:
             raise HTTPException(404)
         previous = lead.status
+        if action == "reset":  # back to new means "still open": don't expire it again for the same reason
+            ctx.expiry.keep_open(lead_id)
         ctx.leads.set_status(lead_id, status)
         fb = ctx.feedback.record(lead_id, action)
         target = "#detail-actions" if request.headers.get("hx-target") == "detail-actions" else f"#lead-{lead_id}"

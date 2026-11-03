@@ -12,7 +12,7 @@ EDITABLE: tuple[str, ...] = (
     "llm_api_key", "llm_base_url", "telegram_token", "telegram_chat_id", "bridge_url", "bridge_secret",
     "access_team_domain", "access_aud", "adzuna_app_id", "adzuna_app_key", "github_token", "dashboard_url",
     "llm_model", "llm_fallback_model", "llm_daily_cap", "stage2_threshold", "enabled_sources", "digest_time",
-    "assistant_model", "assistant_daily_cap", "usd_tnd_rate",
+    "assistant_model", "assistant_daily_cap", "usd_tnd_rate", "expire_days_short", "expire_days_jobs", "expire_days_long",
 )
 SECRETS: frozenset[str] = frozenset({"llm_api_key", "telegram_token", "bridge_secret", "adzuna_app_key", "github_token"})
 _HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     assistant_model: str | None = None  # blank: llm_model
     assistant_daily_cap: int = Field(100, ge=1, le=2000)
     usd_tnd_rate: float = Field(3.0, gt=0, le=100)  # display only: TND equivalents of USD amounts
+    # Leads older than this (days since posted, else first seen) expire: gigs/bounties, jobs/contracts, PFE/AI training.
+    expire_days_short: int = Field(14, ge=1, le=365)
+    expire_days_jobs: int = Field(45, ge=1, le=365)
+    expire_days_long: int = Field(60, ge=1, le=365)
 
     telegram_token: SecretStr | None = None
     telegram_chat_id: str | None = None

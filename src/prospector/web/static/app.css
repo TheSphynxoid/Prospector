@@ -302,3 +302,7 @@ section[id], .field[id] { scroll-margin-top: 4.5rem; }
 .msg-body > :last-child { margin-bottom: 0; }
 .htmx-indicator { display: none; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
+
+/* Expiry */
+.reason.closed { color: var(--warn); display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.detail-actions .reason.closed { flex-basis: 100%; }

@@ -89,3 +89,20 @@ CREATE TABLE IF NOT EXISTS lead_assist (
     fetch_tried INTEGER NOT NULL DEFAULT 0,
     bid TEXT
 );
+
+-- Lead expiry: why a lead looks closed (expired, or a badge on starred/applied), and reasons the owner overrode.
+CREATE TABLE IF NOT EXISTS lead_flags (
+    lead_id INTEGER PRIMARY KEY REFERENCES leads(id) ON DELETE CASCADE,
+    closed_key TEXT,
+    closed_reason TEXT,
+    closed_at TEXT,
+    ignored TEXT NOT NULL DEFAULT '[]'
+);
+
+-- Source-side ids (e.g. the Freelancer project id) for closed checks.
+CREATE TABLE IF NOT EXISTS lead_refs (
+    lead_id INTEGER NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    source_id TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    PRIMARY KEY (lead_id, source_id)
+);
