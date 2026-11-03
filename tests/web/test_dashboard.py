@@ -139,3 +139,23 @@ def test_detail_action_returns_detail_fragment(ctx, client, make_lead):
     r = client.post(f"/lead/{lid}/star", headers={"HX-Target": "detail-actions"})
     assert 'id="detail-actions"' in r.text and 'class="lead ' not in r.text
     assert toast(r)["target"] == "#detail-actions"
+
+
+def test_leads_page_search_keeps_query_in_pager(ctx, client, make_lead):
+    for i in range(51):
+        ctx.leads.insert(make_lead(canonical_url=f"s{i}", title=f"Rust role {i}"))
+    ctx.leads.insert(make_lead(canonical_url="other", title="Cobol role"))
+    page = client.get("/leads?q=rust").text
+    assert "Cobol role" not in page and "q=rust" in page.split("page=2")[0].rsplit('href="', 1)[1]
+    assert 'value="rust"' in page  # the search box shows the query
+
+
+def test_shortcut_help_and_search_present(client):
+    page = client.get("/leads").text
+    assert 'id="shortcuts"' in page and 'id="search"' in page
+
+
+def test_rows_are_keyboard_focusable(ctx, client, make_lead):
+    ctx.leads.insert(make_lead(canonical_url="https://example.com/job/7"))
+    page = client.get("/leads").text
+    assert 'tabindex="0"' in page and 'data-url="https://example.com/job/7"' in page

@@ -108,8 +108,13 @@ class LeadRepo:
 
     def list(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None,
              source: str | None = None, min_score: float | None = None,
-             sort: Literal["score", "date"] = "score", limit: int = 50, offset: int = 0) -> list[LeadRow]:
+             sort: Literal["score", "date"] = "score", limit: int = 50, offset: int = 0,
+             q: str | None = None) -> list[LeadRow]:
         where, args = ["l.status = ?"], [tab.value]
+        if q and q.strip():
+            like = "%" + "".join("!" + c if c in "!%_" else c for c in q.strip()) + "%"  # ! escapes LIKE wildcards
+            where.append("(l.title LIKE ? ESCAPE '!' OR l.company LIKE ? ESCAPE '!')")
+            args += [like, like]
         if kind:
             where.append("l.kind = ?")
             args.append(kind.value)

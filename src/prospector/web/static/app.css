@@ -238,3 +238,21 @@ code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; b
 .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .toast-undo { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0 0 0 .5rem; }
 @media (prefers-color-scheme: dark) { .toast-undo { color: #4f46e5; } }
+.search { margin-left: auto; flex: 0 1 18rem; min-width: 0; }
+.search input { width: 100%; font: inherit; font-size: .9rem; padding: .4rem .7rem; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--soft); color: var(--fg); }
+.search input:focus { background: var(--card); }
+.kbd-help { flex: none; }
+.lead:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; background: var(--soft); }
+.shortcuts { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / .35); display: grid; place-items: center; padding: 1rem; }
+.shortcuts[hidden] { display: none; }
+.shortcuts .card { width: min(26rem, 100%); }
+.shortcuts dl { display: grid; grid-template-columns: auto 1fr; gap: .45rem 1rem; margin: 0; }
+.shortcuts dt { text-align: right; } .shortcuts dd { margin: 0; color: var(--muted); }
+kbd { font: .8rem ui-monospace, SFMono-Regular, Menlo, monospace; padding: .1rem .4rem; border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 5px; background: var(--soft); }
+@media (max-width: 640px) {
+  .topbar-inner { flex-wrap: wrap; }
+  .search { order: 3; flex: 1 1 100%; margin-left: 0; }
+  .kbd-help { display: none; }
+}

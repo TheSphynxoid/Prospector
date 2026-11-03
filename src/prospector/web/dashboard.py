@@ -57,12 +57,14 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
 
     @router.get("/leads")
     def leads(request: Request, tab: Status = Status.NEW, kind: Kind | None = None, remote: Remote | None = None,
-              source: str | None = None, min_score: float | None = None, sort: str = "score", page: int = 1):
+              source: str | None = None, min_score: float | None = None, sort: str = "score", page: int = 1,
+              q: str | None = None):
         sort = sort if sort in ("score", "date") else "score"
         page = max(page, 1)
         rows = ctx.leads.list(tab, kind=kind, remote=remote, source=source or None, min_score=min_score,
-                              sort=sort, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE)
-        filters = {"kind": kind, "remote": remote, "source": source, "min_score": min_score, "sort": sort}
+                              sort=sort, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE, q=q)
+        filters = {"q": (q or "").strip() or None, "kind": kind, "remote": remote, "source": source,
+                   "min_score": min_score, "sort": sort}
         query = urlencode({"tab": tab.value, **{k: getattr(v, "value", v) for k, v in filters.items()
                                                  if v not in (None, "")}})
         return templates.TemplateResponse(request, "list.html", {

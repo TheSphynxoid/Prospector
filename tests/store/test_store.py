@@ -132,3 +132,21 @@ def test_connect_is_idempotent(tmp_path):
     connect(p).close()
     conn = connect(p)
     assert conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+
+
+def test_search_title_and_company(make_lead):
+    _, leads, _ = repos()
+    leads.insert(make_lead(canonical_url="1", title="Rust dev", company="Acme"))
+    leads.insert(make_lead(canonical_url="2", title="Go dev", company="RustCorp"))
+    leads.insert(make_lead(canonical_url="3", title="Java dev", company="Beta"))
+    assert sorted(r.lead.canonical_url for r in leads.list(Status.NEW, q="rust")) == ["1", "2"]
+    assert [r.lead.canonical_url for r in leads.list(Status.NEW, q="  ")] != []  # blank query = no filter
+
+
+def test_search_escapes_wildcards(make_lead):
+    _, leads, _ = repos()
+    leads.insert(make_lead(canonical_url="1", title="100% remote"))
+    leads.insert(make_lead(canonical_url="2", title="Office role"))
+    leads.insert(make_lead(canonical_url="3", title="snake_case fan"))
+    assert [r.lead.canonical_url for r in leads.list(Status.NEW, q="%")] == ["1"]
+    assert [r.lead.canonical_url for r in leads.list(Status.NEW, q="_")] == ["3"]

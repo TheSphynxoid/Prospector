@@ -1,6 +1,6 @@
 {% set l = row.lead %}
 {% set s = row.stage1 %}
-<article id="lead-{{ l.id }}" class="lead status-{{ l.status.value }}">
+<article id="lead-{{ l.id }}" class="lead status-{{ l.status.value }}" tabindex="0" data-url="{{ l.canonical_url }}">
   <div class="score-badge {{ 'hi' if s is not none and s >= 0.7 else ('mid' if s is not none and s >= 0.5 else 'lo') }}"
        title="Match score">{{ "%.2f"|format(s) if s is not none else "–" }}</div>
   <div class="lead-main">

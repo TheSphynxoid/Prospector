@@ -18,8 +18,29 @@
         <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}</a>
         {% endfor %}
       </nav>
+      <form class="search" role="search" action="/leads" method="get">
+        <input id="search" name="q" type="search" placeholder="Search leads  /" aria-label="Search leads"
+               value="{{ filters.q if filters is defined and filters.q else '' }}">
+      </form>
+      <button type="button" class="btn btn-sm kbd-help" data-toggle-shortcuts title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
     </div>
   </header>
+  <div id="shortcuts" class="shortcuts" hidden role="dialog" aria-label="Keyboard shortcuts">
+    <div class="card">
+      <h2 class="card-title">Keyboard shortcuts <button type="button" class="btn btn-sm card-link" data-toggle-shortcuts>Close</button></h2>
+      <dl>
+        <dt><kbd>j</kbd> / <kbd>k</kbd></dt><dd>Next / previous lead</dd>
+        <dt><kbd>s</kbd></dt><dd>Star</dd>
+        <dt><kbd>a</kbd></dt><dd>Mark applied</dd>
+        <dt><kbd>d</kbd></dt><dd>Dismiss</dd>
+        <dt><kbd>u</kbd></dt><dd>Undo the last action</dd>
+        <dt><kbd>o</kbd></dt><dd>Open the original posting</dd>
+        <dt><kbd>Enter</kbd></dt><dd>Open lead details</dd>
+        <dt><kbd>/</kbd></dt><dd>Search</dd>
+        <dt><kbd>?</kbd></dt><dd>Show / hide this list</dd>
+      </dl>
+    </div>
+  </div>
   {% set _loaded = request.app.state.ctx.loaded if request.app.state.ctx is defined else none %}
   {% if _loaded and _loaded.rejected %}
   <div class="banner-bad" role="alert">Your saved settings were ignored: {{ _loaded.rejected }} — the file was kept as settings.json.rejected. <a href="/settings">Open settings</a></div>

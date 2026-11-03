@@ -4,14 +4,15 @@
 {% include "_needs_you.html" %}
 
 <div class="page-head">
-  <h1>Leads</h1>
+  <h1>Leads{% if filters.q %} <span class="muted">matching “{{ filters.q }}”</span> <a class="btn btn-sm" href="/leads?tab={{ tab.value }}">Clear search</a>{% endif %}</h1>
   <nav class="tabs" aria-label="Status">
-    {% for t in tabs %}<a href="/leads?tab={{ t.value }}" {% if t == tab %}aria-current="page"{% endif %}>{{ t.value }}</a>{% endfor %}
+    {% for t in tabs %}<a href="/leads?tab={{ t.value }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}" {% if t == tab %}aria-current="page"{% endif %}>{{ t.value }}</a>{% endfor %}
   </nav>
 </div>
 
 <form class="filters card" method="get" action="/leads">
   <input type="hidden" name="tab" value="{{ tab.value }}">
+  {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
   <label><span>Type</span><select name="kind"><option value="">Any</option>
     {% for k in kinds %}<option value="{{ k.value }}" {{ 'selected' if filters.kind == k else '' }}>{{ k.value }}</option>{% endfor %}
   </select></label>

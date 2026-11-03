@@ -64,6 +64,57 @@
   });
   window.prospectorUndo = () => document.querySelector("#toast.show .toast-undo")?.click();
 
+  // Keyboard shortcuts (see the ? overlay in base.html).
+  const shortcuts = () => document.getElementById("shortcuts");
+  function toggleShortcuts(force) {
+    const el = shortcuts();
+    if (el) el.hidden = force === undefined ? !el.hidden : !force;
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-toggle-shortcuts]")) toggleShortcuts();
+    else if (e.target === shortcuts()) toggleShortcuts(false);
+  });
+
+  const leads = () => [...document.querySelectorAll(".lead")];
+  function current() {
+    const active = document.activeElement?.closest?.(".lead");
+    return active || null;
+  }
+  function move(step) {
+    const all = leads();
+    if (!all.length) return;
+    const i = all.indexOf(current());
+    const next = all[Math.min(all.length - 1, Math.max(0, i === -1 ? 0 : i + step))];
+    next.focus();
+    next.scrollIntoView({ block: "nearest" });
+  }
+  function press(cls) {
+    const row = current() || document.getElementById("detail-actions")?.parentElement;
+    row?.querySelector(cls)?.click();
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t.closest?.("input, textarea, select, [contenteditable]")) {
+      if (e.key === "Escape") t.blur();
+      return;
+    }
+    const keys = {
+      j: () => move(1), k: () => move(-1),
+      s: () => press(".act-star"), a: () => press(".act-applied"), d: () => press(".act-dismiss"),
+      u: () => window.prospectorUndo(),
+      o: () => { const url = current()?.dataset.url || document.querySelector(".detail-bar a.btn-primary")?.href;
+                 if (url) window.open(url, "_blank", "noopener"); },
+      "/": () => document.getElementById("search")?.focus(),
+      "?": () => toggleShortcuts(),
+      Escape: () => toggleShortcuts(false),
+      Enter: () => { const a = current()?.querySelector(".lead-title"); if (a && t === current()) a.click(); },
+    };
+    const fn = keys[e.key];
+    if (fn) { e.preventDefault(); fn(); }
+  });
+
   function rowIndex(row) {
     const m = row.querySelector("[name]")?.name.match(/\[(\d+)\]/);
     return m ? Number(m[1]) : 0;
