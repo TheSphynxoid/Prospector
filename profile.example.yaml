@@ -1,0 +1,98 @@
+# Prospector profile — copy to /data/profile.yaml on the server and edit freely.
+# Skills: weight 0..1 (how strongly you want work using it).
+skills:
+  go: 1.0
+  c++: 1.0
+  systems programming: 0.9
+  java / spring boot: 0.8
+  c# / .net: 0.7
+  typescript / next.js: 0.7
+  python: 0.6
+  devops / docker / kubernetes: 0.8
+  travel tech / hotel apis: 0.9
+  backend architecture: 0.9
+
+# Each write-up is embedded and compared with every lead; keep them concrete (2–4 sentences).
+projects:
+  - name: Room-mapping & room-packing engine
+    writeup: >-
+      Designed and built a hotel room-packing and room-mapping engine that matches supplier rooms and rates
+      to multi-room occupancy requests (adults, children, infants), normalises and classifies room names across
+      suppliers, removes duplicate options and builds valid room combinations. Ran in production for a hotel
+      booking platform aggregating many suppliers.
+    tags: [travel tech, algorithms, javascript, go]
+  - name: SRV project orchestration engine
+    writeup: >-
+      Built the services module of a marketplace in Java Spring Boot: multi-provider projects with milestone
+      dependency graphs, automatic dependency-aware scheduling and booking across providers' availability,
+      explainable slot scoring (urgency, reliability, fairness), escrow holds with auto-release, deliverable
+      review with versions, and dispute mediation.
+    tags: [java, spring boot, scheduling, marketplace]
+  - name: Furrballs — NUMA-aware cache (REMARC)
+    writeup: >-
+      C++20 high-performance caching library that uses NUMA topology as a first-class input to placement and
+      eviction. Its REMARC policy reduces recency, frequency and locality into a 2D state space scored with
+      SIMD lookup tables; includes a lock-free concurrent Swiss table, per-node pinned workers, RocksDB backing
+      store, trace-replay benchmarks and miss-ratio regression tests.
+    tags: [c++, performance, numa, caching, research]
+  - name: BoosterBC Go supplier connectors
+    writeup: >-
+      Migrated hotel supplier integrations from Node.js to Go and gRPC for a B2B travel platform: booking
+      lifecycle handlers (availability, check rate, book, confirm, cancel, check booking) for TravelLanda V2,
+      shared common layers for models and database access, MongoDB request logging with TTL indexes, and
+      validation hardening of production booking flows.
+    tags: [go, grpc, travel tech, backend]
+  - name: DataMart — audited Excel import for finance
+    writeup: >-
+      .NET Clean Architecture application for a banking and finance counselling firm that maps Excel files into
+      the database through a controlled pipeline: saved column mappings, entity selection, client and server
+      validation, and mandatory human verification before any write, with full auditability. CQRS with MediatR,
+      NSwag-generated client, DevExtreme UI.
+    tags: [c#, .net, clean architecture, fintech]
+  - name: Hubris Engine
+    writeup: >-
+      Custom real-time engine in modern C++20 with a Vulkan-first renderer, built with CMake and vcpkg. A full
+      rewrite of an earlier engine focused on clean module boundaries, headless initialisation, unified resource
+      loading and a maintainable frame loop.
+    tags: [c++, vulkan, graphics, engine]
+  - name: stepwise
+    writeup: >-
+      Published TypeScript/React library (npm) for interactive, narrated step-driven visualisations: one cursor
+      primitive powering traces, chapters, tours and lessons, with checkpoints, evaluators and simulation. Next.js
+      demo site doubling as documentation, 150+ tests.
+    tags: [typescript, react, open source]
+  - name: DevOps for a student marketplace
+    writeup: >-
+      Designed the modular backend architecture and delivered the full DevOps pipeline for a marketplace
+      platform: repository setup, CI, containerisation, Kubernetes ingress and networking, and deployment to a
+      VPS.
+    tags: [devops, docker, kubernetes, ci/cd]
+
+targets:
+  kinds: [job, contract, gig, bounty, pfe, ai_training]
+  regions: [remote, worldwide, tunisia, tunis, france, germany, eu, europe]
+
+filters:
+  exclude_unpaid: true
+  languages: [fr, en, ar]
+  min_pay: []            # e.g. - {currency: EUR, period: month, amount: 1500}
+  blocked_keywords: []
+  blocked_companies: []
+
+# Extra score when these appear in a lead (summed, capped).
+boost_keywords:
+  golang: 1.0
+  " go ": 0.6
+  c++: 1.0
+  numa: 1.0
+  low latency: 0.8
+  travel: 0.8
+  hotel: 0.8
+  booking: 0.5
+  grpc: 0.6
+  spring boot: 0.5
+  .net: 0.4
+  devops: 0.5
+  kubernetes: 0.5
+  pfe: 0.8
+  stage de fin d'études: 0.8
