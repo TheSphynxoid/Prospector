@@ -1,8 +1,24 @@
-"""Runtime settings, read from the environment / .env."""
+"""Runtime settings, read from the environment / .env (overridable from the dashboard, see settings_store)."""
+import re
+from datetime import time
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Fields the dashboard may override, in the order the settings page shows them.
+EDITABLE: tuple[str, ...] = (
+    "llm_api_key", "llm_base_url", "telegram_token", "telegram_chat_id", "bridge_url", "bridge_secret",
+    "access_team_domain", "access_aud", "adzuna_app_id", "adzuna_app_key", "github_token", "dashboard_url",
+    "llm_model", "llm_fallback_model", "llm_daily_cap", "stage2_threshold", "enabled_sources", "digest_time",
+)
+SECRETS: frozenset[str] = frozenset({"llm_api_key", "telegram_token", "bridge_secret", "adzuna_app_key", "github_token"})
+_HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+def parse_hhmm(s: str) -> time:
+    h, m = s.split(":")
+    return time(int(h), int(m))
 
 
 class Settings(BaseSettings):
@@ -16,8 +32,8 @@ class Settings(BaseSettings):
     llm_model: str = "glm-5.3-flash"
     llm_fallback_model: str = "qwen3.8-flash"
     llm_api_key: SecretStr
-    llm_daily_cap: int = 20
-    stage2_threshold: float = 0.55
+    llm_daily_cap: int = Field(20, ge=1, le=500)
+    stage2_threshold: float = Field(0.55, ge=0, le=1)
 
     telegram_token: SecretStr | None = None
     telegram_chat_id: str | None = None
@@ -36,3 +52,11 @@ class Settings(BaseSettings):
         "hn", "github_bounties", "freelancer", "keejob", "alerts",
     ]
     embed_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+    digest_time: str = "08:00"  # HH:MM, Africa/Tunis
+
+    @field_validator("digest_time")
+    @classmethod
+    def _hhmm(cls, v: str) -> str:
+        if not _HHMM.match(v):
+            raise ValueError("use HH:MM, e.g. 08:00")
+        return v

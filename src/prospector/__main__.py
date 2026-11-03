@@ -12,6 +12,7 @@ from prospector.context import AppContext
 from prospector.http import make_client
 from prospector.llm.client import LLMClient
 from prospector.profile.model import load_profile
+from prospector.settings_store import load_settings
 from prospector.store.db import connect
 
 log = logging.getLogger("prospector")
@@ -135,7 +136,9 @@ def main(argv: list[str] | None = None) -> int:
     dg.set_defaults(fn=cmd_digest)
     sub.add_parser("check-llm", help="list models and check the configured ones").set_defaults(fn=cmd_check_llm)
     args = parser.parse_args(argv)
-    return args.fn(Settings(), args)
+    loaded = load_settings()
+    args.loaded = loaded  # serve shows a banner when saved settings were rejected
+    return args.fn(loaded.settings, args)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import prospector.sources.adapters  # noqa: F401 — register real adapters before the test swaps FACTORIES
 from prospector.config import Settings
 from prospector.sources.registry import FACTORIES, build_sources, register
 from prospector.store.db import connect

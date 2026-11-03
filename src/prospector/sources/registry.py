@@ -18,6 +18,11 @@ def register(source_id: str):
     return deco
 
 
+def known_source_ids() -> list[str]:
+    import prospector.sources.adapters  # noqa: F401 — registers every adapter
+    return list(FACTORIES)
+
+
 def build_sources(settings: Settings, mail: MailRepo) -> list[Source]:
     import prospector.sources.adapters  # noqa: F401 — registers every adapter
 
