@@ -9,16 +9,17 @@ from prospector.store.assist import Message
 from prospector.web.dashboard import templates
 
 PASTE_LIMIT = 20000
+POLL_MAX = 30  # 2 s apart: stop polling for a fetch after about a minute
 
 
 def assist_context(ctx: AppContext, lead_id: int) -> dict:
     """What _assist.html needs; starts the one-time posting fetch in the background."""
     row = ctx.assist.get(lead_id)
     if not row.fetch_tried:
-        ctx.run_background(lambda: refresh_posting(ctx, lead_id))
+        ctx.run_background(lambda: refresh_posting(ctx, lead_id, keep_pasted=True))
         row = ctx.assist.get(lead_id)
     return {"assist": row, "messages": ctx.assist.messages(lead_id), "bid": row.bid,
-            "usd_tnd": ctx.settings.usd_tnd_rate}
+            "usd_tnd": ctx.settings.usd_tnd_rate, "poll": 0, "poll_max": POLL_MAX}
 
 
 def make_assist_router(ctx: AppContext) -> APIRouter:
@@ -32,12 +33,13 @@ def make_assist_router(ctx: AppContext) -> APIRouter:
 
     def render(request: Request, name: str, lead_id: int, **extra):
         return templates.TemplateResponse(request, name, {"lead_id": lead_id, "assist": ctx.assist.get(lead_id),
-                                                          "usd_tnd": ctx.settings.usd_tnd_rate, **extra})
+                                                          "usd_tnd": ctx.settings.usd_tnd_rate, "poll": 0,
+                                                          "poll_max": POLL_MAX, **extra})
 
     @router.get("/posting-status")
-    def posting_status(request: Request, lead_id: int):
+    def posting_status(request: Request, lead_id: int, n: int = 0):
         lead_or_404(lead_id)
-        return render(request, "_assist_posting.html", lead_id)
+        return render(request, "_assist_posting_status.html", lead_id, poll=n)
 
     @router.post("/posting")
     def paste(request: Request, lead_id: int, posting: str = Form("")):

@@ -1,11 +1,5 @@
-{% set origin_text = {"source": "from Freelancer", "fetched": "fetched from the site", "pasted": "pasted by you"} %}
-<div id="assist-posting" class="assist-posting"
-     {% if not assist.fetch_tried and not assist.posting %}hx-get="/lead/{{ lead_id }}/assist/posting-status" hx-trigger="load delay:2s" hx-swap="outerHTML"{% endif %}>
-  <p class="small">
-    {% if assist.posting %}Using the full posting ({{ origin_text.get(assist.posting_origin, assist.posting_origin) }}).
-    {% elif not assist.fetch_tried %}<span class="muted">Fetching the full posting…</span>
-    {% else %}<span class="warn-text">{{ assist.fetch_note or "No full posting yet." }}</span> Using the short description for now.{% endif %}
-  </p>
+<div id="assist-posting" class="assist-posting">
+  {% include "_assist_posting_status.html" %}
   <details {% if assist.fetch_tried and not assist.posting %}open{% endif %}>
     <summary class="small">Paste the full posting / bid form</summary>
     <form hx-post="/lead/{{ lead_id }}/assist/posting" hx-target="#assist-posting" hx-swap="outerHTML"

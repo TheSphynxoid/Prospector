@@ -68,9 +68,11 @@ class AssistRepo:
     def set_posting(self, lead_id: int, text: str, origin: str) -> None:
         self._upsert(lead_id, posting=text, posting_origin=origin)
 
-    def set_fetch_result(self, lead_id: int, text: str | None, origin: str | None, note: str | None) -> None:
-        if text is None:  # a failed fetch keeps whatever posting is already there
-            self._upsert(lead_id, fetch_note=note, fetch_tried=1)
+    def set_fetch_result(self, lead_id: int, text: str | None, origin: str | None, note: str | None,
+                         keep_pasted: bool = False) -> None:
+        if text is None or (keep_pasted and self.get(lead_id).posting_origin == "pasted"):
+            # a failed fetch, or a late background one, keeps whatever posting is already there
+            self._upsert(lead_id, fetch_note=None if text else note, fetch_tried=1)
         else:
             self._upsert(lead_id, posting=text, posting_origin=origin, fetch_note=note, fetch_tried=1)
 

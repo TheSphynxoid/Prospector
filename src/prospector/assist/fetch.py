@@ -87,7 +87,7 @@ def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, reso
         url = httpx.URL(lead.canonical_url)
     except httpx.InvalidURL:
         return FetchResult(None, None, NOT_WEB)
-    with httpx.Client(transport=transport, follow_redirects=False, timeout=10,
+    with httpx.Client(transport=transport, follow_redirects=False, timeout=10, trust_env=False,
                       headers={"User-Agent": USER_AGENT}) as client:
         try:
             for _ in range(MAX_HOPS + 1):
@@ -116,7 +116,8 @@ def fetch_posting(lead: Lead, transport: httpx.BaseTransport | None = None, reso
     return FetchResult(text, "fetched", None)
 
 
-def refresh_posting(ctx: AppContext, lead_id: int) -> None:
+def refresh_posting(ctx: AppContext, lead_id: int, keep_pasted: bool = False) -> None:
+    """keep_pasted: the automatic first-view fetch must not replace what the owner pasted meanwhile."""
     lead = ctx.leads.get(lead_id)
     if lead is None:
         return
@@ -125,4 +126,4 @@ def refresh_posting(ctx: AppContext, lead_id: int) -> None:
     except Exception:  # never let a background fetch crash the job; the owner can paste
         log.exception("posting fetch failed for lead %s", lead_id)
         r = FetchResult(None, None, "Couldn't fetch the page.")
-    ctx.assist.set_fetch_result(lead_id, r.text, r.origin, r.note)
+    ctx.assist.set_fetch_result(lead_id, r.text, r.origin, r.note, keep_pasted=keep_pasted)

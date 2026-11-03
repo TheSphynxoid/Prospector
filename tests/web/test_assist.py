@@ -47,8 +47,9 @@ def test_detail_shows_assistant_and_triggers_fetch(ctx, client, lid, fetched):
 
 def test_posting_status_shows_note_and_paste_box(client, lid, fetched):
     client.get(f"/lead/{lid}")
-    r = client.get(f"/lead/{lid}/assist/posting-status")
-    assert "needs a login" in r.text and "<details" in r.text and " open" in r.text
+    assert "needs a login" in client.get(f"/lead/{lid}/assist/posting-status").text
+    page = client.get(f"/lead/{lid}").text
+    assert "needs a login" in page and "<details open>" in page
 
 
 def test_message_round_trip(client, lid, fake, fetched):
@@ -125,3 +126,27 @@ def test_overview_shows_assistant_usage(ctx, client):
 def test_empty_log_has_no_whitespace(client, lid, fetched):
     page = client.get(f"/lead/{lid}").text
     assert '<div id="assist-log" class="assist-log" aria-live="polite"></div>' in page
+
+
+@pytest.fixture
+def web(ctx, app, make_lead):
+    ctx.run_background = lambda fn: None  # the job never runs
+    return TestClient(app, client=TAILNET), ctx.leads.insert(make_lead())
+
+
+def test_poll_targets_status_line_only(web):
+    client, lid = web
+    page = client.get(f"/lead/{lid}").text
+    assert 'id="assist-posting-status"' in page
+    poller = page[page.index('id="assist-posting-status"') - 200:page.index('id="assist-posting-status"') + 300]
+    assert "hx-get" in poller
+    assert '<div id="assist-posting" class="assist-posting">' in page  # the wrapper itself never polls
+    frag = client.get(f"/lead/{lid}/assist/posting-status?n=1").text
+    assert "<details" not in frag and "<textarea" not in frag
+
+
+def test_poll_gives_up(web):
+    client, lid = web
+    assert "n=2" in client.get(f"/lead/{lid}/assist/posting-status?n=1").text
+    done = client.get(f"/lead/{lid}/assist/posting-status?n=30").text
+    assert "hx-get" not in done and "didn't finish" in done

@@ -59,6 +59,11 @@ def build_context(settings: Settings, with_embedder: bool = True, with_sources: 
     return ctx
 
 
+def background_runner(sched):
+    """One-off jobs on the scheduler pool, never dropped as missed when the pool is busy (default grace is 1 s)."""
+    return lambda fn: sched.add_job(fn, misfire_grace_time=None)
+
+
 def _restart_soon() -> None:
     """Exit shortly after the response is sent; Docker (restart: unless-stopped) starts us again."""
     def bye():
@@ -91,7 +96,7 @@ def cmd_serve(settings: Settings, args) -> int:
     sched = ctx.sched
     ctx.loaded = ctx_loaded
     ctx.restart = _restart_soon
-    ctx.run_background = lambda fn: sched.add_job(fn)  # one-off job on the scheduler pool
+    ctx.run_background = background_runner(sched)
 
     @asynccontextmanager
     async def lifespan(app):

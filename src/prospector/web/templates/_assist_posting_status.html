@@ -1,0 +1,9 @@
+{% set origin_text = {"source": "from Freelancer", "fetched": "fetched from the site", "pasted": "pasted by you"} %}
+{% set polling = not assist.fetch_tried and not assist.posting and poll < poll_max %}
+<p id="assist-posting-status" class="small"
+   {% if polling %}hx-get="/lead/{{ lead_id }}/assist/posting-status?n={{ poll + 1 }}" hx-trigger="load delay:2s" hx-swap="outerHTML"{% endif %}>
+  {% if assist.posting %}Using the full posting ({{ origin_text.get(assist.posting_origin, assist.posting_origin) }}).
+  {% elif polling %}<span class="muted">Fetching the full posting…</span>
+  {% elif not assist.fetch_tried %}<span class="warn-text">The fetch didn't finish.</span> Paste the posting or try again.
+  {% else %}<span class="warn-text">{{ assist.fetch_note or "No full posting yet." }}</span> Using the short description for now.{% endif %}
+</p>
