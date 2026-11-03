@@ -1,13 +1,18 @@
 """Settings page: edit overrides in DATA_DIR/settings.json, then restart to apply them."""
 import html
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
+
+from pydantic import ValidationError
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from prospector.config import EDITABLE, SECRETS, Settings
 from prospector.context import AppContext
+from prospector.models import Kind
+from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
 from prospector.web.dashboard import templates
 
@@ -97,7 +102,8 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             ctx.loaded = LoadedSettings(ctx.settings)
         return ctx.loaded
 
-    def page(request: Request, status: int = 200, errors: dict | None = None, posted=None, notice: str = ""):
+    def page(request: Request, status: int = 200, errors: dict | None = None, posted=None, notice: str = "",
+             prow: dict | None = None, profile_error: str = ""):
         from prospector.sources.registry import FACTORIES, known_source_ids
 
         known_source_ids()
@@ -106,6 +112,8 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             "nav": "settings", "keys": KEYS, "tuning": TUNING, "secrets": SECRETS, "loaded": loaded(),
             "s": ctx.settings, "current": lambda n: _current(ctx.settings, n), "errors": errors or {},
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
+            "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
+            "periods": ["hour", "day", "month", "year", "fixed"], "rescore": ctx.kv.get("rescore_status"),
         }, status_code=status)
 
     def apply(request: Request, new: dict):
@@ -138,6 +146,43 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         if errors:
             return page(request, 400, errors)
         return apply(request, new)
+
+    @router.post("/settings/profile")
+    async def save_profile_form(request: Request):
+        rows = rows_from_form(await request.form())
+        try:
+            profile = profile_from_rows(rows)
+        except ValidationError as e:
+            err = e.errors(include_input=False)[0]
+            return page(request, 400, prow=rows, profile_error=f"{'.'.join(map(str, err['loc']))}: {err['msg']}")
+        except ValueError as e:
+            return page(request, 400, prow=rows, profile_error=str(e))
+        save_profile(ctx.settings.profile_path, profile)
+        ctx.restart()
+        return templates.TemplateResponse(request, "restarting.html", {"nav": "settings"})
+
+    def rescore_fragment(status: dict | None) -> HTMLResponse:
+        if status and status.get("state") == "running":
+            return HTMLResponse('<span id="rescore-status" class="muted" hx-get="/settings/rescore-status" '
+                                f'hx-trigger="every 2s" hx-swap="outerHTML">Re-scoring {status["count"]} leads…</span>')
+        if status:
+            return HTMLResponse(f'<span id="rescore-status" class="test-ok">Re-scored {status["count"]} leads ✓</span>')
+        return HTMLResponse('<span id="rescore-status"></span>')
+
+    @router.post("/settings/rescore")
+    def rescore():
+        from prospector.pipeline import rescore_all
+
+        if ctx.embedder is None:
+            return HTMLResponse('<span id="rescore-status" class="test-err">The embedding model is not loaded.</span>')
+        total = ctx.conn.execute("SELECT COUNT(*) FROM scores WHERE embedding IS NOT NULL").fetchone()[0]
+        ctx.kv.set("rescore_status", {"state": "running", "count": total})  # before queueing: no stale "done"
+        ctx.run_background(lambda: rescore_all(ctx, datetime.now(UTC)))
+        return rescore_fragment({"state": "running", "count": total})
+
+    @router.get("/settings/rescore-status")
+    def rescore_status():
+        return rescore_fragment(ctx.kv.get("rescore_status"))
 
     @router.post("/settings/reveal-bridge-secret")
     def reveal():

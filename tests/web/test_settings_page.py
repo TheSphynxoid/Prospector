@@ -157,3 +157,73 @@ def test_rejected_banner(setup, ctx):
 def test_nav_has_settings(setup):
     client, _, _ = setup
     assert 'aria-current="page" href="/settings"' in client.get("/settings").text
+
+
+def profile_form_of(client):
+    from selectolax.lexbor import LexborHTMLParser
+    doc = LexborHTMLParser(client.get("/settings").text)
+    pairs = []
+    for el in doc.css("form#profile-form input, form#profile-form textarea, form#profile-form select"):
+        name, typ = el.attributes.get("name"), el.attributes.get("type")
+        if not name:
+            continue
+        if typ == "checkbox":
+            if "checked" in el.attributes:
+                pairs.append((name, el.attributes.get("value") or "1"))
+        elif el.tag == "textarea":
+            pairs.append((name, el.text()))
+        elif el.tag == "select":
+            opt = el.css_first("option[selected]") or el.css_first("option")
+            pairs.append((name, opt.attributes.get("value", "") if opt else ""))
+        else:
+            pairs.append((name, el.attributes.get("value") or ""))
+    return pairs
+
+
+def as_form(pairs):
+    """httpx treats a list as raw bytes; a dict of lists posts repeated fields."""
+    out = {}
+    for k, v in pairs:
+        out.setdefault(k, []).append(v)
+    return out
+
+
+@pytest.fixture
+def example_profile(setup, ctx, env):
+    from pathlib import Path
+
+    from prospector.profile.model import load_profile
+    src = Path(__file__).resolve().parents[2] / "profile.example.yaml"
+    ctx.settings.profile_path.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    ctx.profile = load_profile(ctx.settings.profile_path)
+    return setup
+
+
+def test_profile_page_round_trip_saves_and_restarts(example_profile, ctx):
+    from prospector.profile.model import load_profile
+    client, restarts, _ = example_profile
+    before = ctx.profile
+    r = client.post("/settings/profile", data=as_form(profile_form_of(client)))
+    assert "Restarting" in r.text and restarts == [1]
+    assert load_profile(ctx.settings.profile_path) == before
+    assert ctx.settings.profile_path.with_name("profile.yaml.bak").exists() or \
+        ctx.settings.profile_path.with_suffix(ctx.settings.profile_path.suffix + ".bak").exists()
+
+
+def test_profile_post_invalid_400_keeps_edits(example_profile, ctx):
+    client, restarts, _ = example_profile
+    pairs = [(k, "9" if k == "skills[0][weight]" else ("EDITED WRITEUP" if k == "projects[0][writeup]" else v))
+             for k, v in profile_form_of(client)]
+    r = client.post("/settings/profile", data=as_form(pairs))
+    assert r.status_code == 400 and restarts == []
+    assert "EDITED WRITEUP" in r.text and 'id="profile-error"' in r.text
+
+
+def test_rescore_button_queues(example_profile, ctx):
+    client, _, _ = example_profile
+    from tests.rank.test_stage1 import FakeEmbedder
+    queued = []
+    ctx.embedder = FakeEmbedder()
+    ctx.run_background = queued.append
+    r = client.post("/settings/rescore")
+    assert r.status_code == 200 and len(queued) == 1 and "Re-scoring" in r.text

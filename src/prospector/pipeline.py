@@ -45,12 +45,37 @@ def _score(ctx: AppContext, lead: Lead, now: datetime) -> None:
         ctx.profile_vecs = profile_vectors(ctx.profile, ctx.embedder)
     vec = ctx.embedder.embed([lead_text(lead)], "passage")[0]
     ctx.scores.save_embedding(lead.id, vec)
-    score, breakdown = score_stage1(
-        lead, vec, ctx.profile_vecs,
-        ctx.scores.embeddings(ctx.feedback.positive_ids()), ctx.scores.embeddings(ctx.feedback.negative_ids()),
-        ctx.profile, Weights.load(ctx.kv), now, sim_range=getattr(ctx.embedder, "sim_range", (0.25, 0.65)),
-    )
+    _save_stage1(ctx, lead, vec, now, *_feedback_inputs(ctx))
+
+
+def _feedback_inputs(ctx: AppContext):
+    return (ctx.scores.embeddings(ctx.feedback.positive_ids()), ctx.scores.embeddings(ctx.feedback.negative_ids()),
+            Weights.load(ctx.kv))
+
+
+def _save_stage1(ctx: AppContext, lead: Lead, vec, now: datetime, pos, neg, weights: Weights) -> None:
+    score, breakdown = score_stage1(lead, vec, ctx.profile_vecs, pos, neg, ctx.profile, weights, now,
+                                    sim_range=getattr(ctx.embedder, "sim_range", (0.25, 0.65)))
     ctx.scores.save_stage1(lead.id, score, breakdown)
+
+
+def rescore_all(ctx: AppContext, now: datetime) -> int:
+    """Recompute stage-1 for every lead with a stored embedding, using the current profile. Stage-2 is kept."""
+    if ctx.embedder is None:
+        return 0
+    ctx.kv.set("rescore_status", {"state": "running", "count": 0})
+    ctx.profile_vecs = profile_vectors(ctx.profile, ctx.embedder)
+    inputs = _feedback_inputs(ctx)
+    count = 0
+    for lead_id, vec in ctx.scores.all_embeddings():
+        lead = ctx.leads.get(lead_id)
+        if lead is None:
+            continue
+        _save_stage1(ctx, lead, vec, now, *inputs)
+        count += 1
+    ctx.kv.set("rescore_status", {"state": "done", "count": count})
+    log.info("re-scored %d leads", count)
+    return count
 
 
 def ingest(ctx: AppContext, source: Source, now: datetime) -> IngestStats:

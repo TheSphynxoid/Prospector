@@ -28,6 +28,11 @@ class ScoreRepo:
         self.conn.execute(_UPSERT.format(col="embedding"),
                           (lead_id, np.asarray(vec, dtype=np.float32).tobytes(), now_iso()))
 
+    def all_embeddings(self):
+        """(lead_id, vector) for every lead with a stored embedding."""
+        for r in self.conn.execute("SELECT lead_id, embedding FROM scores WHERE embedding IS NOT NULL").fetchall():
+            yield r["lead_id"], np.frombuffer(r["embedding"], dtype=np.float32)
+
     def embeddings(self, ids: list[int]) -> np.ndarray:
         """Embeddings for `ids` (rows for ids without one are skipped)."""
         if not ids:

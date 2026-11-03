@@ -213,3 +213,14 @@ code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; b
 .small { font-size: .85rem; }
 .restarting { max-width: 32rem; margin: 3rem auto; text-align: center; }
 .tabs a[href^="#"] { text-transform: none; }
+.rows { display: grid; gap: .45rem; justify-items: start; }
+.row-edit { display: flex; flex-wrap: wrap; gap: .45rem; width: 100%; align-items: flex-start; }
+.row-edit input, .row-edit textarea, .row-edit select { font: inherit; font-size: .9rem; padding: .4rem .55rem;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); }
+.row-edit input { flex: 1 1 12rem; min-width: 0; }
+.row-edit input.col-weight { flex: 0 0 6rem; }
+.row-edit input.col-short { flex: 0 0 6rem; text-transform: uppercase; }
+.row-edit textarea { flex: 1 1 100%; resize: vertical; min-height: 4.5rem; }
+.rows[data-group="projects"] .row-edit { padding: .6rem; border: 1px dashed var(--line); border-radius: 10px; }
+.form-actions { gap: .6rem; align-items: center; flex-wrap: wrap; }
+.test-ok { color: var(--good); font-size: .9rem; } .test-err { color: var(--bad); font-size: .9rem; }
