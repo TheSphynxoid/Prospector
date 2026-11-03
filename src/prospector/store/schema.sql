@@ -71,3 +71,21 @@ CREATE TABLE IF NOT EXISTS kv (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS lead_messages (
+    id INTEGER PRIMARY KEY,
+    lead_id INTEGER NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS lead_messages_lead ON lead_messages(lead_id, id);
+
+CREATE TABLE IF NOT EXISTS lead_assist (
+    lead_id INTEGER PRIMARY KEY REFERENCES leads(id) ON DELETE CASCADE,
+    posting TEXT,
+    posting_origin TEXT,
+    fetch_note TEXT,
+    fetch_tried INTEGER NOT NULL DEFAULT 0,
+    bid TEXT
+);
