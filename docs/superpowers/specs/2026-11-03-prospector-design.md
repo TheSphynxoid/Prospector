@@ -78,7 +78,7 @@ server in Sydney (32 GB RAM, no GPU; container capped at ~3 GB).
 
 | Module | Responsibility | Depends on |
 |---|---|---|
-| `sources/` | Adapters: `fetch() -> list[RawLead]` | httpx, imaplib, feed/HTML parsers |
+| `sources/` | Adapters: `fetch() -> list[RawLead]` | httpx, email (stdlib), feed/HTML parsers |
 | `normalize/` | `RawLead` → `Lead`; cross-source dedupe | `sources` output |
 | `profile/` | Loads `profile.yaml` (skills, projects, targets, filters, keywords) | — |
 | `rank/` | Stage 1 (free) + stage 2 (LLM) scoring; feedback weighting | `profile`, `llm`, `store` |
