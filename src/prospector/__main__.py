@@ -48,6 +48,8 @@ def build_context(settings: Settings, with_embedder: bool = True, with_sources: 
         settings, connect(data / "prospector.db"), load_profile(settings.profile_path), http,
         verifier=AccessVerifier(settings.access_team_domain, settings.access_aud, http),
         llm=LLMClient(settings.llm_base_url, settings.llm_api_key.get_secret_value(), settings.llm_model, http),
+        assistant_llm=LLMClient(settings.llm_base_url, settings.llm_api_key.get_secret_value(),
+                                settings.assistant_model or settings.llm_model, http),
     )
     if with_embedder:
         from prospector.rank.embed import FastEmbedder

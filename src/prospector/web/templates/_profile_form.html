@@ -53,6 +53,13 @@
       {% if help %}<p class="field-help">{{ help }}</p>{% endif %}</div>
     {% endfor %}
 
+    <div class="field"><label>Pricing <span class="muted">· USD per hour, used by the lead assistant's bids</span></label>
+      <div class="pricing-row">
+        {% for k, label in [("rate", "Rate"), ("floor", "Floor (competitive bids)"), ("hours_per_day", "Billable hours per day")] %}
+        <label class="stack small">{{ label }}<input name="pricing[{{ k }}]" value="{{ prow.pricing[k] if prow.pricing else "" }}" inputmode="decimal"></label>
+        {% endfor %}
+      </div></div>
+
     <div class="field"><label>Boost keywords <span class="muted">· weight 0–1; spaces count (" go " matches the word only)</span></label>
       {{ rows("boost", [{"name": "keyword", "label": "Keyword", "kind": "text"}, {"name": "weight", "label": "Weight", "kind": "weight"}], prow.boost) }}</div>
   </section>

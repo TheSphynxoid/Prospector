@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator
 
 from prospector.models import Kind
 
@@ -31,12 +31,26 @@ class Filters(BaseModel):
     blocked_companies: list[str] = []
 
 
+class Pricing(BaseModel):
+    """USD per hour; the assistant's bids are hours x rate (fair) and hours x floor (competitive)."""
+    rate: float = Field(25, gt=0)
+    floor: float = Field(15, gt=0)
+    hours_per_day: int = Field(6, ge=1, le=12)
+
+    @model_validator(mode="after")
+    def _floor_below_rate(self) -> "Pricing":
+        if self.floor > self.rate:
+            raise ValueError("the floor can't be above the rate")
+        return self
+
+
 class Profile(BaseModel):
     skills: dict[str, float]
     projects: list[Project]
     targets: Targets
     filters: Filters = Filters()
     boost_keywords: dict[str, float] = {}
+    pricing: Pricing = Pricing()
 
 
 def load_profile(path: Path) -> Profile:

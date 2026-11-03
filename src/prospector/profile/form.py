@@ -8,7 +8,7 @@ from typing import Any
 
 import yaml
 
-from prospector.profile.model import Filters, MinPay, Profile, Project, Targets
+from prospector.profile.model import Filters, MinPay, Pricing, Profile, Project, Targets
 
 _ROW = re.compile(r"^(\w+)\[(\d+)\]\[(\w+)\]$")
 GROUPS = {"skills": ("name", "weight"), "projects": ("name", "writeup", "tags"),
@@ -44,6 +44,7 @@ def rows_from_profile(p: Profile) -> dict[str, Any]:
         "blocked_keywords": ", ".join(f.blocked_keywords),
         "blocked_companies": ", ".join(f.blocked_companies),
         "boost": [{"keyword": k, "weight": _num(v)} for k, v in p.boost_keywords.items()],
+        "pricing": {k: _num(v) for k, v in p.pricing.model_dump().items()},
     }
 
 
@@ -60,6 +61,7 @@ def rows_from_form(form) -> dict[str, Any]:
     for name in ("regions", "languages", "blocked_keywords", "blocked_companies"):
         rows[name] = str(form.get(name, ""))
     rows["exclude_unpaid"] = bool(form.get("exclude_unpaid"))
+    rows["pricing"] = {k: str(form.get(f"pricing[{k}]", "")).strip() for k in Pricing.model_fields}
     return rows
 
 
@@ -83,6 +85,7 @@ def profile_from_rows(rows: dict[str, Any]) -> Profile:
         ),
         # Keywords keep their spaces: " go " deliberately matches the word, not "google".
         boost_keywords={r["keyword"]: _weight(r["weight"]) for r in keep("boost")},
+        pricing=Pricing(**{k: float(v) for k, v in rows.get("pricing", {}).items() if v}),
     )
 
 

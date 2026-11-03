@@ -267,3 +267,7 @@ section[id], .field[id] { scroll-margin-top: 4.5rem; }
   .topbar { position: static; }  /* two rows on phones: let it scroll away instead of covering anchors */
   section[id], .field[id] { scroll-margin-top: .5rem; }
 }
+
+.pricing-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.pricing-row .stack { display: flex; flex-direction: column; gap: .25rem; }
+.pricing-row input { width: 9rem; }

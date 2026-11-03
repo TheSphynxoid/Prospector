@@ -52,8 +52,11 @@ TUNING = [
     FieldInfo("llm_daily_cap", "AI reviews per day", "int", "1–500."),
     FieldInfo("stage2_threshold", "Review threshold", "float", "Leads scoring at least this (0–1) get an AI review."),
     FieldInfo("digest_time", "Digest time", "time", "Africa/Tunis."),
+    FieldInfo("assistant_model", "Assistant model", "model", "Blank uses the LLM model."),
+    FieldInfo("assistant_daily_cap", "Assistant messages per day", "int", "1–2000."),
+    FieldInfo("usd_tnd_rate", "USD → TND rate", "float", "Used only to show TND equivalents."),
 ]
-_OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "adzuna_app_id"}
+_OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "adzuna_app_id", "assistant_model"}
 assert {f.name for f in KEYS + TUNING} | {"enabled_sources"} == set(EDITABLE)
 
 

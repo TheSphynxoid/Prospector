@@ -38,6 +38,7 @@ class AppContext:
     verifier: "AccessVerifier | None" = None
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
+    assistant_llm: "LLMClient | None" = None  # own model and daily cap (see prospector.assist)
     sources: "list[Source]" = field(default_factory=list)
     profile_vecs: Any = None  # np.ndarray, computed lazily by the pipeline
     loaded: "LoadedSettings | None" = None  # where each setting came from; set by serve

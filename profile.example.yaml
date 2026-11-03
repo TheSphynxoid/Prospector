@@ -79,6 +79,12 @@ filters:
   blocked_keywords: []
   blocked_companies: []
 
+# Used by the lead assistant's bids: fair = hours x rate, competitive = hours x floor (USD per hour).
+pricing:
+  rate: 25
+  floor: 15
+  hours_per_day: 6
+
 # Extra score when these appear in a lead (summed, capped).
 boost_keywords:
   golang: 1.0
