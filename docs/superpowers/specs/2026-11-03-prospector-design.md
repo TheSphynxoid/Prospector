@@ -50,10 +50,16 @@ Three acquisition modes, each a plugin adapter:
 1. **Official APIs / RSS** — Remotive, RemoteOK, Himalayas, Arbeitnow, Adzuna
    (country passed explicitly: fr, de, gb, au, …), Hacker News "Who is hiring"
    (Algolia API), Algora + GitHub issues labelled bounty, Freelancer.com.
-2. **Alert mailbox (IMAP)** — the owner configures job alerts on closed sites
-   (LinkedIn, Indeed, Welcome to the Jungle, Malt, Tanitjobs) to a dedicated
-   mailbox; Prospector parses the alert emails. Legitimate coverage of sites that
-   cannot be scraped.
+2. **Alert address (push, no mailbox)** — the owner points job alerts on closed
+   sites (LinkedIn, Indeed, Welcome to the Jungle, Malt, Tanitjobs) at
+   `alerts@prospector.thesphynx.net`. Cloudflare Email Routing (subdomain MX
+   only — the apex Zoho MX records are untouched) hands each message to the
+   `mail-bridge` Worker, which POSTs the raw MIME to Prospector's ingest
+   endpoint (see §4.3). Prospector parses the alert emails with per-sender
+   parsers. Legitimate coverage of sites that cannot be scraped. A
+   confirmation email from an alert site (verify-your-address links) is
+   surfaced on the dashboard for the owner to click manually — never
+   auto-clicked.
 3. **Polite scrapers** — only where terms allow (candidate: Keejob, Tunisian
    national employment portal). robots.txt respected, identifying user-agent,
    at most daily.
@@ -78,9 +84,10 @@ server in Sydney (32 GB RAM, no GPU; container capped at ~3 GB).
 | `rank/` | Stage 1 (free) + stage 2 (LLM) scoring; feedback weighting | `profile`, `llm`, `store` |
 | `llm/` | OpenAI-compatible client, provider from config, daily cap, cache | — |
 | `store/` | SQLite persistence | — |
-| `notify/` | Daily digest via Telegram bot and/or email | `store` |
-| `web/` | FastAPI + HTMX dashboard, login-protected | `store` |
+| `notify/` | Daily digest via Telegram bot **and** email | `store` |
+| `web/` | FastAPI + HTMX dashboard + `/ingest/mail` endpoint | `store` |
 | `scheduler` | APScheduler jobs, all in `Africa/Tunis` timezone | all modules |
+| `mail-bridge/` (Cloudflare Worker, TypeScript) | Inbound: email → POST raw MIME to Prospector. Outbound: receives the digest from Prospector and sends it via the `send_email` binding to the owner's verified Zoho address | Cloudflare Email Routing |
 
 ### 4.1 Data model (core)
 
@@ -108,6 +115,26 @@ Initial projects to describe: room-mapping/packing engine, SRV project
 orchestration engine, Furrballs (NUMA-aware cache, REMARC), BoosterBC Go
 supplier connectors, DataMart, Hubris Engine, stepwise.
 
+### 4.3 Network & access
+
+- Server reached for deployment over **Tailscale** (SSH).
+- Public hostname `prospector.thesphynx.net` served by the existing
+  **cloudflared** tunnel and protected by **Cloudflare Access** (owner's
+  identity only). No ports opened on the server; no reverse proxy needed —
+  the tunnel terminates TLS.
+- The app listens only on localhost (for cloudflared) and the Tailscale
+  interface. Auth rule in the app: requests from the tailnet range
+  (`100.64.0.0/10`) are trusted; all others must carry a valid
+  `Cf-Access-Jwt-Assertion` (verified against the team's Access certs and
+  application AUD). Defense in depth if a tunnel/Access rule is misconfigured.
+- `/ingest/mail`: Access application with a **service-token** policy; the
+  Worker sends `CF-Access-Client-Id/Secret`. The app additionally requires an
+  HMAC-SHA256 signature header over the body with a shared secret, and caps
+  body size (5 MB).
+- Outbound digest email: Prospector POSTs the rendered digest to the Worker
+  (`/digest`, same shared-secret HMAC); the Worker sends it with `send_email`
+  to the owner's verified destination address.
+
 ## 5. Ranking
 
 ### Stage 1 — every new lead, free
@@ -126,9 +153,17 @@ supplier connectors, DataMart, Hubris Engine, stepwise.
 ### Stage 2 — top N per day, LLM
 
 - Top unreviewed leads above a threshold, up to a daily cap (default 20).
-- Provider: the owner's low-cost subscription via an OpenAI-compatible API,
-  configured by `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`. Provider ToS must
-  allow API use outside coding tools — verify before enabling.
+- Provider: **OpenCode Go** via its OpenAI-compatible endpoint
+  (`LLM_BASE_URL=https://opencode.ai/inference/go/openai/v1`), configured by
+  `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`; swappable to any
+  OpenAI-compatible provider by config alone.
+- Default model: a cheap fast one (`glm-5.3-flash`, fallback
+  `qwen3.8-flash`); model IDs validated at startup against `/v1/models`.
+- OpenCode Go is described as designed for coding agents and monitors traffic
+  for abuse. To stay a good citizen: identifying `User-Agent`
+  (`prospector/<version>`), a stable `x-opencode-session` header per daily
+  run, low volume (cap 20/day), and no retries beyond the one repair retry.
+  If the provider objects, switch provider in config.
 - Strict JSON output: `verdict` (`strong|maybe|weak`), `fit_summary`
   (≤ 2 sentences), `lead_with_project`, `red_flags[]`, `pay_estimate` (if missing).
 - Cached by hash of lead content; a lead is never re-scored unless its content changes.
@@ -140,8 +175,10 @@ positive/negative example sets. No model training.
 
 ## 6. Data flow
 
-1. **Fetch** — per-source intervals: APIs/RSS 2–6 h, mailbox 30 min, scrapers
-   daily. Timeouts, identifying user-agent, robots.txt.
+1. **Fetch / receive** — pull sources on per-source intervals: APIs/RSS 2–6 h,
+   scrapers daily (timeouts, identifying user-agent, robots.txt). Alert emails
+   arrive by push at `/ingest/mail`, are stored raw, and are parsed into
+   `RawLead`s by the `alerts` adapter on the next 15-minute tick.
 2. **Normalize + dedupe** — dedupe by canonical URL, then fuzzy
    title + company match; duplicates merge into `Lead.sources`. Raw payloads kept 30 days.
 3. **Stage 1 rank** on new leads.
@@ -157,7 +194,8 @@ positive/negative example sets. No model training.
 - Actions: ★, dismiss, applied (one click, HTMX).
 - Tabs: new, starred, applied, filtered.
 - Source health page.
-- Single-user login (password hash in `.env`), HTTPS via Caddy.
+- "Needs you" panel: alert-site confirmation emails and paused sources.
+- No app-level password: access via Tailscale or Cloudflare Access (§4.3).
 
 ## 8. Error handling
 
@@ -168,8 +206,14 @@ positive/negative example sets. No model training.
   fields, raises a drift warning in the digest.
 - LLM unavailable / over cap / invalid JSON: lead keeps stage-1 score, marked
   unreviewed; one repair retry for invalid JSON; digest always sends.
-- Secrets (Telegram token, IMAP credentials, LLM key, dashboard password hash)
-  only in server `.env`, never committed; `.env.example` documents them.
+- Secrets (Telegram token, LLM key, mail-bridge HMAC secret, Access AUD/team)
+  only in server `.env` and Worker secrets, never committed; `.env.example`
+  documents them.
+- Ingest endpoint unavailable (server down): the Worker retries with backoff
+  for up to 24 h by keeping failed messages in a Cloudflare Queue, then drops
+  with a log entry.
+- Digest delivery: Telegram and email are sent independently; failure of one
+  is reported through the other.
 - Nightly SQLite backup, 14-day retention.
 
 ## 9. Testing
@@ -182,18 +226,40 @@ positive/negative example sets. No model training.
   prompt and JSON parsing with a fake LLM.
 - End-to-end smoke test: one cycle with fake sources + fake LLM, digest text
   and dashboard pages render.
+- Auth tests: tailnet source allowed; missing/invalid Access JWT rejected;
+  `/ingest/mail` rejects bad HMAC and oversize bodies.
+- `mail-bridge` Worker: vitest with the Workers pool — forwards MIME with
+  correct signature, queues on ingest failure, `/digest` rejects bad HMAC.
 - Production monitoring = the source-health page + digest warnings.
 
 ## 10. Deployment
 
-- `docker-compose.yml`: `prospector` (app + scheduler) and `caddy`; SQLite on a
-  mounted volume; memory limit ~3 GB.
-- Embedding model downloaded once into a volume at first start.
+- `docker-compose.yml`: single `prospector` service (app + scheduler); SQLite
+  on a mounted volume; memory limit ~3 GB; ports bound to localhost and the
+  Tailscale IP only.
+- Existing cloudflared tunnel gets an ingress rule for
+  `prospector.thesphynx.net → localhost:<port>`; Cloudflare Access apps for
+  the dashboard (owner identity) and `/ingest/mail` (service token).
+- `mail-bridge` Worker deployed with wrangler; Email Routing enabled for the
+  `prospector.thesphynx.net` subdomain; owner's Zoho address verified as a
+  destination.
+- Embedding model downloaded once into a volume at first start; CPU-only
+  (no GPU on the server).
 - Timezone for all schedules explicitly `Africa/Tunis` (server is in Sydney).
+- Deploys over Tailscale SSH: `git pull && docker compose up -d --build`.
 
-## 11. Open items for the owner
+## 11. Decisions (resolved 2026-11-03)
 
-- Name of the low-cost LLM provider (to confirm API access + ToS).
-- Digest channel: Telegram, email, or both.
-- Dedicated alert mailbox to create (and which alert sites to subscribe).
-- Dashboard domain (e.g. `prospector.thesphynx.net`).
+- LLM: OpenCode Go, OpenAI-compatible endpoint, cheap flash model (§5).
+- Digest: both Telegram and email, plus the dashboard.
+- Alerts: Cloudflare Email Routing on the subdomain → Worker → ingest (§3, §4.3).
+- Host: `prospector.thesphynx.net` via cloudflared + Cloudflare Access;
+  Tailscale for direct access and deployment.
+
+## 12. Owner setup tasks (manual, done by the owner)
+
+- Create the OpenCode Go API key; create the Telegram bot via @BotFather.
+- Verify the Zoho address as an Email Routing destination (click the link).
+- Configure the Cloudflare Access policies (owner identity; service token).
+- Subscribe job alerts on LinkedIn, Indeed, Welcome to the Jungle, Malt,
+  Tanitjobs to `alerts@prospector.thesphynx.net`.
