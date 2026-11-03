@@ -1,6 +1,6 @@
 import sqlite3
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
@@ -37,6 +37,7 @@ class AppContext:
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
     sources: "list[Source]" = field(default_factory=list)
+    profile_vecs: Any = None  # np.ndarray, computed lazily by the pipeline
 
     @classmethod
     def create(cls, settings: Settings, conn: sqlite3.Connection, profile: Profile, http: httpx.Client,
