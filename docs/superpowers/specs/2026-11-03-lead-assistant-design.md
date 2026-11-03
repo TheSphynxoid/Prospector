@@ -14,7 +14,8 @@ Everything it produces is a draft the owner copies; Prospector never submits any
 - Chat first (one chat per lead), plus a one-click **Draft bid** that returns editable fields.
 - Prices from both the owner's rate and the client's budget, with two tiers: **fair** and **competitive**
   ("lower bracket" to win selection, never below the owner's floor).
-- Currencies **USD and TND**, selectable; each has its own rate and floor.
+- All pricing is in **USD**. TND appears only as a displayed equivalent ("≈ 780 TND") next to USD amounts,
+  using a USD→TND rate set in Settings.
 - Own daily cap for assistant messages (default 100), separate from ranking's cap; optional own model.
 - Posting text: try to fetch it; if the fetch fails or the result is junk, ask the owner to paste it.
 - Plain request/reply (no streaming). Replies always in **English**.
@@ -56,22 +57,20 @@ Profile (`profile/model.py`) gains an optional `pricing` block, with these defau
 
 ```yaml
 pricing:
-  currency: USD              # default bid currency: USD | TND
+  rate: 25         # USD per hour
+  floor: 15        # USD per hour, lowest for the competitive bid
   hours_per_day: 6
-  rates:
-    USD: {rate: 25, floor: 15}   # per hour
-    TND: {rate: 60, floor: 35}
 ```
 
-- `currency` must be a key of `rates`; only `USD` and `TND` are accepted; `floor <= rate`, both > 0;
-  `hours_per_day` in 1–12.
-- The Settings → Profile form gets a Pricing fieldset: currency select, hours per day, rate and floor per currency.
+- `0 < floor <= rate`; `hours_per_day` in 1–12.
+- The Settings → Profile form gets a Pricing fieldset: rate, floor, hours per day.
   `profile.example.yaml` and the server's live profile get the block above.
 
 Settings (`config.py`, editable on Settings → Tuning, same mechanics as the existing fields):
 
 - `assistant_daily_cap: int = Field(100, ge=1, le=2000)`
 - `assistant_model: str | None = None` — blank uses `llm_model`.
+- `usd_tnd_rate: float = Field(3.0, gt=0, le=100)` — set by hand; used only to display TND equivalents.
 
 The assistant uses its own `LLMClient` (same base URL and key, model = `assistant_model or llm_model`), built in
 `build_context` as `ctx.assistant_llm`. Usage is counted in kv `assistant_calls:<Tunis date>`; the overview's LLM
@@ -94,15 +93,17 @@ New package `prospector/assist/`:
   short; call out scams, unpaid work, off-platform payment requests and vague scope.
 - `chat.py` — `send(ctx, lead_id, text) -> list[Message]`: stores the user message, sends the system prompt plus the
   last 20 non-error messages, stores the reply (or an `error` message) and returns the new messages.
-- `bid.py` — `draft_bid(ctx, lead_id, currency: str | None) -> Bid`. Asks for JSON:
+- `bid.py` — `draft_bid(ctx, lead_id) -> Bid`. Asks for JSON:
   `{"proposal", "estimate_hours", "rationale", "budget_warning"}` (one repair retry on invalid JSON, like stage 2).
   Prospector computes the money itself:
-  - `fair = round(hours × rate)`, `competitive = round(hours × floor)` in the chosen currency;
-  - if the client states a budget in the same currency: fair is clamped into it when the clamp stays ≥
+  - `fair = round(hours × rate)`, `competitive = round(hours × floor)`, in USD;
+  - if the client states a budget in USD: fair is clamped into it when the clamp stays ≥
     competitive, and `budget_warning` is set by Prospector (not the model) when even `competitive` is above the
     client's maximum or `fair` is below the client's minimum;
   - `delivery_days = ceil(hours / hours_per_day × 1.2)` (20 % buffer), at least 1;
-  - currency: the explicit choice, else the lead's pay currency if USD or TND, else the profile default.
+  - a budget in another currency is not converted: the rationale line notes "Client budget is in EUR — compare
+    yourself";
+  - every USD amount is shown with its TND equivalent (`round(usd × usd_tnd_rate)`), display only.
   - `proposal` under 100 characters triggers the repair retry; the UI also shows a live character count.
   The bid is saved in `lead_assist.bid` and a one-line summary is added to the chat as an assistant message so
   follow-ups ("make it shorter") have it in context.
@@ -135,8 +136,8 @@ On `detail.html`, below the actions, an **Assistant** card:
 
 - Posting status line: "Using the full posting (from Freelancer / fetched / pasted)" or the fetch note, with a
   collapsible paste box (opens by itself when there is no usable posting).
-- **Draft bid** button with a currency select (USD/TND). Result: proposal textarea with live character count and a
-  Copy button; fair and competitive price, estimated hours, delivery days, each copyable; rationale; budget
+- **Draft bid** button. Result: proposal textarea with live character count and a
+  Copy button; fair and competitive price in USD with ≈ TND, estimated hours, delivery days, each copyable; rationale; budget
   warning when set.
 - Chat: message list, a textarea (Enter sends, Shift+Enter new line), a "thinking…" indicator while waiting,
   **Clear chat**. Messages render as escaped text through the existing `paragraphs` filter.
@@ -154,13 +155,13 @@ Keyboard shortcuts in `app.js` are ignored while focus is in the assistant's inp
 - Streaming replies, several chats per lead, development help (bounty checker) — with the sweave-engine
   integration.
 - **Work-life dashboard:** mark leads won / in progress / completed, record off-platform work too, agreed price,
-  payments received (amount, currency, date, where: Freelancer balance, bank, PayPal, cash…) and an income
+  payments received (amount in USD with ≈ TND via `usd_tnd_rate`, date, where: Freelancer balance, bank, PayPal, cash…) and an income
   overview. It builds on this spec without changes to it: it will add its own tables keyed optionally to
   `leads.id`, and the bid draft gives it the quoted price to start from.
 
 ## Testing
 
-- Pricing maths: fair/competitive, clamping, budget warnings, delivery days, currency choice — table-driven.
+- Pricing maths: fair/competitive, clamping, budget warnings, delivery days, non-USD budgets, TND equivalent — table-driven.
 - Profile pricing validation and the Profile form round trip (including absent `pricing`).
 - `chat`/`draft_bid` with a fake LLM: history window of 20, error messages excluded, cap enforced without a model
   call, JSON repair, short-proposal retry, `llm_last_error` set on failure.
