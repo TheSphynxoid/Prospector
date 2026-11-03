@@ -46,7 +46,7 @@ def test_digest_top10_since_last(ctx, make_lead):
     d = digest(ctx)
     assert len(d.items) == 10
     assert d.items[0].stage1 >= d.items[-1].stage1
-    ctx.kv.set("last_digest_at", (NOW + timedelta(hours=1)).isoformat())
+    ctx.kv.set("last_digest_at", (datetime.now(UTC) + timedelta(hours=1)).isoformat())  # created_at is wall-clock
     assert digest(ctx).items == []
 
 
