@@ -185,3 +185,31 @@ thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; 
   .filters label { flex: 1 1 40%; }
   .filters input, .filters select { min-width: 0; width: 100%; }
 }
+
+/* Settings */
+.settings-form { display: grid; gap: 1rem; }
+.field { display: grid; gap: .3rem; padding: .7rem 0; border-top: 1px solid var(--line); }
+.card-title + .field, .card-title + p + .field { border-top: 0; }
+.field > label { font-weight: 600; font-size: .9rem; }
+.field-control { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.field-control input { flex: 1 1 18rem; min-width: 0; font: inherit; font-size: .9rem; padding: .45rem .6rem;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); }
+.field-control input[type="time"] { flex: 0 0 auto; }
+.field-help { margin: 0; font-size: .8rem; color: var(--muted); }
+.field-err { margin: 0; font-size: .85rem; color: var(--bad); font-weight: 500; }
+.field:has(.field-err) input { border-color: var(--bad); }
+.origin { font-size: .72rem; padding: .1rem .5rem; border-radius: 99px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+.origin-override { background: var(--accent-soft); color: var(--accent); }
+.checks { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; }
+.check { display: inline-flex; align-items: center; gap: .35rem; font-size: .9rem; font-weight: 400; }
+.reveal-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+code.reveal { font-size: .8rem; background: var(--soft); padding: .2rem .4rem; border-radius: 6px; overflow-wrap: anywhere; user-select: all; }
+.form-actions { position: sticky; bottom: 0; padding: .75rem 0; background: linear-gradient(transparent, var(--bg) 35%);
+  display: flex; justify-content: flex-end; }
+.notice { padding: .6rem .9rem; border-radius: 8px; background: var(--accent-soft); color: var(--accent); margin: 0 0 1rem; }
+.notice-bad { background: var(--bad-soft); color: var(--bad); }
+.banner-bad { background: var(--bad); color: #fff; padding: .6rem 1rem; text-align: center; font-weight: 500; }
+.banner-bad a { color: #fff; text-decoration: underline; }
+.small { font-size: .85rem; }
+.restarting { max-width: 32rem; margin: 3rem auto; text-align: center; }
+.tabs a[href^="#"] { text-transform: none; }

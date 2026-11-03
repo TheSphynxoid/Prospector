@@ -3,6 +3,8 @@ import argparse
 import logging
 import os
 import sys
+import threading
+import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -55,6 +57,15 @@ def build_context(settings: Settings, with_embedder: bool = True, with_sources: 
     return ctx
 
 
+def _restart_soon() -> None:
+    """Exit shortly after the response is sent; Docker (restart: unless-stopped) starts us again."""
+    def bye():
+        time.sleep(1)
+        log.info("restarting to apply new settings")
+        os._exit(0)
+    threading.Thread(target=bye, daemon=True).start()
+
+
 def cmd_serve(settings: Settings, args) -> int:
     import uvicorn
 
@@ -70,6 +81,9 @@ def cmd_serve(settings: Settings, args) -> int:
     else:
         ctx.llm.model = model
     sched = build_scheduler(ctx)
+    ctx.loaded = getattr(args, "loaded", None)
+    ctx.restart = _restart_soon
+    ctx.run_background = lambda fn: sched.add_job(fn)  # one-off job on the scheduler pool
 
     @asynccontextmanager
     async def lifespan(app):

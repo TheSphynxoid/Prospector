@@ -13,12 +13,16 @@
     <div class="topbar-inner">
       <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">◆</span> Prospector</a>
       <nav class="mainnav" aria-label="Main">
-        {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("health", "/health", "Sources")] %}
+        {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("health", "/health", "Sources"), ("settings", "/settings", "Settings")] %}
         <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}</a>
         {% endfor %}
       </nav>
     </div>
   </header>
+  {% set _loaded = request.app.state.ctx.loaded if request.app.state.ctx is defined else none %}
+  {% if _loaded and _loaded.rejected %}
+  <div class="banner-bad" role="alert">Your saved settings were ignored: {{ _loaded.rejected }} — the file was kept as settings.json.rejected. <a href="/settings">Open settings</a></div>
+  {% endif %}
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Settings — Prospector{% endblock %}
+
+{% macro field(f) %}
+{% set origin = loaded.origins.get(f.name, "default") %}
+{% set is_secret = f.name in secrets %}
+{% set value = (posted.get(f.name, "") if posted is not none else current(f.name)) %}
+<div class="field" id="f-{{ f.name }}">
+  <label for="in-{{ f.name }}">{{ f.label }}</label>
+  <div class="field-control">
+    {% if is_secret %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" type="password" autocomplete="off" value=""
+             placeholder="{{ 'set — leave empty to keep' if current(f.name) else 'not set' }}">
+    {% elif f.kind == "int" %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" inputmode="numeric" value="{{ value if value is not none else '' }}">
+    {% elif f.kind == "float" %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" inputmode="decimal" value="{{ value if value is not none else '' }}">
+    {% elif f.kind == "time" %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" type="time" value="{{ value or '' }}">
+    {% elif f.kind == "model" %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" list="llm-models" value="{{ value or '' }}">
+    {% else %}
+      <input id="in-{{ f.name }}" name="{{ f.name }}" {% if f.kind == "url" %}type="url"{% endif %} value="{{ value or '' }}">
+    {% endif %}
+    <span class="origin origin-{{ origin }}">{{ {"override": "set here", "env": "from .env", "default": "default"}[origin] }}</span>
+    {% if origin == "override" %}
+      <button class="btn btn-sm" formaction="/settings/reset/{{ f.name }}" formmethod="post" formnovalidate
+              title="Drop this override and use the .env value">Reset</button>
+    {% endif %}
+  </div>
+  {% if is_secret and origin == "override" %}
+    <label class="check"><input type="checkbox" name="clear_{{ f.name }}" value="1"> Clear this value</label>
+  {% endif %}
+  {% if f.name == "bridge_secret" %}
+    <div class="reveal-row"><button type="button" class="btn btn-sm" hx-post="/settings/reveal-bridge-secret"
+         hx-target="#bridge-reveal" hx-swap="innerHTML">Reveal</button> <span id="bridge-reveal"></span></div>
+  {% endif %}
+  {% if f.help %}<p class="field-help">{{ f.help }}</p>{% endif %}
+  {% if errors.get(f.name) %}<p class="field-err" id="err-{{ f.name }}">{{ errors[f.name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Settings</h1>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#keys">Keys</a><a href="#tuning">Tuning</a><a href="#profile">Profile</a><a href="#tests">Tests</a>
+  </nav>
+</div>
+{% if notice %}<p class="notice">{{ notice }}</p>{% endif %}
+{% if errors %}<p class="notice notice-bad">Nothing was saved — fix the highlighted fields.{% if errors.get("_") %} {{ errors["_"] }}{% endif %}</p>{% endif %}
+
+<form id="settings-form" method="post" action="/settings" class="settings-form">
+  <section class="card" id="keys">
+    <h2 class="card-title">Keys &amp; connections</h2>
+    <p class="muted small">Secrets are never shown. Saving restarts Prospector (about 25 seconds).</p>
+    {% for f in keys %}{{ field(f) }}{% endfor %}
+  </section>
+
+  <section class="card" id="tuning">
+    <h2 class="card-title">Tuning</h2>
+    {% for f in tuning %}{{ field(f) }}{% endfor %}
+    <datalist id="llm-models"></datalist>
+    <div class="field" id="f-enabled_sources">
+      <label>Sources</label>
+      <input type="hidden" name="enabled_sources_present" value="1">
+      {% set chosen = posted.getlist("enabled_sources") if posted is not none else s.enabled_sources %}
+      <div class="checks">
+        {% for sid in sources %}
+        <label class="check"><input type="checkbox" name="enabled_sources" value="{{ sid }}" {% if sid in chosen %}checked{% endif %}>
+          {{ sid }}{% if sid in needs_creds %} <span class="muted">· needs credentials</span>{% endif %}</label>
+        {% endfor %}
+      </div>
+      <span class="origin origin-{{ loaded.origins.get('enabled_sources', 'default') }}">{{ {"override": "set here", "env": "from .env", "default": "default"}[loaded.origins.get('enabled_sources', 'default')] }}</span>
+      {% if errors.get("enabled_sources") %}<p class="field-err" id="err-enabled_sources">{{ errors["enabled_sources"] }}</p>{% endif %}
+    </div>
+  </section>
+
+  <div class="form-actions"><button type="submit" class="btn btn-primary">Save and restart</button></div>
+</form>
+
+{% block profile_section %}{% endblock %}
+{% block tests_section %}{% endblock %}
+{% endblock %}

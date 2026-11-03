@@ -1,4 +1,5 @@
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -16,6 +17,7 @@ from prospector.store.scores import ScoreRepo
 if TYPE_CHECKING:
     from prospector.llm.client import LLMClient
     from prospector.rank.embed import Embedder
+    from prospector.settings_store import LoadedSettings
     from prospector.sources.base import Source
     from prospector.web.auth import AccessVerifier
 
@@ -38,6 +40,11 @@ class AppContext:
     llm: "LLMClient | None" = None
     sources: "list[Source]" = field(default_factory=list)
     profile_vecs: Any = None  # np.ndarray, computed lazily by the pipeline
+    loaded: "LoadedSettings | None" = None  # where each setting came from; set by serve
+    env_file: str | None = ".env"
+    # serve swaps these for a real process restart and the scheduler's thread pool; tests keep them inline.
+    restart: Callable[[], None] = lambda: None
+    run_background: Callable[[Callable[[], None]], None] = lambda fn: fn()
 
     @classmethod
     def create(cls, settings: Settings, conn: sqlite3.Connection, profile: Profile, http: httpx.Client,

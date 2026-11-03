@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Restarting — Prospector{% endblock %}
+{% block content %}
+<section class="card restarting">
+  <h1>Restarting…</h1>
+  <p id="restart-status" class="muted">Saved. Prospector is restarting with the new settings; this page reloads when it is back.</p>
+</section>
+<script>
+(() => {
+  const status = document.getElementById("restart-status");
+  const started = Date.now();
+  let wentDown = false;
+  async function poll() {
+    let up = false;
+    try { up = (await fetch("/healthz", {cache: "no-store"})).ok; } catch (e) { up = false; }
+    if (!up) wentDown = true;
+    // Reload once it went down and came back, or if it never visibly went down after 10 s.
+    if (up && (wentDown || Date.now() - started > 10000)) { location.href = "/settings"; return; }
+    if (Date.now() - started > 90000) {
+      status.textContent = "This is taking longer than expected. Check the container on the server (docker compose ps / logs).";
+      return;
+    }
+    setTimeout(poll, 2000);
+  }
+  setTimeout(poll, 2000);
+})();
+</script>
+{% endblock %}
