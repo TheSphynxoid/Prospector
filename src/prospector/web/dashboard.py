@@ -1,3 +1,4 @@
+import hashlib
 import json
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
@@ -37,6 +38,10 @@ def _local(ts: datetime | str | None) -> str:
 
 
 templates.env.filters["local"] = _local
+# Cache-buster for /static links: changes whenever app.css or app.js does, so a deploy is picked up at once.
+_STATIC = Path(__file__).parent / "static"
+templates.env.globals["asset_v"] = hashlib.sha256(
+    b"".join((_STATIC / f).read_bytes() for f in ("app.css", "app.js"))).hexdigest()[:10]
 templates.env.filters["pay"] = fmt_pay
 templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
 templates.env.filters["paragraphs"] = paragraphs

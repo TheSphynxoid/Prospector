@@ -159,3 +159,9 @@ def test_rows_are_keyboard_focusable(ctx, client, make_lead):
     ctx.leads.insert(make_lead(canonical_url="https://example.com/job/7"))
     page = client.get("/leads").text
     assert 'tabindex="0"' in page and 'data-url="https://example.com/job/7"' in page
+
+
+def test_static_links_are_versioned(client):
+    import re
+    page = client.get("/leads").text
+    assert re.search(r'/static/app\.css\?v=[0-9a-f]{10}"', page) and re.search(r'/static/app\.js\?v=[0-9a-f]{10}"', page)

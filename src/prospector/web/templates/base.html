@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>{% block title %}Prospector{% endblock %}</title>
-  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_v }}">
   <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v={{ asset_v }}" defer></script>
 </head>
 <body>
   <header class="topbar">
