@@ -35,4 +35,4 @@ class Settings(BaseSettings):
         "remotive", "remoteok", "himalayas", "arbeitnow", "adzuna",
         "hn", "github_bounties", "freelancer", "keejob", "alerts",
     ]
-    embed_model: str = "intfloat/multilingual-e5-base"
+    embed_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
