@@ -97,8 +97,8 @@ def test_tests_section_lists_enabled_sources(ctx, client):
         id, interval_hours = "remotive", 1
 
     ctx.sources = [Src()]
-    page = client.get("/settings/connections").text
-    assert 'hx-post="/settings/test/source/remotive"' in page and 'hx-post="/settings/test/llm"' in page
+    assert 'hx-post="/settings/test/source/remotive"' in client.get("/settings/sources").text
+    assert 'hx-post="/settings/test/llm"' in client.get("/settings/connections").text
 
 
 @respx.mock

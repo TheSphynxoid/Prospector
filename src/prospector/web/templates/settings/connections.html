@@ -1,0 +1,32 @@
+{% extends "settings/base.html" %}
+{% from "settings/_field.html" import field with context %}
+{% block settings %}
+<form id="settings-form" class="settings-form" method="post" action="/settings" data-dirty-guard>
+  <input type="hidden" name="_area" value="connections">
+  <p class="muted small">Secrets are never shown. Fields marked <span class="restart-tag">restart</span> restart Prospector when you change them (about 25 seconds); the others apply at once.</p>
+  {% for c in cards %}
+  <section class="card conn-card" id="card-{{ c.name }}">
+    <h2 class="card-title"><span class="dot dot-{{ {'ok': 'ok', 'failing': 'bad', 'not_set': 'off', 'untested': 'warn'}[c.state] }}" aria-hidden="true"></span>
+      {{ c.title }} <span class="conn-state conn-{{ c.state }}">{{ c.label }}</span></h2>
+    {% if c.error and c.state == "failing" %}<p class="field-err">{{ c.error }}{% if c.at %} <span class="muted">· {{ c.at|local }}</span>{% endif %}</p>
+    {% elif c.at and c.state == "ok" %}<p class="muted small">Last worked {{ c.at|local }}</p>{% endif %}
+    {% for name in c.fields %}{{ field(fields[name]) }}{% endfor %}
+    {% if c.test %}
+    <div class="reveal-row"><button type="button" class="btn btn-sm" hx-post="{{ c.test }}" hx-target="#test-{{ c.name }}"
+         hx-swap="innerHTML" hx-disabled-elt="this">{{ {"llm": "Check LLM key", "telegram": "Send test message", "email": "Send test digest"}[c.name] }}</button>
+      <span id="test-{{ c.name }}" aria-live="polite"></span></div>
+    {% endif %}
+    {% if c.name == "llm" %}<datalist id="llm-models"></datalist>{% endif %}
+  </section>
+  {% endfor %}
+  <section class="card conn-card" id="card-general">
+    <h2 class="card-title">Links in the digest</h2>
+    {{ field(fields["dashboard_url"]) }}
+  </section>
+  <details class="card conn-card" id="card-other">
+    <summary class="card-title">Other sources</summary>
+    {{ field(fields["adzuna_app_id"]) }}{{ field(fields["adzuna_app_key"]) }}
+  </details>
+  <div class="form-actions"><button type="submit" class="btn btn-primary" data-save>Save</button></div>
+</form>
+{% endblock %}

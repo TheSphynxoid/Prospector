@@ -20,9 +20,10 @@ from prospector.notify.telegram import find_chats, send_telegram
 from prospector.models import Kind
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
+from prospector.store import conn_status
 from prospector.web.dashboard import templates
 from prospector.web.settings.apply import COLD, apply_overrides
-from prospector.web.settings.pages import AREAS, BY_KEY, area_status
+from prospector.web.settings.pages import AREAS, BY_KEY, area_status, connection_cards, source_rows
 
 
 @dataclass(frozen=True)
@@ -146,9 +147,15 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
                 "nav": "settings", "area": None, "areas": AREAS, "notice": notice, "errors": {},
                 "statuses": {a.key: area_status(ctx, a.key) for a in AREAS}}, status_code=status)
         needs_creds = {sid for sid, f in FACTORIES.items() if f(ctx.settings, ctx.mail) is None}
-        name = {"profile": "settings/profile.html", "pricing": "settings/pricing.html"}.get(area.key, "settings/area.html")
+        name = {"profile": "settings/profile.html", "pricing": "settings/pricing.html",
+                "connections": "settings/connections.html", "sources": "settings/sources.html"}.get(area.key,
+                                                                                               "settings/area.html")
+        if area.key == "connections":
+            extra = {"cards": connection_cards(ctx), "fields": FIELDS, **(extra or {})}
+        elif area.key == "sources":
+            extra = {"rows": source_rows(ctx), **(extra or {})}
         return templates.TemplateResponse(request, name, {
-            "nav": "settings", "area": area, "areas": AREAS, "area_fields": [FIELDS[n] for n in area.fields if n in FIELDS],
+            "nav": "sources" if area.key == "sources" else "settings", "area": area, "areas": AREAS, "area_fields": [FIELDS[n] for n in area.fields if n in FIELDS],
             "cold": COLD, "secrets": SECRETS, "loaded": loaded(),
             "s": ctx.settings, "current": lambda n: _current(ctx.settings, n), "errors": errors or {},
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
@@ -268,9 +275,9 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         try:
             models = ctx.llm.list_models()
         except LLMError as e:
-            ctx.kv.set("llm_last_error", str(e))
+            conn_status.record(ctx.kv, "llm", False, str(e))
             return result(False, str(e))
-        ctx.kv.set("llm_last_error", None)
+        conn_status.record(ctx.kv, "llm", True)
         s = ctx.settings
         status = ", ".join(f"{m}: {'available' if m in models else 'missing'}" for m in (s.llm_model, s.llm_fallback_model))
         options = "".join(f'<option value="{html.escape(m)}">' for m in models)
@@ -285,7 +292,9 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         try:
             send_telegram(ctx.http, s.telegram_token.get_secret_value(), s.telegram_chat_id, "Prospector test message ✓")
         except httpx.HTTPError as e:
+            conn_status.record(ctx.kv, "telegram", False, describe_error(e))
             return result(False, describe_error(e))
+        conn_status.record(ctx.kv, "telegram", True)
         return result(True, "Sent — check Telegram.")
 
     @router.post("/settings/telegram/find-chat")
@@ -314,7 +323,9 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             send_email_via_bridge(ctx.http, s.bridge_url, s.bridge_secret.get_secret_value().encode(),
                                   f"[test] {subject}", text, body)
         except httpx.HTTPError as e:
+            conn_status.record(ctx.kv, "email", False, describe_error(e))
             return result(False, describe_error(e))
+        conn_status.record(ctx.kv, "email", True)
         return result(True, "Sent the current digest — check your inbox.")
 
     @router.post("/settings/test/source/{source_id}")

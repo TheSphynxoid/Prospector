@@ -83,7 +83,7 @@
   <div class="stack">
   {{ bars("By type", o.by_kind, "kind") }}
   <section class="card">
-    <h2 class="card-title">Sources <a class="card-link" href="/health">Details →</a></h2>
+    <h2 class="card-title">Sources <a class="card-link" href="/settings/sources">Details →</a></h2>
     <ul class="plain source-dots">
       {% for s in sources %}
       {% set state = "bad" if s.paused else ("warn" if s.drift or s.consecutive_failures else "ok") %}

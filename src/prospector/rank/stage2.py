@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ValidationError
 
+from prospector.store import conn_status
 from prospector.llm.client import LLMClient, LLMError, extract_json
 from prospector.models import Lead
 from prospector.profile.model import Profile
@@ -58,13 +59,13 @@ def review(lead: Lead, profile: Profile, client: LLMClient, kv: KV, session_id: 
                      "Return only valid JSON matching this schema: " + SYSTEM.split("JSON: ", 1)[1]
             result = Stage2Result.model_validate(extract_json(client.complete(SYSTEM, repair, session_id)))
     except LLMError as e:
-        kv.set("llm_last_error", str(e))  # the setup checklist flags a rejected key
+        conn_status.record(kv, "llm", False, str(e))  # the setup checklist flags a rejected key
         log.warning("stage2 review failed for lead %s: %s", lead.id, e)
         return None
     except (ValueError, ValidationError) as e:
         log.warning("stage2 review failed for lead %s: %s", lead.id, e)
         return None
-    kv.set("llm_last_error", None)
+    conn_status.record(kv, "llm", True)
     kv.set(_cache_key(lead), result.model_dump())
     return result
 

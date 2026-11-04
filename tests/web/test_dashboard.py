@@ -68,7 +68,7 @@ def test_health_page_lists_paused_source(ctx, client):
     for _ in range(3):
         ctx.health.record_failure("remotive", "HTTP 503")
     ctx.health.set_paused("remotive", True)
-    page = client.get("/health").text
+    page = client.get("/health", follow_redirects=True).text  # now the Sources settings page
     assert "remotive" in page and "paused" in page.lower() and "HTTP 503" in page
 
 

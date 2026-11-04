@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ area.title if area else "Settings" }} — Settings — Prospector{% endblock %}
+{% block title %}{% if area %}{{ area.title }} — {% endif %}Settings — Prospector{% endblock %}
 {% block content %}
 <div class="page-head">
   <h1>{% if area %}<a class="crumb-link" href="/settings">Settings</a> <span class="muted">/</span> {{ area.title }}{% else %}Settings{% endif %}</h1>

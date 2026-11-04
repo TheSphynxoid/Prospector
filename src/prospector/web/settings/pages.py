@@ -50,3 +50,55 @@ def area_status(ctx: "AppContext", key: str) -> str:
     if key == "pricing":
         return f"${p.pricing.rate:g}/hour, lowest ${p.pricing.floor:g} · 1 USD = {ctx.fx.rate('TND'):g} TND"
     return f"Digest {s.digest_time} · follow up after {s.followup_days} days"
+
+
+CARDS = [
+    # name, title, fields, the fields that must be set, test route
+    ("llm", "LLM", ["llm_api_key", "llm_base_url"], ["llm_api_key"], "/settings/test/llm"),
+    ("telegram", "Telegram", ["telegram_token", "telegram_chat_id"], ["telegram_token", "telegram_chat_id"],
+     "/settings/test/telegram"),
+    ("email", "Email digest (mail-bridge Worker)", ["bridge_url", "bridge_secret"], ["bridge_url"],
+     "/settings/test/email"),
+    ("github", "GitHub", ["github_token"], ["github_token"], None),
+    ("access", "Cloudflare Access", ["access_team_domain", "access_aud"], ["access_team_domain", "access_aud"], None),
+]
+STATE_LABEL = {"ok": "Connected", "failing": "Failing", "not_set": "Not set", "untested": "Not tested yet"}
+
+
+def connection_cards(ctx: "AppContext") -> list[dict]:
+    from prospector.store import conn_status
+
+    s = ctx.settings
+    cards = []
+    for name, title, fields, required, test in CARDS:
+        error, at = None, None
+        if not all(getattr(s, f) for f in required):
+            state = "not_set"
+        elif name == "github":
+            h = ctx.health.get("github_bounties")
+            state = "untested" if h.last_run is None else ("failing" if h.last_error else "ok")
+            error, at = h.last_error, h.last_run
+        elif name == "access":
+            state = "ok"
+        else:
+            rec = conn_status.get(ctx.kv, name)
+            state = "untested" if rec is None else ("ok" if rec["ok"] else "failing")
+            error, at = (rec or {}).get("error"), (rec or {}).get("at")
+        cards.append({"name": name, "title": title, "fields": fields, "state": state, "label": STATE_LABEL[state],
+                      "error": error, "at": at, "test": test})
+    return cards
+
+
+def source_rows(ctx: "AppContext") -> list[dict]:
+    from prospector.sources.registry import FACTORIES, known_source_ids
+
+    known_source_ids()
+    running = {x.id for x in ctx.sources}
+    rows = []
+    for sid in sorted(FACTORIES):
+        h = ctx.health.get(sid)
+        state = ("paused" if h.paused else "failing" if h.consecutive_failures else "drift" if h.drift
+                 else "ok" if h.last_ok else "never")
+        rows.append({"id": sid, "h": h, "state": state, "enabled": sid in ctx.settings.enabled_sources,
+                     "needs_creds": FACTORIES[sid](ctx.settings, ctx.mail) is None, "running": sid in running})
+    return rows

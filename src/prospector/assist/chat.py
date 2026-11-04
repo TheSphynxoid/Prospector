@@ -3,6 +3,7 @@ import logging
 from prospector.assist.context import system_prompt
 from prospector.assist.usage import CapReached, charge
 from prospector.context import AppContext
+from prospector.store import conn_status
 from prospector.llm.client import LLMError
 from prospector.store.assist import Message
 
@@ -26,9 +27,9 @@ def ask(ctx: AppContext, lead_id: int, messages: list[dict]) -> str:
     try:
         reply = ctx.assistant_llm.chat(system_prompt(ctx, lead_id), messages, session_id(lead_id))
     except LLMError as e:
-        ctx.kv.set("llm_last_error", str(e))
+        conn_status.record(ctx.kv, "llm", False, str(e))
         raise
-    ctx.kv.set("llm_last_error", None)
+    conn_status.record(ctx.kv, "llm", True)
     return reply
 
 

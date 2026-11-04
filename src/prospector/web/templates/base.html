@@ -14,7 +14,7 @@
     <div class="topbar-inner">
       <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">◆</span> Prospector</a>
       <nav class="mainnav" aria-label="Main">
-        {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("work", "/work", "Work"), ("health", "/health", "Sources"), ("settings", "/settings", "Settings")] %}
+        {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("work", "/work", "Work"), ("sources", "/settings/sources", "Sources"), ("settings", "/settings", "Settings")] %}
         <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}</a>
         {% endfor %}
       </nav>

@@ -124,7 +124,7 @@ def test_manual_work_and_account(client, ctx):
 
 def test_nav_has_work(client):
     page = client.get("/").text
-    i, j, k = page.index('href="/leads"'), page.index('href="/work"'), page.index('href="/health"')
+    i, j, k = page.index('href="/leads"'), page.index('href="/work"'), page.index('href="/settings/sources"')
     assert i < j < k
 
 

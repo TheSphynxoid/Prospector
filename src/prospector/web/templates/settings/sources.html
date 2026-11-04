@@ -1,0 +1,36 @@
+{% extends "settings/base.html" %}
+{% block settings %}
+<form id="settings-form" class="settings-form" method="post" action="/settings" data-dirty-guard>
+  <input type="hidden" name="_area" value="sources">
+  <input type="hidden" name="enabled_sources_present" value="1">
+  <section class="card">
+    <h2 class="card-title">Sources <span class="restart-tag">restart</span></h2>
+    <p class="muted small">Turning a source on or off restarts Prospector (about 25 seconds).</p>
+    {% if errors.get("enabled_sources") %}<p class="field-err" id="err-enabled_sources">{{ errors["enabled_sources"] }}</p>{% endif %}
+    {% set chosen = posted.getlist("enabled_sources") if posted is not none else s.enabled_sources %}
+    <ul class="plain src-list">
+      {% for r in rows %}
+      <li class="src-row" id="src-{{ r.id }}">
+        <label class="switch"><input type="checkbox" name="enabled_sources" value="{{ r.id }}" data-cold {% if r.id in chosen %}checked{% endif %}
+               aria-label="Enable {{ r.id }}"><span aria-hidden="true"></span></label>
+        <span class="src-main">
+          <span class="src-name"><span class="dot dot-{{ {'ok': 'ok', 'failing': 'bad', 'paused': 'bad', 'drift': 'warn', 'never': 'off'}[r.state] }}" aria-hidden="true"></span>
+            {{ r.id }}{% if r.needs_creds %} <span class="muted small">· needs credentials (<a href="/settings/connections">add</a>)</span>{% endif %}</span>
+          <span class="muted small">
+            {% if r.state == "never" %}Hasn't run yet
+            {% else %}Last run {{ r.h.last_run|local }}{% if r.h.last_count is not none %} · {{ r.h.last_count }} leads{% endif %}
+              {% if r.state == "paused" %} · paused{% elif r.state == "drift" %} · suspicious results{% elif r.h.consecutive_failures %} · {{ r.h.consecutive_failures }} failure{{ "s" if r.h.consecutive_failures != 1 }}{% endif %}{% endif %}</span>
+          {% if r.h.last_error %}<span class="field-err small">{{ r.h.last_error }}</span>{% endif %}
+        </span>
+        <span class="src-actions">
+          {% if r.running %}<button type="button" class="btn btn-sm" hx-post="/settings/test/source/{{ r.id }}" hx-target="#run-{{ r.id }}"
+                  hx-swap="innerHTML" hx-disabled-elt="this">Run now</button>{% endif %}
+          <span id="run-{{ r.id }}" aria-live="polite" class="small"></span>
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  <div class="form-actions"><button type="submit" class="btn btn-primary" data-save>Save and restart</button></div>
+</form>
+{% endblock %}

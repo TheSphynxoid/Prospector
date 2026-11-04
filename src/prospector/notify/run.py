@@ -6,6 +6,7 @@ import httpx
 from prospector.context import AppContext
 from prospector.http import describe_error as _describe  # never the URL: Telegram's embeds the bot token
 from prospector import fx
+from prospector.store import conn_status
 from prospector.worklife.followups import auto_close
 from prospector.notify.digest import build_digest, render_email, render_telegram
 from prospector.notify.email import send_email_via_bridge
@@ -27,8 +28,10 @@ def send_digest(ctx: AppContext, now: datetime) -> None:
             for chunk in render_telegram(d):
                 send_telegram(ctx.http, s.telegram_token.get_secret_value(), s.telegram_chat_id, chunk)
             tg_ok = True
+            conn_status.record(ctx.kv, "telegram", True)
         except httpx.HTTPError as e:
             tg_error = _describe(e)
+            conn_status.record(ctx.kv, "telegram", False, tg_error)
             log.warning("telegram digest failed: %s", tg_error)
 
     if s.bridge_url:
@@ -40,8 +43,10 @@ def send_digest(ctx: AppContext, now: datetime) -> None:
             send_email_via_bridge(ctx.http, s.bridge_url, s.bridge_secret.get_secret_value().encode(),
                                   subject, text, html)
             email_ok = True
+            conn_status.record(ctx.kv, "email", True)
         except httpx.HTTPError as e:
             email_error = _describe(e)
+            conn_status.record(ctx.kv, "email", False, email_error)
             log.warning("email digest failed: %s", email_error)
 
     if email_error and tg_ok:

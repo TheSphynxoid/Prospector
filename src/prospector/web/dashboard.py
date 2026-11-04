@@ -169,8 +169,8 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         return fragment(request, lead_id, {"HX-Trigger": json.dumps(trigger)})
 
     @router.get("/health")
-    def health(request: Request):
-        return templates.TemplateResponse(request, "health.html", {"nav": "health", "sources": ctx.health.all()})
+    def health():
+        return RedirectResponse("/settings/sources", status_code=303)  # old digest links
 
     @router.post("/needs-you/{item_id}/dismiss")
     def dismiss_needs_you(item_id: int):
