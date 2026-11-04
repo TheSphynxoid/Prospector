@@ -61,6 +61,7 @@ def make_work_router(ctx: AppContext) -> APIRouter:
         return f"≈ {fmt(whole, 'TND')}"
 
     templates.env.filters["tnd"] = tnd
+    templates.env.globals["work_due"] = lambda: len(followups.due(ctx.apps, fx.today()))  # nav badge
 
     def render(request: Request, name: str, data: dict, status: int = 200, headers: dict | None = None):
         return templates.TemplateResponse(request, name, {"nav": "work", **data}, status_code=status, headers=headers)

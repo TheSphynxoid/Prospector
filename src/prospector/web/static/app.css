@@ -500,3 +500,25 @@ textarea.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mono
 .draft-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .75rem;
   font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--good); }
 .draft-text p { margin: .35rem 0; }
+
+/* Polish: phone nav, badge, filters, save bar, readable posting */
+.nav-toggle { display: none; font: inherit; font-size: 1.1rem; background: none; border: 1px solid var(--line); color: var(--fg);
+  border-radius: 8px; padding: .2rem .6rem; cursor: pointer; }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 1.2rem; height: 1.2rem; padding: 0 .3rem;
+  border-radius: 99px; background: var(--warn); color: var(--accent-fg); font-size: .7rem; font-weight: 700; vertical-align: 1px; }
+.filter-toggle > summary { display: none; }
+.list-count { margin: 0 0 .4rem; }
+.detail .body { max-width: 72ch; line-height: 1.6; }
+form.is-dirty .form-actions { position: sticky; bottom: 0; z-index: 6; padding: .6rem .75rem; margin: 1rem -.75rem 0;
+  background: color-mix(in srgb, var(--card) 94%, transparent); border-top: 1px solid var(--accent); }
+form.is-dirty .form-actions::before { content: "Unsaved changes"; color: var(--muted); font-size: .85rem; margin-right: auto; }
+.form-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .nav-toggle { display: inline-block; margin-left: auto; }
+  .topbar-inner { flex-wrap: wrap; gap: .6rem; }
+  .mainnav { display: none; width: 100%; flex-direction: column; }
+  .mainnav.open { display: flex; }
+  .mainnav a { padding: .55rem .25rem; border-bottom: 1px solid var(--line); }
+  .filter-toggle > summary { display: inline-flex; margin-bottom: .5rem; list-style: none; cursor: pointer; }
+  .filter-toggle > summary::-webkit-details-marker { display: none; }
+}

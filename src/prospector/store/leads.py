@@ -115,6 +115,23 @@ class LeadRepo:
              source: str | None = None, min_score: float | None = None,
              sort: Literal["score", "date"] = "score", limit: int = 50, offset: int = 0,
              q: str | None = None) -> list[LeadRow]:
+        where, args = self._filters(tab, kind, remote, source, min_score, q)
+        order = "COALESCE(s.stage1, -1) DESC, l.id DESC" if sort == "score" else "l.id DESC"
+        rows = self.conn.execute(
+            f"{_SELECT} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ? OFFSET ?",
+            (*args, limit, offset),
+        ).fetchall()
+        return [_row(r) for r in rows]
+
+    def count(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None, source: str | None = None,
+              min_score: float | None = None, q: str | None = None) -> int:
+        """How many leads `list` would return across all pages."""
+        where, args = self._filters(tab, kind, remote, source, min_score, q)
+        return self.conn.execute(f"SELECT COUNT(*) AS n FROM ({_SELECT} WHERE {' AND '.join(where)})",
+                                 args).fetchone()["n"]
+
+    @staticmethod
+    def _filters(tab, kind, remote, source, min_score, q) -> tuple[list[str], list]:
         where, args = ["l.status = ?"], [tab.value]
         if q and q.strip():
             like = "%" + "".join("!" + c if c in "!%_" else c for c in q.strip()) + "%"  # ! escapes LIKE wildcards
@@ -132,12 +149,7 @@ class LeadRepo:
         if min_score is not None:
             where.append("s.stage1 >= ?")
             args.append(min_score)
-        order = "COALESCE(s.stage1, -1) DESC, l.id DESC" if sort == "score" else "l.id DESC"
-        rows = self.conn.execute(
-            f"{_SELECT} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ? OFFSET ?",
-            (*args, limit, offset),
-        ).fetchall()
-        return [_row(r) for r in rows]
+        return where, args
 
     def new_since(self, ts: datetime, limit: int) -> list[LeadRow]:
         rows = self.conn.execute(

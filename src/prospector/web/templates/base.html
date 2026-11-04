@@ -13,9 +13,10 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">◆</span> Prospector</a>
-      <nav class="mainnav" aria-label="Main">
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="mainnav" aria-label="Menu">☰</button>
+      <nav class="mainnav" id="mainnav" aria-label="Main">{% set nav_due = work_due() if work_due is defined else 0 %}
         {% for key, href, label in [("overview", "/", "Overview"), ("leads", "/leads", "Leads"), ("work", "/work", "Work"), ("sources", "/settings/sources", "Sources"), ("settings", "/settings", "Settings")] %}
-        <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}</a>
+        <a {% if nav == key %}aria-current="page" {% endif %}href="{{ href }}">{{ label }}{% if key == "work" and nav_due %} <span class="badge" title="{{ nav_due }} follow-up{{ 's' if nav_due != 1 }} due">{{ nav_due }}</span>{% endif %}</a>
         {% endfor %}
       </nav>
       <form class="search" role="search" action="/leads" method="get">

@@ -102,6 +102,10 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         page = max(int(page), 1) if page.strip().lstrip("-").isdigit() else 1
         rows = ctx.leads.list(tab, kind=kind, remote=remote, source=source or None, min_score=min_score,
                               sort=sort, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE, q=q)
+        total = ctx.leads.count(tab, kind=kind, remote=remote, source=source or None, min_score=min_score, q=q)
+        first = (page - 1) * PAGE_SIZE + 1
+        showing = (f"Showing {total} of {total}" if total <= PAGE_SIZE and page == 1 else
+                   f"Showing {first}–{first + len(rows) - 1} of {total}" if rows else f"Showing 0 of {total}")
         filters = {"q": (q or "").strip() or None, "kind": kind, "remote": remote, "source": source,
                    "min_score": min_score, "sort": sort}
         kept = urlencode({k: getattr(v, "value", v) for k, v in filters.items()
@@ -111,7 +115,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         return templates.TemplateResponse(request, "list.html", {
             "nav": "leads", "rows": rows, "tab": tab, "tabs": TABS, "kinds": list(Kind), "remotes": list(Remote),
             "filters": filters, "query": query, "kept": kept, "filtering": filtering, "sources": known_source_ids(),
-            "page": page, "has_next": len(rows) == PAGE_SIZE,
+            "page": page, "has_next": page * PAGE_SIZE < total, "showing": showing,
             "needs_you": ctx.mail.needs_you(), "paused": [h for h in ctx.health.all() if h.paused],
         })
 

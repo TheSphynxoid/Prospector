@@ -10,6 +10,8 @@
   </nav>
 </div>
 
+<details class="filter-toggle" open{% if filtering %} data-active="1"{% endif %}>
+<summary class="btn btn-sm">Filters{% if filtering %} · on{% endif %}</summary>
 <form class="filters card" method="get" action="/leads">
   <input type="hidden" name="tab" value="{{ tab.value }}">
   {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
@@ -30,7 +32,9 @@
   <button class="btn btn-primary">Apply</button>
   {% if filtering %}<a class="btn" href="/leads?tab={{ tab.value }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}">Clear filters</a>{% endif %}
 </form>
+</details>
 
+<p class="list-count muted small" aria-live="polite">{{ showing }}</p>
 <div class="lead-list card">
   {% for row in rows %}{% include "_row.html" %}{% else %}<p class="muted empty">Nothing here.</p>{% endfor %}
 </div>

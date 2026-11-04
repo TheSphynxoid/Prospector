@@ -282,4 +282,37 @@
   const initChips = (root) => root.querySelectorAll("input[data-chips]").forEach(chips);
   document.addEventListener("DOMContentLoaded", () => initChips(document));
   document.body?.addEventListener("htmx:afterSettle", (e) => initChips(e.target));
+
+  // Phone menu.
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest(".nav-toggle");
+    if (!t) return;
+    const open = t.getAttribute("aria-expanded") !== "true";
+    t.setAttribute("aria-expanded", String(open));
+    document.getElementById(t.getAttribute("aria-controls"))?.classList.toggle("open", open);
+  });
+  // Filters start folded on phones (they stay open on wider screens).
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      document.querySelectorAll("details.filter-toggle").forEach((d) => {
+        if (!d.dataset.active) d.open = false;
+      });
+    }
+  });
+  // Unsaved changes: show the save bar, say when saving restarts, warn before leaving.
+  const dirtyForms = new Set();
+  function markDirty(form, el) {
+    if (!form || !form.matches("[data-dirty-guard]")) return;
+    dirtyForms.add(form);
+    form.classList.add("is-dirty");
+    if (el?.matches?.("[data-cold]")) form.dataset.coldChanged = "1";
+    const save = form.querySelector("[data-save]");
+    if (save && form.dataset.coldChanged) save.textContent = "Save and restart";
+  }
+  document.addEventListener("input", (e) => markDirty(e.target.closest?.("form"), e.target));
+  document.addEventListener("change", (e) => markDirty(e.target.closest?.("form"), e.target));
+  document.addEventListener("submit", (e) => { dirtyForms.delete(e.target); });
+  window.addEventListener("beforeunload", (e) => {
+    if ([...dirtyForms].some((f) => document.body.contains(f))) { e.preventDefault(); e.returnValue = ""; }
+  });
 })();
