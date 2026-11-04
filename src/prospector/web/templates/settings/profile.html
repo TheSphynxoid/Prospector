@@ -25,6 +25,10 @@
       {{ input("about[years_experience]", "Years of experience", prow.about.years_experience, "4") }}
     </div>
     <label class="pf-field"><span>Short bio</span><textarea name="about[bio]" rows="3" maxlength="1500" data-count>{{ prow.about.bio }}</textarea></label>
+    <div class="ai-row"><button type="button" class="btn btn-sm" hx-post="/settings/profile/ai/bio" hx-target="#ai-bio" hx-swap="innerHTML"
+         hx-indicator="#ai-bio-wait" hx-disabled-elt="this">✦ Draft headline and bio</button>
+      <span id="ai-bio-wait" class="htmx-indicator muted small">Drafting…</span></div>
+    <div id="ai-bio" aria-live="polite"></div>
     <label class="pf-field"><span>Highlights <span class="muted">· one per line, only true things</span></span>
       <textarea name="about[highlights]" rows="3" placeholder="Built a room-mapping engine used by hotels">{{ prow.about.highlights }}</textarea></label>
 
@@ -79,6 +83,10 @@
       </div>{% endfor %}
       <button type="button" class="btn btn-sm" data-add-row>+ Add skill</button>
     </div>
+    <div class="ai-row"><button type="button" class="btn btn-sm" hx-post="/settings/profile/ai/suggest" hx-target="#ai-suggest" hx-swap="innerHTML"
+         hx-indicator="#ai-suggest-wait" hx-disabled-elt="this">✦ Suggest skills and interests from my projects</button>
+      <span id="ai-suggest-wait" class="htmx-indicator muted small">Thinking…</span></div>
+    <div id="ai-suggest" aria-live="polite"></div>
   </section>
 
   <section class="card" id="projects">
@@ -91,6 +99,13 @@
         <input name="projects[{{ i }}][name]" value="{{ r.name if r else '' }}" placeholder="Project name" aria-label="Project name">
         <textarea name="projects[{{ i }}][writeup]" rows="4" maxlength="3000" data-count placeholder="What it does, your part, the tech, a result" aria-label="Write-up">{{ r.writeup if r else '' }}</textarea>
         <input name="projects[{{ i }}][tags]" value="{{ r.tags if r else '' }}" placeholder="Tags, comma separated" aria-label="Tags" data-chips>
+        <details class="ai-notes">
+          <summary class="small">✦ Draft the write-up from notes</summary>
+          <textarea name="ai_notes" rows="4" placeholder="Paste rough notes or a README; nothing is saved until you use the draft and save" aria-label="Notes for the write-up"></textarea>
+          <button type="button" class="btn btn-sm" hx-post="/settings/profile/ai/writeup" hx-include="closest [data-row]"
+                  hx-target="next .ai-out" hx-swap="innerHTML" hx-disabled-elt="this">Draft write-up</button>
+          <div class="ai-out" aria-live="polite"></div>
+        </details>
       </details>{% endfor %}
       <button type="button" class="btn btn-sm" data-add-row>+ Add project</button>
     </div>

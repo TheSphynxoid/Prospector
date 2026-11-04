@@ -264,6 +264,40 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         reload_profile(ctx, profile)
         return page(request, "profile", notice="Saved from YAML.")
 
+    @router.post("/settings/profile/ai/{kind}")
+    async def profile_ai(request: Request, kind: str):
+        import re
+
+        from prospector.assist.usage import CapReached
+        from prospector.profile import ai
+
+        form = await request.form()
+        drafts, chips, error = [], [], ""
+        try:
+            if kind == "writeup":
+                # From the page the row's own fields come along (hx-include); tests may name them directly.
+                keys = list(form.keys())
+                target = str(form.get("target") or next((k for k in keys if k.endswith("[writeup]")), ""))
+                if not re.fullmatch(r"projects\[\d{1,3}\]\[writeup\]", target):
+                    raise HTTPException(400)
+                name = form.get("name") or form.get(target.replace("[writeup]", "[name]"), "")
+                text = ai.writeup(ctx, str(form.get("notes") or form.get("ai_notes", "")), str(name))
+                drafts = [("Draft write-up", text, f'[name="{target}"]')]
+            elif kind == "suggest":
+                out = ai.suggest_skills_interests(ctx)
+                chips = [("skill", w) for w in out["skills"]] + [("interest", w) for w in out["interests"]]
+            elif kind == "bio":
+                out = ai.bio(ctx)
+                drafts = [("Headline", out["headline"], '[name="about[headline]"]'),
+                          ("Short bio", out["short"], '[name="about[bio]"]'),
+                          ("Long bio (to paste on Freelancer)", out["long"], '[name="about[bio]"]')]
+            else:
+                raise HTTPException(404)
+        except (CapReached, LLMError) as e:
+            error = str(e)
+        return templates.TemplateResponse(request, "settings/_ai_draft.html",
+                                          {"drafts": drafts, "chips": chips, "error": error})
+
     @router.get("/settings/profile/interest-preview")
     def interest_preview(request: Request):
         from prospector.profile.interests import preview

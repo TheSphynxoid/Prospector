@@ -1,0 +1,18 @@
+{# A draft from the profile helper. Context: error, drafts: list of (label, text, target selector or None), chips. #}
+<div class="ai-draft" role="status">
+  {% if error %}<p class="field-err">{{ error }}</p>
+  {% else %}
+  {% for label, text, target in drafts %}
+  <div class="ai-draft-item">
+    <span class="muted small">{{ label }}</span>
+    <p class="ai-text">{{ text }}</p>
+    {% if target %}<button type="button" class="btn btn-sm btn-good" data-fill="{{ target }}" data-value="{{ text }}" data-done="Used">Use</button>{% endif %}
+    <button type="button" class="btn btn-sm" data-discard>Discard</button>
+  </div>
+  {% endfor %}
+  {% if chips %}
+  <p class="small">{% for kind, word in chips %}<button type="button" class="chip chip-add" {% if kind == "skill" %}data-suggest-skill{% else %}data-suggest{% endif %}="{{ word }}">+ {{ word }}{% if kind == "skill" %} (skill){% endif %}</button> {% endfor %}</p>
+  {% endif %}
+  {% if not drafts and not chips %}<p class="muted small">Nothing new to suggest.</p>{% endif %}
+  {% endif %}
+</div>

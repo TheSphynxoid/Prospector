@@ -155,7 +155,26 @@
   document.addEventListener("click", (e) => {  // "Use this value" buttons fill a form field
     const btn = e.target.closest("[data-fill]");
     const input = btn && document.querySelector(btn.dataset.fill);
-    if (input) { input.value = btn.dataset.value; input.focus(); }
+    if (input) {
+      input.value = btn.dataset.value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+      if (btn.dataset.done) btn.textContent = btn.dataset.done;
+    }
+    const discard = e.target.closest("[data-discard]");
+    if (discard) discard.closest(".ai-draft-item")?.remove();
+    const skill = e.target.closest("[data-suggest-skill]");
+    if (skill) {
+      const group = document.querySelector('.rows[data-group="skills"]');
+      const blank = group?.querySelector("[data-row].row-blank");
+      const field = blank?.querySelector('[name$="[name]"]');
+      if (field && !field.value) {
+        field.value = skill.dataset.suggestSkill;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        group.querySelector("[data-add-row]")?.click();
+      }
+      skill.remove();
+    }
   });
   // Inline validation errors come back as 400 with the form re-rendered: swap them in like a 200.
   document.addEventListener("DOMContentLoaded", () => {
