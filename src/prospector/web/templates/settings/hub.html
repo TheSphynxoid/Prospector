@@ -1,0 +1,12 @@
+{% extends "settings/base.html" %}
+{% block settings %}
+<div class="hub-grid">
+  {% for a in areas %}
+  <a class="card hub-card" href="{{ a.href }}">
+    <span class="hub-title">{{ a.title }}</span>
+    <span class="muted small">{{ a.blurb }}</span>
+    <span class="hub-status">{{ statuses[a.key] }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

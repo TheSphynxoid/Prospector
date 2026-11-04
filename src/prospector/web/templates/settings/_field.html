@@ -1,0 +1,46 @@
+{# One settings field. Needs (with context): loaded, secrets, posted, current, errors, cold. #}
+{% macro field(f) %}
+{% set origin = loaded.origins.get(f.name, "default") %}
+{% set is_secret = f.name in secrets %}
+{% set is_cold = f.name in cold %}
+{% set value = (posted.get(f.name, "") if posted is not none else current(f.name)) %}
+<div class="field" id="f-{{ f.name }}">
+  <label for="in-{{ f.name }}">{{ f.label }}{% if is_cold %} <span class="restart-tag" title="Changing this restarts Prospector">restart</span>{% endif %}</label>
+  <div class="field-control">
+    {% set attrs %}id="in-{{ f.name }}" name="{{ f.name }}"{% if is_cold %} data-cold{% endif %}{% if errors.get(f.name) %} aria-invalid="true" aria-describedby="err-{{ f.name }}"{% endif %}{% endset %}
+    {% if is_secret %}
+      <input {{ attrs }} type="password" autocomplete="off" value=""
+             placeholder="{{ 'set — leave empty to keep' if current(f.name) else 'not set' }}">
+    {% elif f.kind == "int" %}
+      <input {{ attrs }} inputmode="numeric" value="{{ value if value is not none else '' }}">
+    {% elif f.kind == "float" %}
+      <input {{ attrs }} inputmode="decimal" value="{{ value if value is not none else '' }}">
+    {% elif f.kind == "time" %}
+      <input {{ attrs }} type="time" value="{{ value or '' }}">
+    {% elif f.kind == "model" %}
+      <input {{ attrs }} list="llm-models" value="{{ value or '' }}">
+    {% else %}
+      <input {{ attrs }} {% if f.kind == "url" %}type="url"{% endif %} value="{{ value or '' }}">
+    {% endif %}
+    <span class="origin origin-{{ origin }}">{{ {"override": "set here", "env": "from .env", "default": "default"}[origin] }}</span>
+    {% if origin == "override" %}
+      <button class="btn btn-sm" formaction="/settings/reset/{{ f.name }}" formmethod="post" formnovalidate
+              title="Drop this override and use the .env value">Reset</button>
+    {% endif %}
+  </div>
+  {% if is_secret and origin == "override" %}
+    <label class="check"><input type="checkbox" name="clear_{{ f.name }}" value="1"> Clear this value</label>
+  {% endif %}
+  {% if f.name == "bridge_secret" %}
+    <div class="reveal-row"><button type="button" class="btn btn-sm" hx-post="/settings/reveal-bridge-secret"
+         hx-target="#bridge-reveal" hx-swap="innerHTML">Reveal</button> <span id="bridge-reveal"></span></div>
+  {% endif %}
+  {% if f.name == "telegram_chat_id" %}
+    <div class="reveal-row"><button type="button" class="btn btn-sm" hx-post="/settings/telegram/find-chat"
+         hx-target="#chat-find" hx-swap="innerHTML" hx-disabled-elt="this">Find my chat ID</button> <span id="chat-find" aria-live="polite"></span></div>
+  {% endif %}
+  {% if f.name == "usd_tnd_rate" %}<p class="field-help" id="fx-line">{{ fx_line }}</p>{% endif %}
+  {% if f.help %}<p class="field-help">{{ f.help }}</p>{% endif %}
+  {% if errors.get(f.name) %}<p class="field-err" id="err-{{ f.name }}">{{ errors[f.name] }}</p>{% endif %}
+</div>
+{% endmacro %}

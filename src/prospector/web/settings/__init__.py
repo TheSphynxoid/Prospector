@@ -21,6 +21,8 @@ from prospector.models import Kind
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
 from prospector.web.dashboard import templates
+from prospector.web.settings.apply import COLD, apply_overrides
+from prospector.web.settings.pages import AREAS, BY_KEY, area_status
 
 
 @dataclass(frozen=True)
@@ -115,10 +117,12 @@ def merge_form(form, loaded: LoadedSettings) -> tuple[dict, dict[str, str]]:
 def fx_line(rates) -> str:
     day, source, values = rates.today_summary()
     if day is None:
-        return "No rates fetched yet; using built-in rates."
+        return "No rates fetched yet; using built-in rates." + (
+            f" (your override of {rates.tnd_override:g} TND is in use)" if rates.tnd_override else "")
     parts = " · ".join(f"{values[c]:g} {c}" for c in ("TND", "EUR", "GBP") if c in values)
     line = f"1 USD = {parts} — {source}, {day.day} {day.strftime('%b')}"
-    return line + (" — rates are out of date, check Sources." if rates.stale() else "")
+    line += " — rates are out of date, check Sources." if rates.stale() else ""
+    return line + (f" (your override of {rates.tnd_override:g} TND is in use)" if rates.tnd_override else "")
 
 
 def make_settings_router(ctx: AppContext) -> APIRouter:
@@ -129,29 +133,40 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             ctx.loaded = LoadedSettings(ctx.settings)
         return ctx.loaded
 
-    def page(request: Request, status: int = 200, errors: dict | None = None, posted=None, notice: str = "",
-             prow: dict | None = None, profile_error: str = ""):
+    FIELDS = {f.name: f for f in KEYS + TUNING}
+
+    def page(request: Request, area_key: str = "", status: int = 200, errors: dict | None = None, posted=None,
+             notice: str = "", prow: dict | None = None, profile_error: str = "", extra: dict | None = None):
         from prospector.sources.registry import FACTORIES, known_source_ids
 
         known_source_ids()
+        area = BY_KEY.get(area_key)
+        if area is None:
+            return templates.TemplateResponse(request, "settings/hub.html", {
+                "nav": "settings", "area": None, "areas": AREAS, "notice": notice, "errors": {},
+                "statuses": {a.key: area_status(ctx, a.key) for a in AREAS}}, status_code=status)
         needs_creds = {sid for sid, f in FACTORIES.items() if f(ctx.settings, ctx.mail) is None}
-        return templates.TemplateResponse(request, "settings.html", {
-            "nav": "settings", "keys": KEYS, "tuning": TUNING, "secrets": SECRETS, "loaded": loaded(),
+        name = {"profile": "settings/profile.html", "pricing": "settings/pricing.html"}.get(area.key, "settings/area.html")
+        return templates.TemplateResponse(request, name, {
+            "nav": "settings", "area": area, "areas": AREAS, "area_fields": [FIELDS[n] for n in area.fields if n in FIELDS],
+            "cold": COLD, "secrets": SECRETS, "loaded": loaded(),
             "s": ctx.settings, "current": lambda n: _current(ctx.settings, n), "errors": errors or {},
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
             "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
             "periods": ["hour", "day", "month", "year", "fixed"], "rescore": ctx.kv.get("rescore_status"),
             "running_sources": [x.id for x in ctx.sources], "fx_line": fx_line(ctx.fx),
+            "pricing": ctx.profile.pricing.model_dump(), **(extra or {}),
         }, status_code=status)
 
-    def apply(request: Request, new: dict):
-        save_overrides(ctx.settings.data_dir, new)
-        ctx.restart()
-        return templates.TemplateResponse(request, "restarting.html", {"nav": "settings"})
+    def apply(request: Request, new: dict, area_key: str):
+        if apply_overrides(ctx, new):
+            return templates.TemplateResponse(request, "restarting.html", {"nav": "settings"})
+        return RedirectResponse(f"/settings/{area_key}?saved=1" if area_key in BY_KEY else "/settings?saved=1",
+                                status_code=303)
 
     @router.get("/settings")
-    def show(request: Request):
-        return page(request)
+    def show(request: Request, saved: str = ""):
+        return page(request, notice="Saved." if saved else "")
 
     @router.post("/settings")
     async def save(request: Request):
@@ -159,21 +174,51 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         new, errors = merge_form(form, loaded())
         _, invalid = validate_overrides(ctx.env_file, new)
         errors = invalid | errors  # unparseable numbers keep their own message
+        # Show errors on the page that has the field; a form from one page names its area.
+        area_key = next((a.key for e in errors for a in AREAS if e in a.fields), "") or form.get("_area", "")
         if errors:
-            return page(request, 400, errors, posted=form)
+            return page(request, area_key, 400, errors, posted=form)
         if new == loaded().overrides:
-            return page(request, notice="Nothing changed.")
-        return apply(request, new)
+            return page(request, area_key, notice="Nothing changed.")
+        return apply(request, new, area_key)
 
     @router.post("/settings/reset/{name}")
     def reset(request: Request, name: str):
+        area_key = next((a.key for a in AREAS if name in a.fields), "")
         if name not in loaded().overrides:
-            return RedirectResponse("/settings", status_code=303)
+            return RedirectResponse(f"/settings/{area_key}" if area_key else "/settings", status_code=303)
         new = {k: v for k, v in loaded().overrides.items() if k != name}
         _, errors = validate_overrides(ctx.env_file, new)
         if errors:
-            return page(request, 400, errors)
-        return apply(request, new)
+            return page(request, area_key, 400, errors)
+        return apply(request, new, area_key)
+
+    @router.post("/settings/pricing")
+    async def save_pricing(request: Request):
+        from prospector.profile.model import Pricing
+
+        form = await request.form()
+        errors: dict[str, str] = {}
+        try:
+            pricing = Pricing(rate=form.get("rate", ""), floor=form.get("floor", ""),
+                              hours_per_day=form.get("hours_per_day", ""))
+        except ValidationError as e:
+            pricing = None
+            for err in e.errors(include_input=False):
+                key = str(err["loc"][0]) if err["loc"] else "floor"
+                errors[key] = err["msg"].removeprefix("Value error, ")
+        new, form_errors = merge_form(form, loaded())
+        _, invalid = validate_overrides(ctx.env_file, new)
+        errors |= invalid | form_errors
+        if errors:
+            return page(request, "pricing", 400, errors, posted=form)
+        if pricing != ctx.profile.pricing:
+            profile = ctx.profile.model_copy(update={"pricing": pricing})
+            save_profile(ctx.settings.profile_path, profile)
+            ctx.profile = profile
+        if new != loaded().overrides:
+            return apply(request, new, "pricing")
+        return RedirectResponse("/settings/pricing?saved=1", status_code=303)
 
     @router.post("/settings/profile")
     async def save_profile_form(request: Request):
@@ -182,9 +227,10 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             profile = profile_from_rows(rows)
         except ValidationError as e:
             err = e.errors(include_input=False)[0]
-            return page(request, 400, prow=rows, profile_error=f"{'.'.join(map(str, err['loc']))}: {err['msg']}")
+            return page(request, "profile", 400, prow=rows,
+                        profile_error=f"{'.'.join(map(str, err['loc']))}: {err['msg']}")
         except ValueError as e:
-            return page(request, 400, prow=rows, profile_error=str(e))
+            return page(request, "profile", 400, prow=rows, profile_error=str(e))
         save_profile(ctx.settings.profile_path, profile)
         ctx.restart()
         return templates.TemplateResponse(request, "restarting.html", {"nav": "settings"})
@@ -285,5 +331,12 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
     def reveal():
         value = ctx.settings.bridge_secret.get_secret_value()
         return HTMLResponse(f'<code class="reveal">{html.escape(value)}</code>', headers={"Cache-Control": "no-store"})
+
+    # Last, so the fixed /settings/... routes above win.
+    @router.get("/settings/{area_key}")
+    def show_area(request: Request, area_key: str, saved: str = ""):
+        if area_key not in BY_KEY:
+            raise HTTPException(404)
+        return page(request, area_key, notice="Saved." if saved else "")
 
     return router

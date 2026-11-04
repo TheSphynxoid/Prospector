@@ -97,7 +97,7 @@ def test_tests_section_lists_enabled_sources(ctx, client):
         id, interval_hours = "remotive", 1
 
     ctx.sources = [Src()]
-    page = client.get("/settings").text
+    page = client.get("/settings/connections").text
     assert 'hx-post="/settings/test/source/remotive"' in page and 'hx-post="/settings/test/llm"' in page
 
 
@@ -138,7 +138,7 @@ def test_find_chat_id_needs_token(ctx, client):
 
 
 def test_settings_page_has_find_chat_button(client):
-    page = client.get("/settings").text
+    page = client.get("/settings/connections").text
     assert 'hx-post="/settings/telegram/find-chat"' in page
 
 

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ area.title if area else "Settings" }} — Settings — Prospector{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{% if area %}<a class="crumb-link" href="/settings">Settings</a> <span class="muted">/</span> {{ area.title }}{% else %}Settings{% endif %}</h1>
+</div>
+{% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+{% if errors %}<p class="notice notice-bad" role="alert">Nothing was saved. Fix the highlighted fields.{% if errors.get("_") %} {{ errors["_"] }}{% endif %}</p>{% endif %}
+<div class="settings-layout{% if not area %} settings-hub{% endif %}">
+  {% if area %}
+  <nav class="settings-nav card" aria-label="Settings areas">
+    {% for a in areas %}<a href="{{ a.href }}" {% if a.key == area.key %}aria-current="page"{% endif %}>{{ a.title }}</a>{% endfor %}
+  </nav>
+  {% endif %}
+  <div class="settings-main">{% block settings %}{% endblock %}</div>
+</div>
+{% endblock %}

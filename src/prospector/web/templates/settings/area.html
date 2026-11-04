@@ -1,0 +1,29 @@
+{% extends "settings/base.html" %}
+{% from "settings/_field.html" import field with context %}
+{% block settings %}
+<form id="settings-form" class="settings-form" method="post" action="/settings" data-dirty-guard>
+  <input type="hidden" name="_area" value="{{ area.key }}">
+  <section class="card">
+    <h2 class="card-title">{{ area.title }}</h2>
+    <p class="muted small">{{ area.blurb }}{% if area_fields|selectattr("name", "in", cold)|list %} Fields marked <span class="restart-tag">restart</span> restart Prospector when you change them (about 25 seconds); the others apply at once.{% endif %}</p>
+    {% for f in area_fields %}{{ field(f) }}{% endfor %}
+    {% if area.key == "ai" %}<datalist id="llm-models"></datalist>{% endif %}
+    {% if area.key == "sources" %}
+    <div class="field" id="f-enabled_sources">
+      <label>Enabled sources <span class="restart-tag">restart</span></label>
+      <input type="hidden" name="enabled_sources_present" value="1">
+      {% set chosen = posted.getlist("enabled_sources") if posted is not none else s.enabled_sources %}
+      <div class="checks">
+        {% for sid in sources %}
+        <label class="check"><input type="checkbox" name="enabled_sources" value="{{ sid }}" data-cold {% if sid in chosen %}checked{% endif %}>
+          {{ sid }}{% if sid in needs_creds %} <span class="muted">· needs credentials</span>{% endif %}</label>
+        {% endfor %}
+      </div>
+      {% if errors.get("enabled_sources") %}<p class="field-err" id="err-enabled_sources">{{ errors["enabled_sources"] }}</p>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+  <div class="form-actions"><button type="submit" class="btn btn-primary" data-save>Save</button></div>
+</form>
+{% if area.key == "connections" %}{% include "_tests_section.html" %}{% endif %}
+{% endblock %}

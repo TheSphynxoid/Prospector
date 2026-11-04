@@ -40,10 +40,19 @@ def saved(env):
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
-def form_of(client):
-    """Every field as the page would post it unchanged (secrets empty)."""
+AREA_PAGES = ("/settings/connections", "/settings/sources", "/settings/ai", "/settings/schedule")
+
+
+def form_of(client, pages=AREA_PAGES):
+    """Every field of the area pages as they would post it unchanged (secrets empty)."""
     from selectolax.lexbor import LexborHTMLParser
-    doc = LexborHTMLParser(client.get("/settings").text)
+    data = {}
+    for path in pages:
+        data |= _form_fields(LexborHTMLParser(client.get(path).text))
+    return data
+
+
+def _form_fields(doc):
     data = {}
     for el in doc.css("form#settings-form input, form#settings-form select"):
         name, typ = el.attributes.get("name"), el.attributes.get("type")
@@ -63,7 +72,7 @@ def form_of(client):
 
 def test_page_never_renders_secrets(setup):
     client, _, _ = setup
-    page = client.get("/settings").text
+    page = client.get("/settings/connections").text
     assert not [m for m in MARKERS.values() if m in page]
     assert "set — leave empty to keep" in page
 
@@ -142,9 +151,10 @@ def test_origin_shown(setup):
     client, _, reload = setup
     client.post("/settings", data=form_of(client) | {"llm_model": "x"})
     reload()
-    page = client.get("/settings").text
+    page = client.get("/settings/ai").text
     row = page.split('id="f-llm_model"')[1].split('class="field"')[0]
     assert "set here" in row
+    page = client.get("/settings/connections").text
     assert "from .env" in page.split('id="f-access_aud"')[1].split('class="field"')[0]
 
 
@@ -161,7 +171,7 @@ def test_nav_has_settings(setup):
 
 def profile_form_of(client):
     from selectolax.lexbor import LexborHTMLParser
-    doc = LexborHTMLParser(client.get("/settings").text)
+    doc = LexborHTMLParser(client.get("/settings/profile").text)
     pairs = []
     for el in doc.css("form#profile-form input, form#profile-form textarea, form#profile-form select"):
         name, typ = el.attributes.get("name"), el.attributes.get("type")
@@ -255,20 +265,20 @@ def test_blank_tnd_rate_saves_as_none(setup, env):
     data = form_of(client) | {"usd_tnd_rate": ""}
     client.post("/settings", data=data)
     assert saved(env).get("usd_tnd_rate") is None
-    assert "Blank uses today" in client.get("/settings").text
+    assert "Blank uses today" in client.get("/settings/pricing").text
 
 
 def test_settings_shows_today_rates(setup, ctx):
     from prospector import fx
     client, _, _ = setup
-    assert "No rates fetched yet" in client.get("/settings").text
+    assert "No rates fetched yet" in client.get("/settings/pricing").text
     for code, v in (("TND", 3.004), ("EUR", 0.893), ("GBP", 0.79)):
         ctx.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), code, v, "open.er-api.com"))
-    page = client.get("/settings").text
+    page = client.get("/settings/pricing").text
     assert "1 USD = 3.004 TND · 0.893 EUR · 0.79 GBP" in page and "open.er-api.com" in page
     assert "out of date" not in page
 
 
 def test_settings_has_followup_days(setup):
     client, _, _ = setup
-    assert 'name="followup_days"' in client.get("/settings").text
+    assert 'name="followup_days"' in client.get("/settings/schedule").text

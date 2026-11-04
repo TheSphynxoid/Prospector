@@ -1,0 +1,25 @@
+{% extends "settings/base.html" %}
+{% from "settings/_field.html" import field with context %}
+{% block settings %}
+<form id="pricing-form" class="settings-form" method="post" action="/settings/pricing" data-dirty-guard>
+  <section class="card">
+    <h2 class="card-title">Your rates</h2>
+    <p class="muted small">The bid assistant prices from these. The model estimates hours only; Prospector does the money.</p>
+    {% set pr = posted if posted is not none else none %}
+    {% for name, label, help in [("rate", "Your rate (USD per hour)", "What you'd like to earn."), ("floor", "Lowest rate (USD per hour)", "The competitive price; never below this."), ("hours_per_day", "Billable hours per day", "1–12. Used to estimate delivery days.")] %}
+    <div class="field" id="f-{{ name }}">
+      <label for="in-{{ name }}">{{ label }}</label>
+      <div class="field-control"><input id="in-{{ name }}" name="{{ name }}" inputmode="decimal"
+        value="{{ pr.get(name, '') if pr is not none else ('%g'|format(pricing[name])) }}"{% if errors.get(name) %} aria-invalid="true"{% endif %}></div>
+      <p class="field-help">{{ help }}</p>
+      {% if errors.get(name) %}<p class="field-err" id="err-{{ name }}">{{ errors[name] }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  <section class="card">
+    <h2 class="card-title">Exchange rate</h2>
+    {% for f in area_fields %}{{ field(f) }}{% endfor %}
+  </section>
+  <div class="form-actions"><button type="submit" class="btn btn-primary" data-save>Save</button></div>
+</form>
+{% endblock %}
