@@ -8,6 +8,7 @@ import httpx
 from prospector.config import Settings
 from prospector.fx import Rates
 from prospector.profile.model import Profile
+from prospector.store.applications import ApplicationRepo
 from prospector.store.assist import AssistRepo
 from prospector.store.expiry import ExpiryRepo
 from prospector.store.feedback import FeedbackRepo
@@ -41,6 +42,7 @@ class AppContext:
     assist: AssistRepo
     expiry: ExpiryRepo
     fx: Rates
+    apps: ApplicationRepo
     verifier: "AccessVerifier | None" = None
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
@@ -60,5 +62,5 @@ class AppContext:
         return cls(settings=settings, conn=conn, profile=profile, http=http,
                    leads=LeadRepo(conn), scores=ScoreRepo(conn), feedback=FeedbackRepo(conn),
                    health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn), expiry=ExpiryRepo(conn),
-                   fx=Rates(conn, tnd_override=settings.usd_tnd_rate),
+                   fx=Rates(conn, tnd_override=settings.usd_tnd_rate), apps=ApplicationRepo(conn),
                    **extra)

@@ -114,3 +114,33 @@ CREATE TABLE IF NOT EXISTS fx_rates (
     source TEXT NOT NULL,
     PRIMARY KEY (day, code)
 );
+
+CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY,
+    lead_id INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    client TEXT,
+    source TEXT,
+    kind TEXT,
+    url TEXT,
+    applied_on TEXT NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'waiting',
+    follow_up_on TEXT,
+    follow_ups INTEGER NOT NULL DEFAULT 0,
+    next_step TEXT,
+    closed_on TEXT,
+    notes TEXT NOT NULL DEFAULT '',
+    from_lead_action INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS applications_lead ON applications(lead_id) WHERE lead_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS applications_due ON applications(stage, follow_up_on);
+
+CREATE TABLE IF NOT EXISTS app_events (
+    id INTEGER PRIMARY KEY,
+    application_id INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    at TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    text TEXT NOT NULL DEFAULT ''
+);
