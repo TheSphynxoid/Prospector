@@ -198,3 +198,15 @@ CREATE TABLE IF NOT EXISTS transfers (
     note TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS cvs (
+    id INTEGER PRIMARY KEY,
+    label TEXT NOT NULL,
+    language TEXT,
+    filename TEXT NOT NULL,
+    stored_name TEXT NOT NULL UNIQUE,
+    size INTEGER NOT NULL,
+    content_type TEXT NOT NULL,
+    is_main INTEGER NOT NULL DEFAULT 0,
+    uploaded_at TEXT NOT NULL
+);

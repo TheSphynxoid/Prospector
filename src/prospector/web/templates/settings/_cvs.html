@@ -1,0 +1,29 @@
+{# The owner's CVs and the upload form. Context: cvs, cv_error. #}
+<section class="card" id="cvs" aria-label="CVs">
+  <h2 class="card-title">CVs <span class="muted">· {{ cvs|length }}</span></h2>
+  <p class="muted small">PDF or DOCX, up to 5 MB each. Stored on your server, only reachable through this dashboard.</p>
+  {% if cv_error %}<p class="field-err" role="alert">{{ cv_error }}</p>{% endif %}
+  {% for cv in cvs %}
+  <div class="pay-row cv-row">
+    <div class="pay-main">
+      <span class="pay-amount">{{ cv.label }}{% if cv.is_main %} <span class="chip stage stage-won">Main</span>{% endif %}</span>
+      <span class="muted small">{{ cv.filename }} · {{ (cv.size / 1024)|round|int }} KB{% if cv.language %} · {{ cv.language }}{% endif %} · {{ cv.uploaded_at|local }}</span>
+    </div>
+    <div class="pay-actions">
+      <a class="btn btn-sm" href="/settings/profile/cvs/{{ cv.id }}/download">Download</a>
+      {% if not cv.is_main %}<button type="button" class="btn btn-sm" hx-post="/settings/profile/cvs/{{ cv.id }}/main" hx-target="#cvs" hx-swap="outerHTML">Make main</button>{% endif %}
+      <form class="inline-form tight" hx-post="/settings/profile/cvs/{{ cv.id }}/replace" hx-target="#cvs" hx-swap="outerHTML" hx-encoding="multipart/form-data">
+        <label class="btn btn-sm file-btn">Replace<input type="file" name="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="this.form.requestSubmit()"></label>
+      </form>
+      <button type="button" class="btn btn-sm" hx-post="/settings/profile/cvs/{{ cv.id }}/delete" hx-target="#cvs" hx-swap="outerHTML"
+              hx-confirm="Delete {{ cv.label }}?" aria-label="Delete {{ cv.label }}">✕</button>
+    </div>
+  </div>
+  {% endfor %}
+  <form class="inline-form" hx-post="/settings/profile/cvs" hx-target="#cvs" hx-swap="outerHTML" hx-encoding="multipart/form-data">
+    <label class="grow"><span>Label</span><input name="label" maxlength="80" placeholder="English, backend" required></label>
+    <label><span>Language</span><input name="language" maxlength="20" placeholder="en"></label>
+    <label class="grow"><span>File</span><input type="file" name="file" required accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+    <button class="btn btn-sm btn-primary">Upload CV</button>
+  </form>
+</section>
