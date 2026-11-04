@@ -19,7 +19,7 @@ class GitHubBounties:
         self.token = token
 
     def fetch(self, http: httpx.Client) -> list[RawLead]:
-        resp = http.get(URL, params={"q": 'label:"💎 Bounty" state:open', "sort": "created", "per_page": 50},
+        resp = http.get(URL, params={"q": 'label:"💎 Bounty" state:open is:issue', "sort": "created", "per_page": 50},
                         headers={"Authorization": f"Bearer {self.token}", "Accept": "application/vnd.github+json"})
         resp.raise_for_status()
         out = []

@@ -62,6 +62,9 @@ def test_github_bounty_kind_and_pay():
     assert len(leads) == 5 and all(l.kind_hint is Kind.BOUNTY for l in leads)
     assert leads[0].pay_text == "$250 USD fixed"
     assert route.calls[0].request.headers["Authorization"] == "Bearer tok"
+    # Authenticated issue search answers 422 unless the query names is:issue or is:pull-request.
+    q = route.calls[0].request.url.params["q"]
+    assert "is:issue" in q.split() and "state:open" in q.split()
 
 
 @respx.mock
