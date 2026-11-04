@@ -41,11 +41,12 @@ def _find_existing(ctx: AppContext, lead: Lead) -> Lead | None:
 def _score(ctx: AppContext, lead: Lead, now: datetime) -> None:
     if ctx.embedder is None:
         return
-    if ctx.profile_vecs is None:
-        ctx.profile_vecs = profile_vectors(ctx.profile, ctx.embedder)
+    profile, vecs = ctx.profile, ctx.profile_vecs  # one snapshot: a profile save may swap them meanwhile
+    if vecs is None:
+        vecs = ctx.profile_vecs = profile_vectors(profile, ctx.embedder)
     vec = ctx.embedder.embed([lead_text(lead)], "passage")[0]
     ctx.scores.save_embedding(lead.id, vec)
-    _save_stage1(ctx, lead, vec, now, *_feedback_inputs(ctx))
+    _save_stage1(ctx, lead, vec, now, *_feedback_inputs(ctx), profile=profile, vecs=vecs)
 
 
 def _feedback_inputs(ctx: AppContext):
@@ -53,8 +54,10 @@ def _feedback_inputs(ctx: AppContext):
             Weights.load(ctx.kv))
 
 
-def _save_stage1(ctx: AppContext, lead: Lead, vec, now: datetime, pos, neg, weights: Weights) -> None:
-    score, breakdown = score_stage1(lead, vec, ctx.profile_vecs, pos, neg, ctx.profile, weights, now,
+def _save_stage1(ctx: AppContext, lead: Lead, vec, now: datetime, pos, neg, weights: Weights, *,
+                 profile=None, vecs=None) -> None:
+    score, breakdown = score_stage1(lead, vec, ctx.profile_vecs if vecs is None else vecs, pos, neg,
+                                    profile or ctx.profile, weights, now,
                                     sim_range=getattr(ctx.embedder, "sim_range", (0.25, 0.65)))
     ctx.scores.save_stage1(lead.id, score, breakdown)
 
@@ -63,17 +66,31 @@ def rescore_all(ctx: AppContext, now: datetime) -> int:
     """Recompute stage-1 for every lead with a stored embedding, using the current profile. Stage-2 is kept."""
     if ctx.embedder is None:
         return 0
-    ctx.kv.set("rescore_status", {"state": "running", "count": 0})
-    ctx.profile_vecs = profile_vectors(ctx.profile, ctx.embedder)
-    inputs = _feedback_inputs(ctx)
+    ctx.rescoring = True
     count = 0
-    for lead_id, vec in ctx.scores.all_embeddings():
-        lead = ctx.leads.get(lead_id)
-        if lead is None:
-            continue
-        _save_stage1(ctx, lead, vec, now, *inputs)
-        count += 1
-    ctx.kv.set("rescore_status", {"state": "done", "count": count})
+    try:
+        while True:
+            ctx.rescore_again = False
+            total = ctx.conn.execute("SELECT COUNT(*) FROM scores WHERE embedding IS NOT NULL").fetchone()[0]
+            ctx.kv.set("rescore_status", {"state": "running", "count": total})
+            profile = ctx.profile
+            vecs = ctx.profile_vecs = profile_vectors(profile, ctx.embedder)
+            inputs = _feedback_inputs(ctx)
+            count = 0
+            for lead_id, vec in ctx.scores.all_embeddings():
+                lead = ctx.leads.get(lead_id)
+                if lead is None:
+                    continue
+                _save_stage1(ctx, lead, vec, now, *inputs, profile=profile, vecs=vecs)
+                count += 1
+            if not ctx.rescore_again:  # the profile changed while this pass ran: score once more
+                break
+        ctx.kv.set("rescore_status", {"state": "done", "count": count})
+    except Exception:
+        ctx.kv.set("rescore_status", {"state": "error", "count": count})
+        raise
+    finally:
+        ctx.rescoring = False
     log.info("re-scored %d leads", count)
     return count
 

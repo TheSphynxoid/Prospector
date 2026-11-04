@@ -107,18 +107,34 @@ def source_rows(ctx: "AppContext") -> list[dict]:
 def reload_profile(ctx: "AppContext", profile) -> bool:
     """Save and switch to the new profile without a restart; re-score leads in the background.
     Returns whether a re-score was queued (not when one is already running)."""
-    from datetime import UTC, datetime
-
-    from prospector.pipeline import rescore_all
     from prospector.profile.form import save_profile
 
     save_profile(ctx.settings.profile_path, profile)
     ctx.profile = profile
     ctx.profile_vecs = None  # rebuilt from the new skills and projects on next use
-    status = ctx.kv.get("rescore_status") or {}
-    if ctx.embedder is None or status.get("state") == "running":
+    if ctx.embedder is None:
         return False
+    if ctx.rescoring:  # a job is already going: it picks the new profile up with one more pass
+        ctx.rescore_again = True
+        return False
+    queue_rescore(ctx)
+    return True
+
+
+def queue_rescore(ctx: "AppContext") -> None:
+    from datetime import UTC, datetime
+
+    from prospector.pipeline import rescore_all
+
     total = ctx.conn.execute("SELECT COUNT(*) FROM scores WHERE embedding IS NOT NULL").fetchone()[0]
     ctx.kv.set("rescore_status", {"state": "running", "count": total})
+    ctx.rescoring = True  # set before queueing, so a second save can't queue another job
     ctx.run_background(lambda: rescore_all(ctx, datetime.now(UTC)))
-    return True
+
+
+def rescore_state(ctx: "AppContext") -> dict | None:
+    """The stored status, except a "running" left over from a process that's gone (restart mid-job)."""
+    status = ctx.kv.get("rescore_status")
+    if status and status.get("state") == "running" and not ctx.rescoring:
+        return None
+    return status

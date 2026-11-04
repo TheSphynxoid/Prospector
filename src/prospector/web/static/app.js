@@ -283,6 +283,18 @@
   document.addEventListener("DOMContentLoaded", () => initChips(document));
   document.body?.addEventListener("htmx:afterSettle", (e) => initChips(e.target));
 
+  // Enter in a row's first box adds the next row instead of saving the whole profile.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || !e.target.matches?.("[data-enter-adds-row]")) return;
+    e.preventDefault();
+    const group = e.target.closest(".rows");
+    const rows = group?.querySelectorAll(":scope > [data-row]");
+    if (rows && e.target.closest("[data-row]") === rows[rows.length - 1] && e.target.value.trim()) {
+      group.querySelector(":scope > [data-add-row]")?.click();
+    } else {
+      e.target.closest("[data-row]")?.nextElementSibling?.querySelector("input")?.focus();
+    }
+  });
   // Phone menu.
   document.addEventListener("click", (e) => {
     const t = e.target.closest(".nav-toggle");

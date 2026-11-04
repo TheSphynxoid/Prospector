@@ -23,8 +23,8 @@ from prospector.settings_store import LoadedSettings, save_overrides, validate_o
 from prospector.store import conn_status
 from prospector.web.dashboard import templates
 from prospector.web.settings.apply import COLD, apply_overrides
-from prospector.web.settings.pages import (AREAS, BY_KEY, area_status, connection_cards, reload_profile,
-                                          source_rows)
+from prospector.web.settings.pages import (AREAS, BY_KEY, area_status, connection_cards, queue_rescore,
+                                          reload_profile, rescore_state, source_rows)
 
 
 @dataclass(frozen=True)
@@ -165,7 +165,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             "s": ctx.settings, "current": lambda n: _current(ctx.settings, n), "errors": errors or {},
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
             "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
-            "periods": ["hour", "day", "month", "year", "fixed"], "rescore": ctx.kv.get("rescore_status"),
+            "periods": ["hour", "day", "month", "year", "fixed"], "rescore": rescore_state(ctx),
             "running_sources": [x.id for x in ctx.sources], "fx_line": fx_line(ctx.fx),
             "pricing": ctx.profile.pricing.model_dump(), **(extra or {}),
         }, status_code=status)
@@ -246,7 +246,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         # Blocks this form doesn't edit are kept as they are.
         keep = {k: getattr(ctx.profile, k) for k in ("about", "pricing") if not rows.get(f"has_{k}")}
         queued = reload_profile(ctx, profile.model_copy(update=keep))
-        status = ctx.kv.get("rescore_status") or {}
+        status = rescore_state(ctx) or {}
         note = (f"Saved. Re-scoring {status.get('count', 0)} leads in the background." if queued or
                 status.get("state") == "running" else "Saved.")
         return page(request, "profile", notice=note)
@@ -335,24 +335,26 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         if status and status.get("state") == "running":
             return HTMLResponse('<span id="rescore-status" class="muted" hx-get="/settings/rescore-status" '
                                 f'hx-trigger="every 2s" hx-swap="outerHTML">Re-scoring {status["count"]} leads…</span>')
+        if status and status.get("state") == "error":
+            return HTMLResponse('<span id="rescore-status" class="test-err">Re-scoring stopped with an error; '
+                                'see the server log, then try again.</span>')
         if status:
             return HTMLResponse(f'<span id="rescore-status" class="test-ok">Re-scored {status["count"]} leads ✓</span>')
         return HTMLResponse('<span id="rescore-status"></span>')
 
     @router.post("/settings/rescore")
     def rescore():
-        from prospector.pipeline import rescore_all
-
         if ctx.embedder is None:
             return HTMLResponse('<span id="rescore-status" class="test-err">The embedding model is not loaded.</span>')
-        total = ctx.conn.execute("SELECT COUNT(*) FROM scores WHERE embedding IS NOT NULL").fetchone()[0]
-        ctx.kv.set("rescore_status", {"state": "running", "count": total})  # before queueing: no stale "done"
-        ctx.run_background(lambda: rescore_all(ctx, datetime.now(UTC)))
-        return rescore_fragment({"state": "running", "count": total})
+        if ctx.rescoring:
+            ctx.rescore_again = True
+        else:
+            queue_rescore(ctx)
+        return rescore_fragment(rescore_state(ctx))
 
     @router.get("/settings/rescore-status")
     def rescore_status():
-        return rescore_fragment(ctx.kv.get("rescore_status"))
+        return rescore_fragment(rescore_state(ctx))
 
     def result(ok: bool, text: str, extra: str = "") -> HTMLResponse:
         return HTMLResponse(f'<span class="{"test-ok" if ok else "test-err"}">{html.escape(text)}</span>{extra}')

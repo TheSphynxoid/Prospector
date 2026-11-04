@@ -61,6 +61,8 @@ class AppContext:
     # serve swaps these for a real process restart and the scheduler's thread pool; tests keep them inline.
     restart: Callable[[], None] = lambda: None
     run_background: Callable[[Callable[[], None]], None] = lambda fn: fn()
+    rescoring: bool = False      # a re-score job is queued or running in this process
+    rescore_again: bool = False  # the profile changed during that job: it runs one more pass
 
     @classmethod
     def create(cls, settings: Settings, conn: sqlite3.Connection, profile: Profile, http: httpx.Client,

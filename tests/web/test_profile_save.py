@@ -27,5 +27,6 @@ def test_profile_save_during_rescore(example_profile, ctx):
     queued = []
     ctx.embedder, ctx.run_background = FakeEmbedder(), queued.append
     ctx.kv.set("rescore_status", {"state": "running", "count": 12})
+    ctx.rescoring = True  # a job of this process is running
     r = client.post("/settings/profile", data=as_form(profile_form_of(client)))
     assert queued == [] and "Re-scoring 12 leads" in r.text

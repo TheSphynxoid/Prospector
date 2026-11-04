@@ -20,7 +20,7 @@ def test_split_drafts():
     assert drafts.split(text) == [("text", "Looks legit."), ("draft", "Hi, I'm Hamza.\nI built X."),
                                   ("text", "Send it today.")]
     assert drafts.split("no draft here") == [("text", "no draft here")]
-    assert drafts.split("<<<DRAFT\nunclosed") == [("text", "<<<DRAFT\nunclosed")]
+    assert drafts.split("<<<DRAFT\nunclosed") == [("text", "unclosed")]  # a lone marker is dropped
 
 
 def test_posting_cannot_forge_draft(actx, lid):

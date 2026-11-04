@@ -24,19 +24,19 @@ def setup_items(settings: Settings, kv: KV, profile_path: Path, example_path: Pa
     last = kv.get("llm_last_error") or ""
     if _placeholder(key):
         items.append(ChecklistItem("Add your OpenCode Go API key — AI reviews are off until then.",
-                                   "/settings#f-llm_api_key"))
+                                   "/settings/connections#f-llm_api_key"))
     elif "HTTP 401" in last or "HTTP 403" in last:
-        items.append(ChecklistItem("Your OpenCode Go key was rejected — check it.", "/settings#f-llm_api_key"))
+        items.append(ChecklistItem("Your OpenCode Go key was rejected — check it.", "/settings/connections#f-llm_api_key"))
     if not (settings.telegram_token and settings.telegram_chat_id):
-        items.append(ChecklistItem("Connect Telegram to get the daily digest there.", "/settings#f-telegram_token"))
+        items.append(ChecklistItem("Connect Telegram to get the daily digest there.", "/settings/connections#f-telegram_token"))
     if not settings.bridge_url:
-        items.append(ChecklistItem("Set the mail-bridge Worker URL for the email digest.", "/settings#f-bridge_url"))
+        items.append(ChecklistItem("Set the mail-bridge Worker URL for the email digest.", "/settings/connections#f-bridge_url"))
     if _placeholder(settings.access_team_domain) or _placeholder(settings.access_aud):
         items.append(ChecklistItem("Fill in Cloudflare Access so prospector.thesphynx.net works.",
-                                   "/settings#f-access_team_domain"))
+                                   "/settings/connections#f-access_team_domain"))
     try:
         if Path(profile_path).read_bytes() == Path(example_path).read_bytes():
-            items.append(ChecklistItem("Your profile is still the example — make it yours.", "/settings#profile"))
+            items.append(ChecklistItem("Your profile is still the example — make it yours.", "/settings/profile"))
     except OSError:
         pass  # no example shipped, or no profile file: nothing useful to compare
     return items

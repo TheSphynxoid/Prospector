@@ -119,8 +119,9 @@ class Profile(BaseModel):
             data = dict(data)
             legacy = data.pop("boost_keywords") or {}
             if "interests" not in data:
-                data["interests"] = [{"phrase": k.strip(), "weight": v} for k, v in legacy.items()
-                                     if k.strip() and v]
+                # The old field had no bounds: clamp to the new ones rather than refuse to start.
+                data["interests"] = [{"phrase": k.strip()[:80], "weight": max(-1.0, min(1.0, float(v)))}
+                                     for k, v in legacy.items() if k.strip() and v]
         return data
 
 

@@ -36,7 +36,7 @@
     <div class="rows" data-group="about_lang">
       {% for r in prow.about_lang + [none] %}{% set i = loop.index0 %}
       <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
-        <input name="about_lang[{{ i }}][language]" value="{{ r.language if r else '' }}" placeholder="English" aria-label="Language">
+        <input name="about_lang[{{ i }}][language]" data-enter-adds-row value="{{ r.language if r else '' }}" placeholder="English" aria-label="Language">
         <select name="about_lang[{{ i }}][level]" aria-label="Level">{% for lv in ("native", "fluent", "professional", "basic") %}<option value="{{ lv }}" {{ 'selected' if r and r.level == lv }}>{{ lv|capitalize }}</option>{% endfor %}</select>
         {{ row_tools() }}
       </div>{% endfor %}
@@ -47,7 +47,7 @@
     <div class="rows" data-group="education">
       {% for r in prow.education + [none] %}{% set i = loop.index0 %}
       <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
-        <input name="education[{{ i }}][school]" value="{{ r.school if r else '' }}" placeholder="School" aria-label="School">
+        <input name="education[{{ i }}][school]" data-enter-adds-row value="{{ r.school if r else '' }}" placeholder="School" aria-label="School">
         <input name="education[{{ i }}][degree]" value="{{ r.degree if r else '' }}" placeholder="Degree" aria-label="Degree">
         <input name="education[{{ i }}][year]" value="{{ r.year if r else '' }}" placeholder="Year" aria-label="Year" inputmode="numeric" class="col-short">
         {{ row_tools() }}
@@ -74,7 +74,7 @@
       {% for r in prow.skills + [none] %}{% set i = loop.index0 %}
       {% set w = r.weight if r else "1" %}
       <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
-        <input name="skills[{{ i }}][name]" value="{{ r.name if r else '' }}" placeholder="Skill" aria-label="Skill">
+        <input name="skills[{{ i }}][name]" data-enter-adds-row value="{{ r.name if r else '' }}" placeholder="Skill" aria-label="Skill">
         <select name="skills[{{ i }}][weight]" aria-label="How strong">
           {% for v, label in [("1", "Core"), ("0.7", "Strong"), ("0.4", "Some")] %}<option value="{{ v }}" {{ 'selected' if w == v }}>{{ label }}</option>{% endfor %}
           {% if w not in ("1", "0.7", "0.4") %}<option value="{{ w }}" selected>Custom ({{ w }})</option>{% endif %}
@@ -125,7 +125,7 @@
     <div class="rows" data-group="min_pay">
       {% for r in prow.min_pay + [none] %}{% set i = loop.index0 %}
       <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
-        <input name="min_pay[{{ i }}][amount]" value="{{ r.amount if r else '' }}" placeholder="Amount" aria-label="Amount" inputmode="decimal">
+        <input name="min_pay[{{ i }}][amount]" data-enter-adds-row value="{{ r.amount if r else '' }}" placeholder="Amount" aria-label="Amount" inputmode="decimal">
         <input name="min_pay[{{ i }}][currency]" value="{{ r.currency if r else '' }}" placeholder="USD" aria-label="Currency" class="col-short">
         <select name="min_pay[{{ i }}][period]" aria-label="Period">{% for p in periods %}<option value="{{ p }}" {% if p == ((r.period if r else '') or "year") %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
         {{ row_tools() }}
@@ -143,8 +143,8 @@
     <div class="rows" data-group="boost">
       {% for r in prow.boost + [none] %}{% set i = loop.index0 %}
       <div class="row-edit interest-row{% if r is none %} row-blank{% endif %}" data-row>
-        <input name="boost[{{ i }}][keyword]" value="{{ r.keyword if r else '' }}" placeholder="embedded linux" aria-label="Phrase">
-        <input name="boost[{{ i }}][weight]" value="{{ r.weight if r else '0.5' }}" type="number" min="-1" max="1" step="0.1" aria-label="Weight" class="col-short">
+        <input name="boost[{{ i }}][keyword]" data-enter-adds-row value="{{ r.keyword if r else '' }}" placeholder="embedded linux" aria-label="Phrase">
+        <input name="boost[{{ i }}][weight]" value="{{ r.weight if r else '0.5' }}" type="number" min="-1" max="1" step="any" aria-label="Weight" class="col-short">
         <select name="boost[{{ i }}][where]" aria-label="Where it counts">
           <option value="anywhere" {{ 'selected' if not r or r.where == 'anywhere' }}>Anywhere</option>
           <option value="title" {{ 'selected' if r and r.where == 'title' }}>Title only</option>

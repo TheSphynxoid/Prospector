@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 COLD: frozenset[str] = frozenset({
     "llm_api_key", "llm_base_url", "llm_model", "llm_fallback_model", "assistant_model", "enabled_sources",
     "digest_time", "access_team_domain", "access_aud", "github_token", "adzuna_app_id", "adzuna_app_key",
+    "bridge_secret",   # the mail ingest route keeps the secret it started with
+    "dashboard_url",   # the host check allows the dashboard's hostname, computed at startup
 })
 
 
