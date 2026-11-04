@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from datetime import date
 from typing import Literal
@@ -18,7 +19,9 @@ SYSTEM = (
     "You screen job and gig leads for one candidate. Answer ONLY with JSON: "
     '{"verdict": "strong|maybe|weak", "fit_summary": "<=2 sentences", '
     '"lead_with_project": "<project name or null>", "red_flags": ["..."], '
-    '"pay_estimate": "<string or null>"}'
+    '"pay_estimate": "<string or null>"}. '
+    "Rate weak when the role needs a level well above the candidate's level, or a location the candidate "
+    "cannot work from."
 )
 
 
@@ -34,19 +37,27 @@ def _user_prompt(lead: Lead, profile: Profile) -> str:
     projects = "\n".join(f"- {p.name}: {p.writeup}" for p in profile.projects)
     pay = f"{lead.pay.min}-{lead.pay.max} {lead.pay.currency}/{lead.pay.period}" if lead.pay else "not stated"
     return (
-        f"CANDIDATE SKILLS: {', '.join(profile.skills)}\nCANDIDATE PROJECTS:\n{projects}\n\n"
+        f"CANDIDATE SKILLS: {', '.join(profile.skills)}\nCANDIDATE PROJECTS:\n{projects}\n"
+        f"{_reach_lines(profile)}\n\n"
         f"LEAD\nTitle: {lead.title}\nCompany: {lead.company or 'unknown'}\n"
         f"Location: {', '.join(lead.locations) or lead.remote.value}\nPay: {pay}\nKind: {lead.kind.value}\n"
         f"Description:\n{lead.body[:3000]}"
     )
 
 
-def _cache_key(lead: Lead) -> str:
-    return f"llm:{lead.content_hash}"
+def _reach_lines(profile: Profile) -> str:
+    t = profile.targets
+    return f"CANDIDATE LEVEL: {', '.join(t.levels)}\nCAN WORK FROM: {', '.join(t.work_from)}"
+
+
+def _cache_key(lead: Lead, profile: Profile) -> str:
+    # A change to the level or work-from lines re-reviews the lead.
+    h = hashlib.sha256(_reach_lines(profile).encode()).hexdigest()[:8]
+    return f"llm:{lead.content_hash}:{h}"
 
 
 def review(lead: Lead, profile: Profile, client: LLMClient, kv: KV, session_id: str) -> Stage2Result | None:
-    cached = kv.get(_cache_key(lead))
+    cached = kv.get(_cache_key(lead, profile))
     if cached:
         return Stage2Result.model_validate(cached)
     user = _user_prompt(lead, profile)
@@ -66,7 +77,7 @@ def review(lead: Lead, profile: Profile, client: LLMClient, kv: KV, session_id: 
         log.warning("stage2 review failed for lead %s: %s", lead.id, e)
         return None
     conn_status.record(kv, "llm", True)
-    kv.set(_cache_key(lead), result.model_dump())
+    kv.set(_cache_key(lead, profile), result.model_dump())
     return result
 
 
