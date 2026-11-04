@@ -14,9 +14,24 @@ class Project(BaseModel):
     tags: list[str] = []
 
 
+LEVELS: tuple[str, ...] = ("intern", "junior", "mid", "senior", "lead")
+Level = Literal["intern", "junior", "mid", "senior", "lead"]
+DEFAULT_WORK_FROM: tuple[str, ...] = ("worldwide", "anywhere", "emea", "africa", "mena", "tunisia", "france")
+
+
 class Targets(BaseModel):
     kinds: list[Kind]
     regions: list[str]
+    levels: list[Level] = list(LEVELS)  # the job levels the owner applies for; gigs and bounties ignore it
+    work_from: list[str] = list(DEFAULT_WORK_FROM)  # regions a remote job may be limited to and still be open to him
+
+    @model_validator(mode="after")
+    def _clean(self) -> "Targets":
+        if not self.levels:
+            raise ValueError("Pick at least one level")
+        self.levels = [lv for lv in LEVELS if lv in self.levels]
+        self.work_from = list(dict.fromkeys(w.strip().lower() for w in self.work_from if w.strip()))
+        return self
 
 
 class MinPay(BaseModel):
@@ -122,6 +137,17 @@ class Profile(BaseModel):
                 # The old field had no bounds: clamp to the new ones rather than refuse to start.
                 data["interests"] = [{"phrase": k.strip()[:80], "weight": max(-1.0, min(1.0, float(v)))}
                                      for k, v in legacy.items() if k.strip() and v]
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
+    def _internship_kind(cls, data):
+        """Internships became their own kind; a profile that targets PFE targets them too."""
+        if isinstance(data, dict) and isinstance(data.get("targets"), dict):
+            kinds = [str(k) for k in data["targets"].get("kinds") or []]
+            if "pfe" in kinds and "internship" not in kinds:
+                i = kinds.index("pfe") + 1  # next to PFE, the order the profile form writes them in
+                data = {**data, "targets": {**data["targets"], "kinds": [*kinds[:i], "internship", *kinds[i:]]}}
         return data
 
 

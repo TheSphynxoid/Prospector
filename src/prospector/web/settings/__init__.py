@@ -18,6 +18,7 @@ from prospector.notify.digest import build_digest, render_email
 from prospector.notify.email import send_email_via_bridge
 from prospector.notify.telegram import find_chats, send_telegram
 from prospector.models import Kind
+from prospector.profile.model import LEVELS
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
 from prospector.store import conn_status
@@ -164,7 +165,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             "cold": COLD, "secrets": SECRETS, "loaded": loaded(),
             "s": ctx.settings, "current": lambda n: _current(ctx.settings, n), "errors": errors or {},
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
-            "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
+            "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind), "levels": LEVELS,
             "periods": ["hour", "day", "month", "year", "fixed"], "rescore": rescore_state(ctx),
             "running_sources": [x.id for x in ctx.sources], "fx_line": fx_line(ctx.fx),
             "pricing": ctx.profile.pricing.model_dump(), **(extra or {}),

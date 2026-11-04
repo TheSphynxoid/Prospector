@@ -18,6 +18,7 @@ class Kind(StrEnum):
     GIG = "gig"
     BOUNTY = "bounty"
     PFE = "pfe"
+    INTERNSHIP = "internship"
     AI_TRAINING = "ai_training"
 
 

@@ -48,6 +48,8 @@ def rows_from_profile(p: Profile) -> dict[str, Any]:
         "projects": [{"name": x.name, "writeup": x.writeup, "tags": ", ".join(x.tags)} for x in p.projects],
         "kinds": [k.value for k in p.targets.kinds],
         "regions": ", ".join(p.targets.regions),
+        "levels": list(p.targets.levels),
+        "work_from": ", ".join(p.targets.work_from),
         "exclude_unpaid": f.exclude_unpaid,
         "min_pay": [{"currency": m.currency, "period": m.period, "amount": _num(m.amount)} for m in f.min_pay],
         "languages": ", ".join(f.languages),
@@ -78,6 +80,9 @@ def rows_from_form(form) -> dict[str, Any]:
     for group, cols in GROUPS.items():
         rows[group] = [{c: r.get(c, "") for c in cols} for _, r in sorted(groups[group].items())]
     rows["kinds"] = [str(v) for v in form.getlist("kinds")]
+    # None = this form had no level or work-from fields (keep the defaults), not "none picked".
+    rows["levels"] = [str(v) for v in form.getlist("levels")] if form.get("levels_present") else None
+    rows["work_from"] = str(form.get("work_from", "")) if "work_from" in form else None
     for name in ("regions", "languages", "blocked_keywords", "blocked_companies"):
         rows[name] = str(form.get(name, ""))
     rows["exclude_unpaid"] = bool(form.get("exclude_unpaid"))
@@ -120,7 +125,9 @@ def profile_from_rows(rows: dict[str, Any]) -> Profile:
         skills={r["name"].strip(): _weight(r["weight"]) for r in keep("skills")},
         projects=[Project(name=r["name"].strip(), writeup=r["writeup"].strip(), tags=_csv(r["tags"]))
                   for r in keep("projects")],
-        targets=Targets(kinds=rows["kinds"], regions=_csv(rows["regions"])),
+        targets=Targets(kinds=rows["kinds"], regions=_csv(rows["regions"]),
+                        **({} if rows.get("levels") is None else {"levels": rows["levels"]}),
+                        **({} if rows.get("work_from") is None else {"work_from": _csv(rows["work_from"])})),
         filters=Filters(
             exclude_unpaid=rows["exclude_unpaid"],
             min_pay=[MinPay(currency=r["currency"].strip().upper(), period=r["period"], amount=float(r["amount"]))

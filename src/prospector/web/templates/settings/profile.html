@@ -116,6 +116,11 @@
     <div class="checks chip-toggles">{% for k in kinds %}<label class="check"><input type="checkbox" name="kinds" value="{{ k.value }}" {% if k.value in prow.kinds %}checked{% endif %}> {{ k.value|replace("_", " ") }}</label>{% endfor %}</div>
     <label class="pf-field"><span>Regions <span class="muted">· on-site leads here score as if remote</span></span>
       <input id="p-regions" name="regions" value="{{ prow.regions }}" placeholder="tunisia, france, remote" data-chips></label>
+    <h3 class="small">Job levels <span class="muted">· roles above these rank lower; gigs and bounties are not affected</span></h3>
+    <input type="hidden" name="levels_present" value="1">
+    <div class="checks chip-toggles">{% for lv in levels %}<label class="check"><input type="checkbox" name="levels" value="{{ lv }}" {% if lv in (prow.levels or []) %}checked{% endif %}> {{ lv }}</label>{% endfor %}</div>
+    <label class="pf-field"><span>Can work from <span class="muted">· a remote job limited to other regions (e.g. "US only") ranks lower</span></span>
+      <input id="p-work_from" name="work_from" value="{{ prow.work_from or '' }}" placeholder="worldwide, emea, tunisia" data-chips></label>
   </section>
 
   <section class="card" id="filters">
