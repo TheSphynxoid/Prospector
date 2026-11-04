@@ -5,6 +5,8 @@ import httpx
 
 from prospector.context import AppContext
 from prospector.http import describe_error as _describe  # never the URL: Telegram's embeds the bot token
+from prospector import fx
+from prospector.worklife.followups import auto_close
 from prospector.notify.digest import build_digest, render_email, render_telegram
 from prospector.notify.email import send_email_via_bridge
 from prospector.notify.telegram import send_telegram
@@ -15,7 +17,8 @@ log = logging.getLogger(__name__)
 def send_digest(ctx: AppContext, now: datetime) -> None:
     """Send the digest on both channels independently; each reports the other's failure."""
     s = ctx.settings
-    d = build_digest(ctx.leads, ctx.health, ctx.kv, now, s.dashboard_url, ctx.expiry)
+    auto_close(ctx, fx.today(now))  # quiet applications close before the digest would remind about them
+    d = build_digest(ctx.leads, ctx.health, ctx.kv, now, s.dashboard_url, ctx.expiry, ctx.apps)
     tg_ok = email_ok = False
     tg_error = email_error = None
 

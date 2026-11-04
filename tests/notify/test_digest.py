@@ -130,3 +130,46 @@ def test_last_digest_not_advanced_when_both_fail(ctx, make_lead):
     respx.post(f"{BRIDGE}/digest").mock(return_value=httpx.Response(500))
     send_digest(ctx, NOW)
     assert ctx.kv.get("last_digest_at") is None
+
+
+def _due_app(ctx, **kw):
+    from prospector import fx
+    base = dict(title="Go booking API", source="freelancer", applied_on=NOW.date() - timedelta(days=7),
+                follow_up_on=NOW.date())
+    return ctx.apps.create(**(base | kw))
+
+
+def test_digest_follow_up_section(ctx, make_lead):
+    add(ctx, make_lead, 1)
+    aid = _due_app(ctx)
+    iv = _due_app(ctx, title="PFE vision")
+    ctx.apps.update(iv, stage="interview", next_step="Call with CTO")
+    d = build_digest(ctx.leads, ctx.health, ctx.kv, NOW, URL, apps=ctx.apps)
+    assert [a.id for a in d.follow_ups] == [aid, iv]
+    tg = "\n".join(render_telegram(d))
+    assert tg.index("<b>Follow up</b>") < tg.index("Go dev")
+    assert "Go booking API — freelancer, applied 7 days ago" in tg and "next: Call with CTO" in tg
+    assert f"{URL}/work/applications/{aid}" in tg
+    _, text, body = render_email(d)
+    assert "Follow up:" in text and "<h3>Follow up</h3>" in body and f"{URL}/work/applications/{aid}" in body
+    assert body.index("<h3>Follow up</h3>") < body.index("<ol>")
+
+
+def test_digest_omits_empty_follow_up(ctx):
+    d = build_digest(ctx.leads, ctx.health, ctx.kv, NOW, URL, apps=ctx.apps)
+    assert d.follow_ups == [] and "Follow up" not in "\n".join(render_telegram(d)) and "Follow up" not in render_email(d)[1]
+
+
+@respx.mock
+def test_send_digest_auto_closes_first(ctx, monkeypatch):
+    from prospector import fx
+    from prospector.worklife import followups
+    monkeypatch.setattr(fx, "today", lambda now=None: NOW.date())
+    quiet = _due_app(ctx, title="quiet", follow_up_on=NOW.date() - timedelta(days=8))
+    ctx.apps.update(quiet, follow_ups=1)
+    respx.post(TG).respond(json={"ok": True})
+    respx.post(f"{BRIDGE}/digest").respond(202)
+    send_digest(ctx, NOW)
+    assert ctx.apps.get(quiet).stage == "no_reply"
+    assert "quiet" not in json.loads(respx.calls[0].request.content)["text"]
+    assert followups

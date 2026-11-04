@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from prospector.assist.usage import used_today
+from prospector import fx
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
@@ -17,11 +18,13 @@ from prospector.sources.registry import known_source_ids
 from prospector.store.stats import TZ, StatsRepo
 from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
 from prospector.web.format import fmt_ago, fmt_pay, paragraphs
+from prospector.worklife.flows import on_applied, on_unapplied
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
 _ACTIONS = {"star": Status.STARRED, "dismiss": Status.DISMISSED, "applied": Status.APPLIED, "reset": Status.NEW}
-_TOAST = {"star": "Starred", "dismiss": "Dismissed", "applied": "Marked applied", "reset": "Moved back to new"}
+_TOAST = {"star": "Starred", "dismiss": "Dismissed", "applied": "Marked applied · tracking in Work",
+          "reset": "Moved back to new"}
 TABS = [Status.NEW, Status.STARRED, Status.APPLIED, Status.FILTERED, Status.EXPIRED, Status.DISMISSED]
 
 
@@ -116,18 +119,23 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         from prospector.web.assist import assist_context  # web.assist imports this module's templates
         return templates.TemplateResponse(request, "detail.html", {
             "nav": "leads", "row": row, "breakdown": ctx.scores.breakdown(lead_id) or {}, "lead_id": lead_id,
+            "application": ctx.apps.by_lead(lead_id),
             **assist_context(ctx, lead_id),
         })
 
     def fragment(request: Request, lead_id: int, headers: dict | None = None):
         # The detail page swaps its action bar; lists swap the whole row.
         name = "_detail_actions.html" if request.headers.get("hx-target") == "detail-actions" else "_row.html"
-        return templates.TemplateResponse(request, name, {"row": ctx.leads.get_row(lead_id)}, headers=headers)
+        return templates.TemplateResponse(request, name, {"row": ctx.leads.get_row(lead_id),
+                                                          "application": ctx.apps.by_lead(lead_id)}, headers=headers)
 
     @router.post("/lead/{lead_id}/undo")
     def undo(request: Request, lead_id: int, to: Status, fb: int):
-        if ctx.leads.get(lead_id) is None:
+        lead = ctx.leads.get(lead_id)
+        if lead is None:
             raise HTTPException(404)
+        if lead.status == Status.APPLIED and to != Status.APPLIED:
+            on_unapplied(ctx, lead_id)
         ctx.leads.set_status(lead_id, to)
         ctx.feedback.delete(fb, lead_id)  # so undo does not train the ranker
         return fragment(request, lead_id)
@@ -150,6 +158,8 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         if action == "reset":  # back to new means "still open": don't expire it again for the same reason
             ctx.expiry.keep_open(lead_id)
         ctx.leads.set_status(lead_id, status)
+        if action == "applied":
+            on_applied(ctx, lead_id, fx.today())
         fb = ctx.feedback.record(lead_id, action)
         target = "#detail-actions" if request.headers.get("hx-target") == "detail-actions" else f"#lead-{lead_id}"
         trigger = {"toast": {"msg": _TOAST[action], "target": target,

@@ -124,7 +124,7 @@ def tick(ctx: AppContext, now: datetime) -> None:
 
 
 def digest_preview(ctx: AppContext, now: datetime) -> list[str]:
-    return render_telegram(build_digest(ctx.leads, ctx.health, ctx.kv, now, ctx.settings.dashboard_url, ctx.expiry))
+    return render_telegram(build_digest(ctx.leads, ctx.health, ctx.kv, now, ctx.settings.dashboard_url, ctx.expiry, ctx.apps))
 
 
 def nightly(ctx: AppContext, now: datetime) -> None:

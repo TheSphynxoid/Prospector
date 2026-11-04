@@ -263,7 +263,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         s = ctx.settings
         if not s.bridge_url:
             return result(False, "Worker URL not set.")
-        subject, text, body = render_email(build_digest(ctx.leads, ctx.health, ctx.kv, datetime.now(UTC), s.dashboard_url, ctx.expiry))
+        subject, text, body = render_email(build_digest(ctx.leads, ctx.health, ctx.kv, datetime.now(UTC), s.dashboard_url, ctx.expiry, ctx.apps))
         try:
             send_email_via_bridge(ctx.http, s.bridge_url, s.bridge_secret.get_secret_value().encode(),
                                   f"[test] {subject}", text, body)

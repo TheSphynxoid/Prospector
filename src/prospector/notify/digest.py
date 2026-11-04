@@ -2,10 +2,14 @@ import html
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from prospector import fx
+from prospector.store.applications import Application, ApplicationRepo
+
 from prospector.store.expiry import ExpiryRepo
 from prospector.store.health import HealthRepo
 from prospector.store.kv import KV
 from prospector.store.leads import LeadRepo, LeadRow
+from prospector.worklife.followups import due
 
 TELEGRAM_LIMIT = 4096
 _TITLE_MAX = 300
@@ -18,10 +22,12 @@ class Digest:
     warnings: list[str]
     dashboard_url: str
     closed: list[LeadRow] = ()  # starred/applied leads that may have closed
+    follow_ups: list[Application] = ()  # applications whose follow-up date has come
+    now: datetime | None = None
 
 
 def build_digest(leads: LeadRepo, health: HealthRepo, kv: KV, now: datetime, dashboard_url: str,
-                 expiry: ExpiryRepo | None = None) -> Digest:
+                 expiry: ExpiryRepo | None = None, apps: ApplicationRepo | None = None) -> Digest:
     last = kv.get("last_digest_at")
     since = datetime.fromisoformat(last) if last else now - timedelta(hours=24)
     warnings = []
@@ -36,7 +42,18 @@ def build_digest(leads: LeadRepo, health: HealthRepo, kv: KV, now: datetime, das
         warnings=warnings,
         dashboard_url=dashboard_url.rstrip("/"),
         closed=[r for i in (expiry.flagged_since(since.isoformat()) if expiry else []) if (r := leads.get_row(i))],
+        follow_ups=due(apps, fx.today(now)) if apps else [],
+        now=now,
     )
+
+
+def _follow_up(a: Application, base: str, now: datetime, escape) -> tuple[str, str]:
+    days = (fx.today(now) - a.applied_on).days
+    ago = "today" if days <= 0 else f"{days} day{'s' if days != 1 else ''} ago"
+    text = escape(f"{a.title[:_TITLE_MAX]} — {a.source or 'added by hand'}, applied {ago}")
+    if a.stage == "interview" and a.next_step:
+        text += escape(f" · next: {a.next_step}")
+    return text, f"{base}/work/applications/{a.id}"
 
 
 def _line(row: LeadRow, base: str, escape) -> tuple[str, str, str]:
@@ -51,6 +68,11 @@ def _line(row: LeadRow, base: str, escape) -> tuple[str, str, str]:
 
 def render_telegram(d: Digest) -> list[str]:
     blocks = [f"<b>Prospector</b> — {len(d.items)} new leads"]
+    if d.follow_ups:
+        blocks.append("<b>Follow up</b>")
+        for a in d.follow_ups:
+            text, url = _follow_up(a, d.dashboard_url, d.now, html.escape)
+            blocks.append(f"↩ {text}\n{url}")
     for row in d.items:
         score, text, url = _line(row, d.dashboard_url, html.escape)
         blocks.append(f"<b>{score}</b> {text}\n{url}")
@@ -83,7 +105,18 @@ def render_telegram(d: Digest) -> list[str]:
 
 def render_email(d: Digest) -> tuple[str, str, str]:
     subject = f"Prospector: {len(d.items)} new leads"
-    text_lines, html_lines = [], [f"<h2>{html.escape(subject)}</h2><ol>"]
+    text_lines, html_lines = [], [f"<h2>{html.escape(subject)}</h2>"]
+    if d.follow_ups:
+        text_lines.append("Follow up:")
+        html_lines.append("<h3>Follow up</h3><ul>")
+        for a in d.follow_ups:
+            text, url = _follow_up(a, d.dashboard_url, d.now, lambda s: s)
+            etext, _ = _follow_up(a, d.dashboard_url, d.now, html.escape)
+            text_lines.append(f"  {text}  {url}")
+            html_lines.append(f'<li><a href="{url}">{etext}</a></li>')
+        html_lines.append("</ul>")
+        text_lines.append("")
+    html_lines.append("<ol>")
     for row in d.items:
         score, text, url = _line(row, d.dashboard_url, lambda s: s)
         _, etext, _ = _line(row, d.dashboard_url, html.escape)

@@ -7,5 +7,6 @@
           hx-swap="outerHTML">{{ label }}</button>
   {% endif %}
   {% endfor %}
+  {% if application %}<a class="chip app-link" href="/work/applications/{{ application.id }}">Application: {{ application.stage|replace("_", " ") }}{% if application.follow_up_on and application.is_open %} · follow up {{ application.follow_up_on.strftime("%a %d %b") }}{% endif %}</a>{% endif %}
   {% with target = "#detail-actions" %}{% include "_closed_badge.html" %}{% endwith %}
 </div>
