@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     github_token: SecretStr | None = None
 
     enabled_sources: list[str] = [
-        "remotive", "remoteok", "himalayas", "arbeitnow", "adzuna",
+        "remotive", "remoteok", "himalayas", "arbeitnow",  # adzuna: paid, opt in from Settings
         "hn", "github_bounties", "freelancer", "keejob", "alerts",
     ]
     embed_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"

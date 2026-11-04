@@ -16,7 +16,7 @@ from prospector.http import describe_error
 from prospector.llm.client import LLMError
 from prospector.notify.digest import build_digest, render_email
 from prospector.notify.email import send_email_via_bridge
-from prospector.notify.telegram import send_telegram
+from prospector.notify.telegram import find_chats, send_telegram
 from prospector.models import Kind
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
@@ -36,12 +36,13 @@ KEYS = [
     FieldInfo("llm_api_key", "OpenCode Go API key", "secret"),
     FieldInfo("llm_base_url", "LLM endpoint", "url"),
     FieldInfo("telegram_token", "Telegram bot token", "secret", "From @BotFather."),
-    FieldInfo("telegram_chat_id", "Telegram chat id", help="Your chat with the bot."),
+    FieldInfo("telegram_chat_id", "Telegram chat id",
+              help="Your chat with the bot. Save the token, send the bot any message, then use Find my chat ID."),
     FieldInfo("bridge_url", "mail-bridge Worker URL", "url", "e.g. https://prospector-mail-bridge.<you>.workers.dev"),
     FieldInfo("bridge_secret", "BRIDGE_SECRET", "secret", "At least 32 characters; the Worker needs the same value."),
     FieldInfo("access_team_domain", "Cloudflare Access team domain", help=ACCESS_NOTE),
     FieldInfo("access_aud", "Cloudflare Access AUD tag", help=ACCESS_NOTE),
-    FieldInfo("adzuna_app_id", "Adzuna app id"),
+    FieldInfo("adzuna_app_id", "Adzuna app id", help="Optional. Adzuna is paid beyond a small trial."),
     FieldInfo("adzuna_app_key", "Adzuna app key", "secret"),
     FieldInfo("github_token", "GitHub token", "secret", "Read-only public scope is enough (bounty search)."),
     FieldInfo("dashboard_url", "Dashboard URL", "url", "Used for links in the digest."),
@@ -229,6 +230,22 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         except httpx.HTTPError as e:
             return result(False, describe_error(e))
         return result(True, "Sent — check Telegram.")
+
+    @router.post("/settings/telegram/find-chat")
+    def find_chat():
+        s = ctx.settings
+        if not s.telegram_token:
+            return result(False, "Save the bot token first.")
+        try:
+            chats = find_chats(ctx.http, s.telegram_token.get_secret_value())
+        except httpx.HTTPError as e:
+            return result(False, describe_error(e))
+        if not chats:
+            return result(False, "No messages yet: send your bot a message in Telegram, then try again.")
+        buttons = "".join(
+            f' <button type="button" class="btn btn-sm" data-fill="#in-telegram_chat_id" data-value="{html.escape(cid)}">'
+            f'Use {html.escape(cid)} · {html.escape(name)}</button>' for cid, name in chats)
+        return result(True, "Pick your chat, then save:", buttons)
 
     @router.post("/settings/test/email")
     def test_email():

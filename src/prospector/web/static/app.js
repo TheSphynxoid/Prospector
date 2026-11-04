@@ -142,6 +142,11 @@
     });
   });
   function scrollLog() { const log = document.getElementById("assist-log"); if (log) log.scrollTop = log.scrollHeight; }
+  document.addEventListener("click", (e) => {  // "Use this value" buttons fill a form field
+    const btn = e.target.closest("[data-fill]");
+    const input = btn && document.querySelector(btn.dataset.fill);
+    if (input) { input.value = btn.dataset.value; input.focus(); }
+  });
   document.addEventListener("DOMContentLoaded", () => { updateCounts(); scrollLog(); });
   document.body.addEventListener("htmx:afterSettle", () => { updateCounts(); scrollLog(); });
 

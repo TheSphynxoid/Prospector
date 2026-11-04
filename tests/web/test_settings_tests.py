@@ -99,3 +99,49 @@ def test_tests_section_lists_enabled_sources(ctx, client):
     ctx.sources = [Src()]
     page = client.get("/settings").text
     assert 'hx-post="/settings/test/source/remotive"' in page and 'hx-post="/settings/test/llm"' in page
+
+
+@respx.mock
+def test_find_chat_id_lists_chats_without_token(ctx, client):
+    ctx.settings.telegram_token = SecretStr(TG_TOKEN)
+    updates = {"ok": True, "result": [
+        {"update_id": 1, "message": {"chat": {"id": 987654321, "type": "private", "first_name": "Hamza"}, "text": "hi"}},
+        {"update_id": 2, "message": {"chat": {"id": 987654321, "type": "private", "first_name": "Hamza"}, "text": "again"}},
+        {"update_id": 3, "my_chat_member": {"chat": {"id": -100123, "type": "group", "title": "Leads <b>"}}},
+    ]}
+    respx.get(f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates").respond(json=updates)
+    r = client.post("/settings/telegram/find-chat")
+    assert "test-ok" in r.text and r.text.count('data-value="987654321"') == 1
+    assert 'data-fill="#in-telegram_chat_id"' in r.text and 'data-value="-100123"' in r.text
+    assert "Hamza" in r.text and "Leads &lt;b&gt;" in r.text and TG_TOKEN not in r.text
+
+
+@respx.mock
+def test_find_chat_id_no_messages_yet(ctx, client):
+    ctx.settings.telegram_token = SecretStr(TG_TOKEN)
+    respx.get(f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates").respond(json={"ok": True, "result": []})
+    r = client.post("/settings/telegram/find-chat")
+    assert "test-err" in r.text and "send your bot a message" in r.text.lower()
+
+
+@respx.mock
+def test_find_chat_id_bad_token(ctx, client):
+    ctx.settings.telegram_token = SecretStr(TG_TOKEN)
+    respx.get(f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates").respond(401)
+    r = client.post("/settings/telegram/find-chat")
+    assert "test-err" in r.text and "401" in r.text and TG_TOKEN not in r.text
+
+
+def test_find_chat_id_needs_token(ctx, client):
+    ctx.settings.telegram_token = None
+    assert "token" in client.post("/settings/telegram/find-chat").text.lower()
+
+
+def test_settings_page_has_find_chat_button(client):
+    page = client.get("/settings").text
+    assert 'hx-post="/settings/telegram/find-chat"' in page
+
+
+def test_adzuna_not_enabled_by_default():
+    from prospector.config import Settings
+    assert "adzuna" not in Settings.model_fields["enabled_sources"].default
