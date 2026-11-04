@@ -1,4 +1,167 @@
 {% extends "settings/base.html" %}
+{% macro input(name, label, value, placeholder="", type="text", help="") %}
+<label class="pf-field"><span>{{ label }}</span><input name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" type="{{ type }}"></label>
+{% endmacro %}
+{% macro row_tools() %}
+<span class="row-tools">
+  <button type="button" class="btn btn-sm" data-move="up" aria-label="Move up">↑</button>
+  <button type="button" class="btn btn-sm" data-move="down" aria-label="Move down">↓</button>
+  <button type="button" class="btn btn-sm" data-remove-row aria-label="Remove">✕</button>
+</span>
+{% endmacro %}
 {% block settings %}
-{% include "_profile_form.html" %}
+{% if profile_error %}<p class="notice notice-bad" id="profile-error" role="alert">Not saved: {{ profile_error }}</p>{% endif %}
+<form id="profile-form" method="post" action="/settings/profile" class="settings-form profile-form" data-dirty-guard>
+  <input type="hidden" name="about_present" value="1">
+
+  <section class="card" id="about">
+    <h2 class="card-title">About you</h2>
+    <p class="muted small">The lead assistant may use these facts, and nothing else, when it writes for you.</p>
+    <div class="pf-grid">
+      {{ input("about[name]", "Name", prow.about.name) }}
+      {{ input("about[headline]", "Headline", prow.about.headline, "C++/Go engineer, embedded and backend") }}
+      {{ input("about[location]", "Location", prow.about.location, "Tunis, Tunisia") }}
+      {{ input("about[timezone]", "Time zone", prow.about.timezone, "Africa/Tunis") }}
+      {{ input("about[years_experience]", "Years of experience", prow.about.years_experience, "4") }}
+    </div>
+    <label class="pf-field"><span>Short bio</span><textarea name="about[bio]" rows="3" maxlength="1500" data-count>{{ prow.about.bio }}</textarea></label>
+    <label class="pf-field"><span>Highlights <span class="muted">· one per line, only true things</span></span>
+      <textarea name="about[highlights]" rows="3" placeholder="Built a room-mapping engine used by hotels">{{ prow.about.highlights }}</textarea></label>
+
+    <h3 class="small">Languages you speak</h3>
+    <div class="rows" data-group="about_lang">
+      {% for r in prow.about_lang + [none] %}{% set i = loop.index0 %}
+      <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
+        <input name="about_lang[{{ i }}][language]" value="{{ r.language if r else '' }}" placeholder="English" aria-label="Language">
+        <select name="about_lang[{{ i }}][level]" aria-label="Level">{% for lv in ("native", "fluent", "professional", "basic") %}<option value="{{ lv }}" {{ 'selected' if r and r.level == lv }}>{{ lv|capitalize }}</option>{% endfor %}</select>
+        {{ row_tools() }}
+      </div>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add language</button>
+    </div>
+
+    <h3 class="small">Education</h3>
+    <div class="rows" data-group="education">
+      {% for r in prow.education + [none] %}{% set i = loop.index0 %}
+      <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
+        <input name="education[{{ i }}][school]" value="{{ r.school if r else '' }}" placeholder="School" aria-label="School">
+        <input name="education[{{ i }}][degree]" value="{{ r.degree if r else '' }}" placeholder="Degree" aria-label="Degree">
+        <input name="education[{{ i }}][year]" value="{{ r.year if r else '' }}" placeholder="Year" aria-label="Year" inputmode="numeric" class="col-short">
+        {{ row_tools() }}
+      </div>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add school</button>
+    </div>
+
+    <h3 class="small">Availability</h3>
+    <div class="pf-grid">
+      {{ input("availability[hours_per_week]", "Hours per week", prow.availability.hours_per_week, "30") }}
+      {{ input("availability[earliest_start]", "Earliest start", prow.availability.earliest_start, type="date") }}
+    </div>
+    <div class="checks">{% for v, label in [("full_time", "Full-time"), ("part_time", "Part-time"), ("gigs", "Gigs"), ("internship", "Internship / PFE")] %}
+      <label class="check"><input type="checkbox" name="availability[open_to]" value="{{ v }}" {{ 'checked' if v in prow.availability.open_to }}> {{ label }}</label>{% endfor %}</div>
+
+    <h3 class="small">Links</h3>
+    <div class="pf-grid">{% for k, label in [("github", "GitHub"), ("portfolio", "Portfolio"), ("linkedin", "LinkedIn"), ("freelancer", "Freelancer profile"), ("other", "Other")] %}
+      {{ input("links[" ~ k ~ "]", label, prow.links[k], "https://…", "url") }}{% endfor %}</div>
+  </section>
+
+  <section class="card" id="skills">
+    <h2 class="card-title">Skills</h2>
+    <div class="rows" data-group="skills">
+      {% for r in prow.skills + [none] %}{% set i = loop.index0 %}
+      {% set w = r.weight if r else "1" %}
+      <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
+        <input name="skills[{{ i }}][name]" value="{{ r.name if r else '' }}" placeholder="Skill" aria-label="Skill">
+        <select name="skills[{{ i }}][weight]" aria-label="How strong">
+          {% for v, label in [("1", "Core"), ("0.7", "Strong"), ("0.4", "Some")] %}<option value="{{ v }}" {{ 'selected' if w == v }}>{{ label }}</option>{% endfor %}
+          {% if w not in ("1", "0.7", "0.4") %}<option value="{{ w }}" selected>Custom ({{ w }})</option>{% endif %}
+        </select>
+        {{ row_tools() }}
+      </div>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add skill</button>
+    </div>
+  </section>
+
+  <section class="card" id="projects">
+    <h2 class="card-title">Projects</h2>
+    <p class="muted small">Used for scoring and by the bid assistant: 2–4 concrete sentences each work best.</p>
+    <div class="rows" data-group="projects">
+      {% for r in prow.projects + [none] %}{% set i = loop.index0 %}
+      <details class="row-edit project-card{% if r is none %} row-blank{% endif %}" data-row {{ 'open' if r is none or not r.writeup }}>
+        <summary><span class="project-name">{{ r.name if r else "New project" }}</span> {{ row_tools() }}</summary>
+        <input name="projects[{{ i }}][name]" value="{{ r.name if r else '' }}" placeholder="Project name" aria-label="Project name">
+        <textarea name="projects[{{ i }}][writeup]" rows="4" maxlength="3000" data-count placeholder="What it does, your part, the tech, a result" aria-label="Write-up">{{ r.writeup if r else '' }}</textarea>
+        <input name="projects[{{ i }}][tags]" value="{{ r.tags if r else '' }}" placeholder="Tags, comma separated" aria-label="Tags" data-chips>
+      </details>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add project</button>
+    </div>
+  </section>
+
+  <section class="card" id="targets">
+    <h2 class="card-title">What you want</h2>
+    <div class="checks chip-toggles">{% for k in kinds %}<label class="check"><input type="checkbox" name="kinds" value="{{ k.value }}" {% if k.value in prow.kinds %}checked{% endif %}> {{ k.value|replace("_", " ") }}</label>{% endfor %}</div>
+    <label class="pf-field"><span>Regions <span class="muted">· on-site leads here score as if remote</span></span>
+      <input id="p-regions" name="regions" value="{{ prow.regions }}" placeholder="tunisia, france, remote" data-chips></label>
+  </section>
+
+  <section class="card" id="filters">
+    <h2 class="card-title">Filters</h2>
+    <label class="check"><input type="checkbox" name="exclude_unpaid" value="1" {% if prow.exclude_unpaid %}checked{% endif %}> Hide unpaid work</label>
+    <h3 class="small">Minimum pay <span class="muted">· leads below every row are filtered; leads without pay are kept</span></h3>
+    <div class="rows" data-group="min_pay">
+      {% for r in prow.min_pay + [none] %}{% set i = loop.index0 %}
+      <div class="row-edit{% if r is none %} row-blank{% endif %}" data-row>
+        <input name="min_pay[{{ i }}][amount]" value="{{ r.amount if r else '' }}" placeholder="Amount" aria-label="Amount" inputmode="decimal">
+        <input name="min_pay[{{ i }}][currency]" value="{{ r.currency if r else '' }}" placeholder="USD" aria-label="Currency" class="col-short">
+        <select name="min_pay[{{ i }}][period]" aria-label="Period">{% for p in periods %}<option value="{{ p }}" {% if p == ((r.period if r else '') or "year") %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+        {{ row_tools() }}
+      </div>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add minimum</button>
+    </div>
+    {% for name, label, ph in [("languages", "Posting languages you accept", "en, fr, ar"), ("blocked_keywords", "Blocked keywords", "crypto, casino"), ("blocked_companies", "Blocked companies", "")] %}
+    <label class="pf-field"><span>{{ label }}</span><input id="p-{{ name }}" name="{{ name }}" value="{{ prow[name] }}" placeholder="{{ ph }}" data-chips></label>
+    {% endfor %}
+  </section>
+
+  <section class="card" id="interests">
+    <h2 class="card-title">Interests</h2>
+    <p class="muted small">Whole words or phrases that move a lead up, or down with a negative weight (−1 to 1). Each shows what it matches right now.</p>
+    <div class="rows" data-group="boost">
+      {% for r in prow.boost + [none] %}{% set i = loop.index0 %}
+      <div class="row-edit interest-row{% if r is none %} row-blank{% endif %}" data-row>
+        <input name="boost[{{ i }}][keyword]" value="{{ r.keyword if r else '' }}" placeholder="embedded linux" aria-label="Phrase">
+        <input name="boost[{{ i }}][weight]" value="{{ r.weight if r else '0.5' }}" type="number" min="-1" max="1" step="0.1" aria-label="Weight" class="col-short">
+        <select name="boost[{{ i }}][where]" aria-label="Where it counts">
+          <option value="anywhere" {{ 'selected' if not r or r.where == 'anywhere' }}>Anywhere</option>
+          <option value="title" {{ 'selected' if r and r.where == 'title' }}>Title only</option>
+        </select>
+        {{ row_tools() }}
+        <span class="interest-preview muted small" hx-get="/settings/profile/interest-preview" hx-include="closest [data-row]"
+              hx-trigger="load, change from:closest [data-row]" hx-swap="innerHTML"></span>
+      </div>{% endfor %}
+      <button type="button" class="btn btn-sm" data-add-row>+ Add interest</button>
+    </div>
+    <div class="suggest-row">
+      <button type="button" class="btn btn-sm" hx-get="/settings/profile/suggestions" hx-target="#suggestions" hx-swap="innerHTML">Suggest from my starred and applied leads</button>
+      <span id="suggestions" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <div class="form-actions sticky-actions">
+    <button type="button" class="btn" hx-post="/settings/rescore" hx-target="#rescore-status" hx-swap="outerHTML">Re-score leads now</button>
+    {% if rescore and rescore.state == "running" %}<span id="rescore-status" class="muted" hx-get="/settings/rescore-status" hx-trigger="every 2s" hx-swap="outerHTML">Re-scoring {{ rescore.count }} leads…</span>{% else %}<span id="rescore-status"></span>{% endif %}
+    <button type="submit" class="btn btn-primary" data-save>Save profile</button>
+  </div>
+</form>
+
+{% include "settings/_cvs.html" %}
+
+<details class="card" id="yaml" {% if yaml_error %}open{% endif %}>
+  <summary class="card-title">Edit as YAML</summary>
+  <p class="muted small">The whole profile as text, for bulk edits. It's checked before saving; nothing is written if it doesn't validate.</p>
+  {% if yaml_error %}<p class="field-err" role="alert">{{ yaml_error }}</p>{% endif %}
+  <form method="post" action="/settings/profile/yaml" class="stack-form">
+    <textarea name="yaml" rows="22" class="code" spellcheck="false" aria-label="Profile YAML">{{ yaml_text }}</textarea>
+    <div class="form-actions"><button class="btn btn-primary btn-sm">Save YAML</button></div>
+  </form>
+</details>
 {% endblock %}

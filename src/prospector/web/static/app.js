@@ -11,12 +11,22 @@
       const last = rows[rows.length - 1];
       const next = Math.max(-1, ...[...rows].map(rowIndex)) + 1;
       const clone = last.cloneNode(true);
+      clone.querySelectorAll(".chip-input").forEach((el) => el.remove());  // rebuilt below
+      clone.querySelectorAll("input[data-chips]").forEach((el) => { el.type = "text"; delete el.dataset.chipsReady; });
+      clone.querySelectorAll(".interest-preview").forEach((el) => { el.textContent = ""; });
       clone.querySelectorAll("input, textarea, select").forEach((el) => {
+        if (!el.name) return;
         el.name = el.name.replace(/\[\d+\]/, `[${next}]`);
         if (el.tagName === "SELECT") el.selectedIndex = Math.max(0, [...el.options].findIndex((o) => o.value === "year"));
-        else el.value = "";
+        else if (el.type === "number" && el.name.endsWith("[weight]")) el.value = "0.5";
+        else if (el.type !== "checkbox") el.value = "";
       });
+      if (clone.tagName === "DETAILS") clone.open = true;
+      clone.classList.add("row-blank");
+      last.classList.remove("row-blank");
       last.after(clone);
+      initChips(clone);
+      if (window.htmx) htmx.process(clone);
       clone.querySelector("input, textarea")?.focus();
       return;
     }
@@ -161,4 +171,96 @@
     const m = row.querySelector("[name]")?.name.match(/\[(\d+)\]/);
     return m ? Number(m[1]) : 0;
   }
+
+  // Profile editor: reorder rows, keep the posted order, chip inputs, add suggested interests.
+  document.addEventListener("click", (e) => {
+    const move = e.target.closest("[data-move]");
+    if (move) {
+      e.preventDefault();  // the buttons sit inside <summary> on project cards
+      const row = move.closest("[data-row]");
+      const sib = move.dataset.move === "up" ? row.previousElementSibling : row.nextElementSibling;
+      if (sib && sib.matches("[data-row]") && !sib.classList.contains("row-blank")) {
+        move.dataset.move === "up" ? sib.before(row) : sib.after(row);
+        row.closest("form")?.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      return;
+    }
+    if (e.target.closest("summary [data-remove-row]")) e.preventDefault();
+    const sug = e.target.closest("[data-suggest]");
+    if (sug) {
+      const group = document.querySelector('.rows[data-group="boost"]');
+      const blank = group?.querySelector("[data-row].row-blank") || group?.querySelector("[data-row]:last-of-type");
+      const input = blank?.querySelector('[name$="[keyword]"]');
+      if (input && !input.value) {
+        input.value = sug.dataset.suggest;
+        blank.classList.remove("row-blank");
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        group.querySelector("[data-add-row]")?.click();  // keep a fresh blank row at the end
+      }
+      sug.remove();
+    }
+  });
+  document.addEventListener("submit", (e) => {
+    // Rows were moved in the page: renumber group[i] so the server keeps the order you see.
+    e.target.querySelectorAll(".rows[data-group]").forEach((group) => {
+      const name = group.dataset.group;
+      group.querySelectorAll(":scope > [data-row]").forEach((row, i) => {
+        row.querySelectorAll("[name]").forEach((el) => {
+          el.name = el.name.replace(new RegExp(`^${name}\\[\\d+\\]`), `${name}[${i}]`);
+        });
+      });
+    });
+  });
+  function chips(input) {
+    if (input.dataset.chipsReady) return;
+    input.dataset.chipsReady = "1";
+    const box = document.createElement("div");
+    box.className = "chip-input";
+    const entry = document.createElement("input");
+    entry.type = "text";
+    entry.placeholder = input.placeholder || "Type and press Enter";
+    entry.setAttribute("aria-label", input.getAttribute("aria-label") || input.closest("label")?.innerText || "Add");
+    const values = () => input.value.split(",").map((s) => s.trim()).filter(Boolean);
+    const render = () => {
+      box.querySelectorAll(".chip").forEach((c) => c.remove());
+      values().forEach((v, i) => {
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.textContent = v + " ";
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✕";
+        x.setAttribute("aria-label", `Remove ${v}`);
+        x.addEventListener("click", () => {
+          const vs = values(); vs.splice(i, 1); input.value = vs.join(", "); render();
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        c.append(x);
+        box.insertBefore(c, entry);
+      });
+    };
+    const add = () => {
+      const v = entry.value.replace(/,/g, " ").trim();
+      if (v && !values().map((s) => s.toLowerCase()).includes(v.toLowerCase())) {
+        input.value = [...values(), v].join(", ");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      entry.value = ""; render();
+    };
+    entry.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); }
+      else if (e.key === "Backspace" && !entry.value && values().length) {
+        const vs = values(); vs.pop(); input.value = vs.join(", "); render();
+      }
+    });
+    entry.addEventListener("blur", add);
+    input.type = "hidden";
+    input.after(box);
+    box.append(entry);
+    box.addEventListener("click", (e) => { if (e.target === box) entry.focus(); });
+    render();
+  }
+  const initChips = (root) => root.querySelectorAll("input[data-chips]").forEach(chips);
+  document.addEventListener("DOMContentLoaded", () => initChips(document));
+  document.body?.addEventListener("htmx:afterSettle", (e) => initChips(e.target));
 })();

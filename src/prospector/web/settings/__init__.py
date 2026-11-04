@@ -155,6 +155,10 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             extra = {"cards": connection_cards(ctx), "fields": FIELDS, **(extra or {})}
         elif area.key == "sources":
             extra = {"rows": source_rows(ctx), **(extra or {})}
+        elif area.key == "profile":
+            from prospector.profile.yaml_io import dump
+            extra = {"yaml_text": dump(ctx.profile), "yaml_error": "", "cvs": ctx.cvs.list(), "cv_error": "",
+                     **(extra or {})}
         return templates.TemplateResponse(request, name, {
             "nav": "sources" if area.key == "sources" else "settings", "area": area, "areas": AREAS, "area_fields": [FIELDS[n] for n in area.fields if n in FIELDS],
             "cold": COLD, "secrets": SECRETS, "loaded": loaded(),
@@ -246,6 +250,52 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         note = (f"Saved. Re-scoring {status.get('count', 0)} leads in the background." if queued or
                 status.get("state") == "running" else "Saved.")
         return page(request, "profile", notice=note)
+
+    @router.post("/settings/profile/yaml")
+    async def save_profile_yaml(request: Request):
+        from prospector.profile.yaml_io import ProfileYamlError, load
+
+        text = str((await request.form()).get("yaml", ""))
+        try:
+            profile = load(text)
+        except ProfileYamlError as e:
+            msg = f"Not saved: line {e.line}: {e.message}" if e.line else f"Not saved: {e.message}"
+            return page(request, "profile", 400, extra={"yaml_text": text, "yaml_error": msg})
+        reload_profile(ctx, profile)
+        return page(request, "profile", notice="Saved from YAML.")
+
+    @router.get("/settings/profile/interest-preview")
+    def interest_preview(request: Request):
+        from prospector.profile.interests import preview
+        from prospector.profile.model import Interest
+
+        q = request.query_params
+        phrase = next((v for k, v in q.items() if k.endswith("[keyword]")), "").strip()
+        where = next((v for k, v in q.items() if k.endswith("[where]")), "anywhere")
+        if not phrase:
+            return HTMLResponse("")
+        try:
+            interest = Interest(phrase=phrase, weight=1, where=where if where in ("title", "anywhere") else "anywhere")
+        except ValidationError:
+            return HTMLResponse("")
+        n, titles = preview(ctx.leads, interest)
+        examples = "".join(f"<li>{html.escape(x)}</li>" for x in titles)
+        return HTMLResponse(f'Matches {n} of your current leads' + (f'<ul class="plain preview-list">{examples}</ul>'
+                                                                      if examples else ""))
+
+    @router.get("/settings/profile/suggestions")
+    def suggestions():
+        from prospector.models import Status
+        from prospector.profile.interests import suggest
+
+        titles = [r.lead.title for s in (Status.STARRED, Status.APPLIED) for r in ctx.leads.list(s, limit=500)]
+        known = set(ctx.profile.skills) | {i.phrase for i in ctx.profile.interests}
+        words = suggest(titles, known)
+        if not words:
+            return HTMLResponse('<span class="muted">Nothing yet: star or apply to a few leads first.</span>')
+        chips = "".join(f'<button type="button" class="chip chip-add" data-suggest="{html.escape(w)}">+ {html.escape(w)}</button>'
+                        for w in words)
+        return HTMLResponse(f'<span class="chip-list">{chips}</span>')
 
     def rescore_fragment(status: dict | None) -> HTMLResponse:
         if status and status.get("state") == "running":

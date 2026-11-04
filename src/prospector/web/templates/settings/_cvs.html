@@ -1,6 +1,6 @@
 {# The owner's CVs and the upload form. Context: cvs, cv_error. #}
 <section class="card" id="cvs" aria-label="CVs">
-  <h2 class="card-title">CVs <span class="muted">· {{ cvs|length }}</span></h2>
+  <h2 class="card-title">CVs</h2>
   <p class="muted small">PDF or DOCX, up to 5 MB each. Stored on your server, only reachable through this dashboard.</p>
   {% if cv_error %}<p class="field-err" role="alert">{{ cv_error }}</p>{% endif %}
   {% for cv in cvs %}

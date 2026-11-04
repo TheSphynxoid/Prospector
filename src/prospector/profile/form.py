@@ -8,12 +8,18 @@ from typing import Any
 
 import yaml
 
-from prospector.profile.model import About, Filters, Interest, MinPay, Pricing, Profile, Project, Targets
+from prospector.profile.model import (About, Availability, Education, Filters, Interest, Links, MinPay, Pricing,
+                                      Profile, Project, SpokenLanguage, Targets)
 
 _ROW = re.compile(r"^(\w+)\[(\d+)\]\[(\w+)\]$")
 GROUPS = {"skills": ("name", "weight"), "projects": ("name", "writeup", "tags"),
-          "min_pay": ("currency", "period", "amount"), "boost": ("keyword", "weight", "where")}
-_KEYS = {"skills": "name", "projects": "name", "min_pay": "currency", "boost": "keyword"}
+          "min_pay": ("currency", "period", "amount"), "boost": ("keyword", "weight", "where"),
+          "about_lang": ("language", "level"), "education": ("school", "degree", "year")}
+_KEYS = {"skills": "name", "projects": "name", "min_pay": "currency", "boost": "keyword", "about_lang": "language",
+         "education": "school"}
+ABOUT_TEXT = ("name", "headline", "bio", "location", "timezone", "years_experience")
+LINKS = tuple(Links.model_fields)
+SKILL_STEPS = {1.0: "Core", 0.7: "Strong", 0.4: "Some"}
 
 
 def _csv(s: str) -> list[str]:
@@ -31,8 +37,12 @@ def _weight(s: str) -> float:
     return w
 
 
+def _opt(s: str | None) -> str | None:
+    return (s or "").strip() or None
+
+
 def rows_from_profile(p: Profile) -> dict[str, Any]:
-    f = p.filters
+    f, a = p.filters, p.about
     return {
         "skills": [{"name": k, "weight": _num(v)} for k, v in p.skills.items()],
         "projects": [{"name": x.name, "writeup": x.writeup, "tags": ", ".join(x.tags)} for x in p.projects],
@@ -45,6 +55,16 @@ def rows_from_profile(p: Profile) -> dict[str, Any]:
         "blocked_companies": ", ".join(f.blocked_companies),
         "boost": [{"keyword": i.phrase, "weight": _num(i.weight), "where": i.where} for i in p.interests],
         "pricing": {k: _num(v) for k, v in p.pricing.model_dump().items()},
+        "about": {**{k: "" if getattr(a, k) is None else str(getattr(a, k)) for k in ABOUT_TEXT},
+                  "highlights": "\n".join(a.highlights)},
+        "about_lang": [{"language": x.language, "level": x.level} for x in a.languages],
+        "education": [{"school": e.school, "degree": e.degree or "", "year": "" if e.year is None else str(e.year)}
+                      for e in a.education],
+        "availability": {"hours_per_week": "" if a.availability.hours_per_week is None else str(a.availability.hours_per_week),
+                         "earliest_start": a.availability.earliest_start.isoformat() if a.availability.earliest_start else "",
+                         "open_to": list(a.availability.open_to)},
+        "links": {k: getattr(a.links, k) or "" for k in LINKS},
+        "has_about": True,
     }
 
 
@@ -63,7 +83,32 @@ def rows_from_form(form) -> dict[str, Any]:
     rows["exclude_unpaid"] = bool(form.get("exclude_unpaid"))
     rows["pricing"] = {k: str(form.get(f"pricing[{k}]", "")).strip() for k in Pricing.model_fields}
     rows["has_pricing"] = any(rows["pricing"].values())
+    rows["has_about"] = bool(form.get("about_present"))
+    rows["about"] = {k: str(form.get(f"about[{k}]", "")) for k in (*ABOUT_TEXT, "highlights")}
+    rows["availability"] = {"hours_per_week": str(form.get("availability[hours_per_week]", "")),
+                            "earliest_start": str(form.get("availability[earliest_start]", "")),
+                            "open_to": [str(v) for v in form.getlist("availability[open_to]")]}
+    rows["links"] = {k: str(form.get(f"links[{k}]", "")) for k in LINKS}
     return rows
+
+
+def _about(rows: dict[str, Any]) -> About:
+    a, av = rows["about"], rows["availability"]
+    years = a.get("years_experience", "").strip()
+    hours = av.get("hours_per_week", "").strip()
+    return About(
+        **{k: _opt(a.get(k)) for k in ("name", "headline", "bio", "location", "timezone")},
+        years_experience=int(years) if years else None,
+        highlights=[x.strip() for x in a.get("highlights", "").splitlines() if x.strip()],
+        languages=[SpokenLanguage(language=r["language"].strip(), level=r["level"] or "professional")
+                   for r in rows["about_lang"] if r["language"].strip()],
+        education=[Education(school=r["school"].strip(), degree=_opt(r["degree"]),
+                             year=int(r["year"]) if r["year"].strip() else None)
+                   for r in rows["education"] if r["school"].strip()],
+        availability=Availability(hours_per_week=int(hours) if hours else None,
+                                  earliest_start=av.get("earliest_start") or None, open_to=av.get("open_to", [])),
+        links=Links(**{k: _opt(v) for k, v in rows["links"].items()}),
+    )
 
 
 def profile_from_rows(rows: dict[str, Any]) -> Profile:
@@ -84,10 +129,9 @@ def profile_from_rows(rows: dict[str, Any]) -> Profile:
             blocked_keywords=_csv(rows["blocked_keywords"]),
             blocked_companies=_csv(rows["blocked_companies"]),
         ),
-        # Keywords keep their spaces: " go " deliberately matches the word, not "google".
         interests=[Interest(phrase=r["keyword"].strip(), weight=float(r["weight"]), where=r.get("where") or "anywhere")
                    for r in keep("boost")],
-        about=rows.get("about") or About(),
+        about=_about(rows) if rows.get("has_about") else About(),
         pricing=Pricing(**{k: float(v) for k, v in rows.get("pricing", {}).items() if v}),
     )
 
