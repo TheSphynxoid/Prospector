@@ -1,6 +1,19 @@
+{%- macro text(body) %}{% for kind, block in body|paragraphs %}{% if kind == "ul" %}<ul>{% for item in block %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ block }}</p>{% endif %}{% endfor %}{% endmacro -%}
 {%- for m in messages %}
 <div class="msg msg-{{ m.role }}">
   <span class="msg-who">{{ {"user": "You", "assistant": "Assistant", "error": "Problem"}[m.role] }}</span>
-  <div class="msg-body">{% for kind, block in m.content|paragraphs %}{% if kind == "ul" %}<ul>{% for item in block %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{{ block }}</p>{% endif %}{% endfor %}</div>
+  <div class="msg-body">
+    {%- if m.role == "assistant" %}
+      {%- for kind, part in m.content|drafts %}
+        {%- if kind == "draft" %}
+        <div class="draft-block">
+          <div class="draft-head"><span>Draft to send</span>
+            <button type="button" class="btn btn-sm" data-copy="{{ part }}">Copy</button></div>
+          <div class="draft-text">{{ text(part) }}</div>
+        </div>
+        {%- else %}{{ text(part) }}{% endif %}
+      {%- endfor %}
+    {%- else %}{{ text(m.content) }}{% endif -%}
+  </div>
 </div>
 {% endfor -%}

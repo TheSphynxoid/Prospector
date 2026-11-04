@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from prospector.assist.drafts import split as split_drafts
 from prospector.assist.usage import used_today
 from prospector import fx
 from prospector.config import parse_hhmm
@@ -51,6 +52,7 @@ templates.env.globals["asset_v"] = hashlib.sha256(
 templates.env.filters["pay"] = fmt_pay
 templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
 templates.env.filters["paragraphs"] = paragraphs
+templates.env.filters["drafts"] = split_drafts
 
 
 def _enum(cls, value: str):

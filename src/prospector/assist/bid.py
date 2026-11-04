@@ -3,6 +3,7 @@ from dataclasses import asdict, dataclass
 
 from pydantic import BaseModel, Field, ValidationError
 
+from prospector.assist import drafts
 from prospector.assist.chat import ask, failure, history
 from prospector.assist.pricing import Quote, quote, tnd, usd_pay
 from prospector.assist.usage import CapReached
@@ -69,5 +70,5 @@ def draft_bid(ctx: AppContext, lead_id: int) -> Bid | Message:
     ctx.assist.set_bid(lead_id, bid.as_dict())
     ctx.assist.add(lead_id, "assistant",
                    f"Bid drafted: ${q.fair} fair / ${q.competitive} competitive, about {q.hours:g} hours, "
-                   f"{q.delivery_days} day(s).\n\n{bid.proposal}")
+                   f"{q.delivery_days} day(s).\n\n{drafts.wrap(bid.proposal)}")
     return bid
