@@ -37,6 +37,7 @@ class Freelancer:
                     pay_text=f"{int(lo)}-{int(hi or lo)} {code} {period}" if lo else None,
                     posted_at=datetime.fromtimestamp(int(p["time_submitted"]), UTC) if p.get("time_submitted") else None,
                     kind_hint=Kind.GIG,
+                    bid_count=(p.get("bid_stats") or {}).get("bid_count"),
                     raw_payload=json.dumps(p),
                 )
         return list(seen.values())

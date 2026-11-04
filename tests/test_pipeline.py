@@ -109,3 +109,19 @@ def test_select_model_falls_back():
         respx.get("https://llm.test/v1/models").mock(
             return_value=httpx.Response(200, json={"data": [{"id": "glm-5.3-flash"}]}))
         assert select_model(client, "glm-5.3-flash", "qwen3.8-flash") == "glm-5.3-flash"
+
+
+def test_ingest_saves_and_refreshes_bids(ctx):
+    ingest(ctx, ListSource("freelancer", [raw("freelancer", 1, bid_count=5)]), NOW)
+    lead = ctx.leads.by_canonical_url("https://freelancer.test/1")
+    assert ctx.signals.bids(lead.id) == 5
+    ctx.conn.execute("UPDATE scores SET scored_at = '2000-01-01' WHERE lead_id = ?", (lead.id,))
+    ingest(ctx, ListSource("freelancer", [raw("freelancer", 1, bid_count=40)]), NOW)
+    assert ctx.signals.bids(lead.id) == 40
+    scored = ctx.conn.execute("SELECT scored_at FROM scores WHERE lead_id = ?", (lead.id,)).fetchone()[0]
+    assert scored != "2000-01-01"  # the new count re-scored the lead
+
+
+def test_ingest_without_bids_leaves_signals_empty(ctx):
+    ingest(ctx, ListSource("remotive", [raw("remotive", 1)]), NOW)
+    assert ctx.signals.bids(ctx.leads.by_canonical_url("https://remotive.test/1").id) is None

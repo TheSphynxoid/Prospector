@@ -79,3 +79,13 @@ def test_freelancer_budget_to_pay_text():
     assert len(leads) == len(data["result"]["projects"])  # deduped across queries
     assert leads[0].url == f"https://www.freelancer.com/projects/{p['seo_url']}"
     assert leads[0].pay_text == "250-750 USD fixed" and leads[0].kind_hint is Kind.GIG
+
+
+@respx.mock
+def test_freelancer_bid_count():
+    data = load("freelancer/golang.json")
+    respx.get(url__startswith="https://www.freelancer.com/api/projects/0.1/projects/active/").mock(
+        return_value=httpx.Response(200, json=data))
+    with httpx.Client() as http:
+        leads = Freelancer(queries=("golang",)).fetch(http)
+    assert leads[0].bid_count == 355

@@ -104,12 +104,18 @@ def ingest(ctx: AppContext, source: Source, now: datetime) -> IngestStats:
             existing = _find_existing(ctx, lead)
             if existing:
                 ctx.leads.add_source(existing.id, raw.source_id)
+                if raw.bid_count is not None and raw.bid_count != ctx.signals.bids(existing.id):
+                    ctx.signals.set_bids(existing.id, raw.bid_count)
+                    if existing.status is Status.NEW:
+                        _score(ctx, existing, now)  # more bids, less chance: the score follows
                 if raw.external_id:
                     ctx.expiry.add_ref(existing.id, raw.source_id, raw.external_id)
                 stats.merged += 1
                 continue
             ctx.leads.insert(lead)
             ctx.leads.put_raw(lead.id, raw.source_id, raw.raw_payload)
+            if raw.bid_count is not None:
+                ctx.signals.set_bids(lead.id, raw.bid_count)
             if raw.external_id:
                 ctx.expiry.add_ref(lead.id, raw.source_id, raw.external_id)
             reason = apply_hard_filters(lead, ctx.profile)

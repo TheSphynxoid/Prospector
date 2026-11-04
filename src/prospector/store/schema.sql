@@ -210,3 +210,10 @@ CREATE TABLE IF NOT EXISTS cvs (
     is_main INTEGER NOT NULL DEFAULT 0,
     uploaded_at TEXT NOT NULL
 );
+
+-- Per-lead signals that change after the lead is first seen (Freelancer bid counts).
+CREATE TABLE IF NOT EXISTS lead_signals (
+    lead_id INTEGER PRIMARY KEY,
+    bid_count INTEGER,
+    updated_at TEXT NOT NULL
+);

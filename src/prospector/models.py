@@ -62,6 +62,7 @@ class RawLead:
     posted_at: datetime | None = None
     deadline: date | None = None
     kind_hint: Kind | None = None
+    bid_count: int | None = None  # bids so far, for marketplaces that say (Freelancer)
     raw_payload: str = ""
     fetched_at: datetime = field(default_factory=utcnow)
 

@@ -19,6 +19,7 @@ from prospector.store.kv import KV
 from prospector.store.leads import LeadRepo
 from prospector.store.mail import MailRepo
 from prospector.store.scores import ScoreRepo
+from prospector.store.signals import LeadSignalsRepo
 from prospector.store.works import WorkRepo
 
 if TYPE_CHECKING:
@@ -39,6 +40,7 @@ class AppContext:
     leads: LeadRepo
     scores: ScoreRepo
     feedback: FeedbackRepo
+    signals: LeadSignalsRepo
     health: HealthRepo
     mail: MailRepo
     kv: KV
@@ -68,7 +70,7 @@ class AppContext:
     def create(cls, settings: Settings, conn: sqlite3.Connection, profile: Profile, http: httpx.Client,
                **extra) -> "AppContext":
         return cls(settings=settings, conn=conn, profile=profile, http=http,
-                   leads=LeadRepo(conn), scores=ScoreRepo(conn), feedback=FeedbackRepo(conn),
+                   leads=LeadRepo(conn), scores=ScoreRepo(conn), feedback=FeedbackRepo(conn), signals=LeadSignalsRepo(conn),
                    health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn), expiry=ExpiryRepo(conn),
                    fx=Rates(conn, tnd_override=settings.usd_tnd_rate), apps=ApplicationRepo(conn),
                    works=WorkRepo(conn), accounts=AccountRepo(conn),
