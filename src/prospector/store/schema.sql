@@ -144,3 +144,46 @@ CREATE TABLE IF NOT EXISTS app_events (
     kind TEXT NOT NULL,
     text TEXT NOT NULL DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    currency TEXT NOT NULL,
+    archived INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS works (
+    id INTEGER PRIMARY KEY,
+    application_id INTEGER REFERENCES applications(id) ON DELETE SET NULL,
+    lead_id INTEGER REFERENCES leads(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    client TEXT,
+    kind TEXT,
+    price_milli INTEGER,
+    currency TEXT NOT NULL DEFAULT 'USD',
+    stage TEXT NOT NULL DEFAULT 'in_progress',
+    started_on TEXT NOT NULL,
+    ended_on TEXT,
+    notes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS works_application ON works(application_id) WHERE application_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY,
+    work_id INTEGER NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+    amount_milli INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    status TEXT NOT NULL,
+    due_on TEXT,
+    received_on TEXT,
+    account_id INTEGER REFERENCES accounts(id),
+    usd_rate REAL,
+    usd_milli INTEGER,
+    account_milli INTEGER,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS payments_received ON payments(status, received_on);

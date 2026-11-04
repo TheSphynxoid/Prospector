@@ -45,6 +45,9 @@ def act(ctx: "AppContext", app_id: int, action: str, today: date, *, on: date | 
     else:
         apps.update(app_id, stage=action, closed_on=today, follow_up_on=None)
         apps.add_event(app_id, "stage", _LABEL[action] + (f": {text.strip()}" if text.strip() else ""))
+        if action == "won":
+            from prospector.worklife.flows import on_won
+            on_won(ctx, app_id, today)
     return apps.get(app_id)
 
 

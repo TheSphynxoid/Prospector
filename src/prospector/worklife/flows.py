@@ -31,3 +31,29 @@ def on_unapplied(ctx: "AppContext", lead_id: int) -> bool:
         return False
     ctx.apps.delete(a.id)
     return True
+
+
+def _price(pay) -> tuple[int | None, str]:
+    """A single fixed amount from the posting, in its currency; anything vaguer stays unset (USD)."""
+    from prospector.fx import CURRENCIES
+    from prospector.money import to_milli
+
+    if pay is None or pay.period != "fixed" or pay.currency not in CURRENCIES:
+        return None, "USD"
+    bounds = {b for b in (pay.min, pay.max) if b is not None}
+    return (to_milli(bounds.pop()), pay.currency) if len(bounds) == 1 else (None, "USD")
+
+
+def on_won(ctx: "AppContext", app_id: int, today: date) -> int:
+    """The work item for a won application, created once."""
+    existing = ctx.works.by_application(app_id)
+    if existing:
+        return existing.id
+    a = ctx.apps.get(app_id)
+    lead = ctx.leads.get(a.lead_id) if a.lead_id else None
+    price, currency = _price(lead.pay if lead else None)
+    try:
+        return ctx.works.create(application_id=app_id, lead_id=a.lead_id, title=a.title, client=a.client,
+                                kind=a.kind, price_milli=price, currency=currency, started_on=today)
+    except sqlite3.IntegrityError:  # created by a concurrent click
+        return ctx.works.by_application(app_id).id

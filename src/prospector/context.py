@@ -8,6 +8,7 @@ import httpx
 from prospector.config import Settings
 from prospector.fx import Rates
 from prospector.profile.model import Profile
+from prospector.store.accounts import AccountRepo
 from prospector.store.applications import ApplicationRepo
 from prospector.store.assist import AssistRepo
 from prospector.store.expiry import ExpiryRepo
@@ -17,6 +18,7 @@ from prospector.store.kv import KV
 from prospector.store.leads import LeadRepo
 from prospector.store.mail import MailRepo
 from prospector.store.scores import ScoreRepo
+from prospector.store.works import WorkRepo
 
 if TYPE_CHECKING:
     from prospector.llm.client import LLMClient
@@ -43,6 +45,8 @@ class AppContext:
     expiry: ExpiryRepo
     fx: Rates
     apps: ApplicationRepo
+    works: WorkRepo
+    accounts: AccountRepo
     verifier: "AccessVerifier | None" = None
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
@@ -63,4 +67,5 @@ class AppContext:
                    leads=LeadRepo(conn), scores=ScoreRepo(conn), feedback=FeedbackRepo(conn),
                    health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn), expiry=ExpiryRepo(conn),
                    fx=Rates(conn, tnd_override=settings.usd_tnd_rate), apps=ApplicationRepo(conn),
+                   works=WorkRepo(conn), accounts=AccountRepo(conn),
                    **extra)
