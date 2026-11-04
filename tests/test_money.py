@@ -25,3 +25,22 @@ def test_fmt():
 
 def test_milli_round_trip():
     assert to_milli(12.345) == 12_345 and from_milli(12_345) == 12.345 and to_milli(0.1 + 0.2) == 300
+
+
+@pytest.mark.parametrize("text,milli", [("1.200,50", 1_200_500), ("1,200,000", 1_200_000_000),
+                                         ("1.200.000,5", 1_200_000_500), ("0,125", 125), ("0.125", 125),
+                                         ("12.50", 12_500), ("1 200,50", 1_200_500)])
+def test_parse_amount_locale_formats(text, milli):
+    assert parse_amount(text) == milli
+
+
+@pytest.mark.parametrize("text", ["1,200", "1.200", "12.345"])
+def test_parse_amount_rejects_ambiguous_thousands(text):
+    with pytest.raises(ValueError, match="could mean"):
+        parse_amount(text)
+
+
+@pytest.mark.parametrize("text", ["1e40", "1e3", "1E3", "+5", "5$", "0x10", "1,2,3", "99999999999999"])
+def test_parse_amount_rejects_odd_input_as_value_error(text):
+    with pytest.raises(ValueError):
+        parse_amount(text)

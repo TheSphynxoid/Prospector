@@ -184,8 +184,8 @@ def make_work_router(ctx: AppContext) -> APIRouter:
             fields = {"title": title[:300], "client": form.get("client", "").strip() or None,
                       "source": form.get("source", "").strip() or None, "url": form.get("url", "").strip() or None,
                       "applied_on": parse_day(form.get("applied_on"), a.applied_on)}
-            if a.is_open:
-                fields["follow_up_on"] = parse_day(form.get("follow_up_on"))
+            if a.is_open:  # blank keeps the current date: clearing it must not silently stop reminders
+                fields["follow_up_on"] = parse_day(form.get("follow_up_on"), a.follow_up_on)
         except ValueError as e:
             return render(request, "work/application.html", {
                 "tab": "applications", "a": a, "events": ctx.apps.events(app_id), "today": fx.today(),

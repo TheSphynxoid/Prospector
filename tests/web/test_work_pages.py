@@ -132,3 +132,25 @@ def test_main_overview_work_tile(client, ctx):
     app_(ctx)
     page = client.get("/").text
     assert "1 follow-up due" in page and 'href="/work"' in page
+
+
+def test_account_added_first_is_visible(client, ctx):
+    client.post("/work/add", data={"what": "account", "name": "Payoneer", "currency": "USD"})
+    page = client.get("/work").text
+    assert "Payoneer" in page and "Add your first application" in page
+
+
+def test_blank_follow_up_on_edit_keeps_reminders(client, ctx):
+    aid = app_(ctx, follow_up_on=T + timedelta(days=3))
+    client.post(f"/work/applications/{aid}/edit", data={"title": "Go booking API", "applied_on": "",
+                                                       "follow_up_on": ""})
+    assert ctx.apps.get(aid).follow_up_on == T + timedelta(days=3)
+
+
+def test_odd_amount_is_a_field_error_not_500(client, ctx):
+    wid = ctx.works.create(title="t", started_on=T)
+    r = client.post(f"/work/jobs/{wid}/payments", headers={"HX-Request": "true"},
+                    data={"kind": "expected", "amount": "1e40", "currency": "USD"})
+    assert r.status_code == 400
+    r = client.post("/work/add", data={"what": "work", "title": "x", "price": "1e40", "currency": "USD"})
+    assert r.status_code == 400

@@ -7,6 +7,12 @@
   <p class="muted">Mark a lead as <b>Applied</b> and it shows up here with a follow-up reminder, or add one you found elsewhere.</p>
   <p class="actions"><a class="btn btn-primary" href="/work/add">Add application</a> <a class="btn" href="/work/add?what=work">Add work</a> <a class="btn" href="/leads?tab=starred">Starred leads</a></p>
 </section>
+{% if accounts %}
+<section class="card" id="accounts">
+  <h2 class="card-title">Accounts <a class="card-link" href="/work/add?what=account">+ Add</a></h2>
+  {% for acc, total, total_usd in accounts %}<div class="kv-row"><span>{{ acc.name }}</span><span class="num">{{ total|money(acc.currency) }}</span></div>{% endfor %}
+</section>
+{% endif %}
 {% else %}
 <section class="tiles tiles-4" aria-label="Key numbers">
   <a class="tile" href="/work/money"><span class="tile-label">Received this month</span>
