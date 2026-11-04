@@ -106,3 +106,11 @@ CREATE TABLE IF NOT EXISTS lead_refs (
     external_id TEXT NOT NULL,
     PRIMARY KEY (lead_id, source_id)
 );
+
+CREATE TABLE IF NOT EXISTS fx_rates (
+    day TEXT NOT NULL,
+    code TEXT NOT NULL,
+    per_usd REAL NOT NULL,
+    source TEXT NOT NULL,
+    PRIMARY KEY (day, code)
+);

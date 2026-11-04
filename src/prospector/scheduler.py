@@ -9,6 +9,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.expiry import check_links, run_expiry
+from prospector.fx import fetch_rates
 from prospector.notify.run import send_digest
 from prospector.pipeline import nightly, tick
 
@@ -39,4 +40,8 @@ def build_scheduler(ctx: AppContext) -> BackgroundScheduler:
                   id="expiry", **once)
     sched.add_job(_guard("links", check_links, ctx), CronTrigger(day_of_week="sun", hour=4, minute=0, timezone=TZ),
                   id="links", **once)
+    # Rates once a day; also right away when today's are missing (first start, or the server was down at 03:30).
+    now_if_missing = {} if ctx.fx.has_today() else {"next_run_time": datetime.now(TZ)}
+    sched.add_job(_guard("fx", fetch_rates, ctx), CronTrigger(hour=3, minute=30, timezone=TZ), id="fx",
+                  **now_if_missing, **once)
     return sched
