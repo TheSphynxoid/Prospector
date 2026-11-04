@@ -187,3 +187,14 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS payments_received ON payments(status, received_on);
+
+CREATE TABLE IF NOT EXISTS transfers (
+    id INTEGER PRIMARY KEY,
+    on_day TEXT NOT NULL,
+    from_account INTEGER NOT NULL REFERENCES accounts(id),
+    to_account INTEGER NOT NULL REFERENCES accounts(id),
+    sent_milli INTEGER NOT NULL,
+    received_milli INTEGER NOT NULL,
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);

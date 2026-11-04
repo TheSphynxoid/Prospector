@@ -81,7 +81,7 @@ def make_work_router(ctx: AppContext) -> APIRouter:
         received = ctx.works.received_between(today.replace(day=1), today)
         expected = ctx.works.expected()
         accounts = ctx.accounts.list()
-        totals = ctx.accounts.received_totals()
+        totals = ctx.accounts.balances()
         return {
             "today": today,
             "received_usd": sum(p.usd_milli or 0 for p in received),
@@ -383,6 +383,81 @@ def make_work_router(ctx: AppContext) -> APIRouter:
         p = payment_or_404(payment_id)
         ctx.works.delete_payment(payment_id)
         return payments_fragment(request, p.work_id, headers=toast("Payment removed"))
+
+    # Money: payments and transfers over time
+
+    @router.get("/money")
+    def money(request: Request, month: str = "", account: str = ""):
+        import calendar
+
+        from prospector.store.accounts import transfer_cost
+
+        today = fx.today()
+        start, end, month_ok = date(today.year, 1, 1), today, ""
+        try:
+            y, m = (int(x) for x in month.split("-"))
+            start = date(y, m, 1)
+            end, month_ok = date(y, m, calendar.monthrange(y, m)[1]), f"{y:04d}-{m:02d}"
+        except ValueError:
+            pass
+        acc = ctx.accounts.get(int(account)) if account.strip().isdigit() else None
+        all_accounts = {a.id: a for a in ctx.accounts.list(include_archived=True)}
+        titles = {}
+        entries = []
+        for p in ctx.works.received_between(start, end):
+            if acc and p.account_id != acc.id:
+                continue
+            if p.work_id not in titles:
+                titles[p.work_id] = ctx.works.get(p.work_id).title
+            entries.append({"day": p.received_on, "kind": "payment", "p": p, "title": titles[p.work_id],
+                            "account": all_accounts.get(p.account_id)})
+        for tr in ctx.accounts.transfers(start, end, acc.id if acc else None):
+            eff, fee = transfer_cost(tr, all_accounts, rates)
+            entries.append({"day": tr.on_day, "kind": "transfer", "t": tr, "rate": eff, "fee": fee,
+                            "src": all_accounts[tr.from_account], "dst": all_accounts[tr.to_account]})
+        entries.sort(key=lambda e: e["day"], reverse=True)
+        by_month = ctx.works.received_by_month(today.year)
+        months = [(m, date(today.year, m, 1).strftime("%b"), by_month.get(m, 0)) for m in range(1, 13)]
+        return render(request, "work/money.html", {
+            "tab": "money", "entries": entries, "months": months, "year": today.year,
+            "peak": max([v for _, _, v in months] + [1]), "year_total": sum(by_month.values()),
+            "month": month_ok, "account": acc, "accounts": list(all_accounts.values()),
+            "month_options": [f"{today.year:04d}-{m:02d}" for m in range(today.month, 0, -1)],
+            "filtering": bool(month_ok or acc)})
+
+    def transfer_page(request: Request, errors: dict | None = None, form=None, status: int = 200):
+        return render(request, "work/transfer.html", {
+            "tab": "money", "accounts": ctx.accounts.list(), "errors": errors or {}, "form": form or {},
+            "today": fx.today()}, status)
+
+    @router.get("/transfers")
+    def transfer_form(request: Request):
+        return transfer_page(request)
+
+    @router.post("/transfers")
+    async def add_transfer(request: Request):
+        form = await request.form()
+        errors: dict[str, str] = {}
+        values = {}
+        for name in ("sent", "received"):
+            try:
+                values[name] = parse_amount(form.get(name, ""))
+            except ValueError as e:
+                errors[name] = str(e)
+        try:
+            day = parse_day(form.get("on_day"), fx.today())
+        except ValueError as e:
+            errors["on_day"], day = str(e), None
+        src, dst = (form.get(k, "") for k in ("from_account", "to_account"))
+        if not errors:
+            try:
+                ctx.accounts.add_transfer(day, int(src) if src.isdigit() else 0, int(dst) if dst.isdigit() else 0,
+                                          values["sent"], values["received"], form.get("note", "").strip()[:500])
+            except ValueError as e:
+                errors["accounts"] = str(e)
+        if errors:
+            return transfer_page(request, errors, form, 400)
+        return RedirectResponse("/work/money", status_code=303)
 
     @router.post("/accounts/{account_id}/archive")
     def archive_account(account_id: int):

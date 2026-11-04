@@ -1,0 +1,49 @@
+{% extends "work/base.html" %}
+{% block title %}Money — Work — Prospector{% endblock %}
+{% block work %}
+<section class="card">
+  <h2 class="card-title">{{ year }} so far <span class="muted">· {{ year_total|money("USD") }} {{ year_total|tnd }}</span>
+    <a class="card-link" href="/work/transfers">Record transfer</a></h2>
+  <div class="columns money-cols" role="img" aria-label="Received per month in {{ year }}: {% for m, label, v in months %}{{ label }} {{ v|money('USD') }}{{ ', ' if not loop.last }}{% endfor %}">
+    {% for m, label, v in months %}
+    <a class="col" href="/work/money?month={{ '%04d-%02d'|format(year, m) }}" title="{{ label }}: {{ v|money('USD') }}">
+      <span class="col-n">{{ v|money("USD") if v else "" }}</span>
+      <span class="col-bar" style="height: {{ (v * 100 / peak)|round(1) }}%"></span>
+      <span class="col-label">{{ label }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<form class="filters card" method="get" action="/work/money">
+  <label><span>Month</span><select name="month"><option value="">This year</option>
+    {% for mo in month_options %}<option value="{{ mo }}" {{ 'selected' if month == mo }}>{{ mo }}</option>{% endfor %}
+  </select></label>
+  <label><span>Account</span><select name="account"><option value="">Any</option>
+    {% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if account and account.id == a.id }}>{{ a.name }}{{ " (archived)" if a.archived }}</option>{% endfor %}
+  </select></label>
+  <button class="btn btn-primary">Apply</button>
+  {% if filtering %}<a class="btn" href="/work/money">Clear filters</a>{% endif %}
+</form>
+
+<div class="card rows-card">
+  {% for e in entries %}
+  {% if e.kind == "payment" %}
+  <a class="app-row" href="/work/jobs/{{ e.p.work_id }}">
+    <span class="app-main"><span class="work-title">{{ e.title }}</span>
+      <span class="muted small">{{ e.day.strftime("%d %b") }} · into {{ e.account.name if e.account else "unknown account" }}{% if e.p.note %} · {{ e.p.note }}{% endif %}</span></span>
+    <span class="app-side"><span class="pay-amount money-in">+{{ e.p.amount_milli|money(e.p.currency) }}</span>
+      {% if e.p.currency != "USD" %}<span class="muted small">≈ {{ e.p.usd_milli|money("USD") }}</span>{% endif %}</span>
+  </a>
+  {% else %}
+  <div class="app-row">
+    <span class="app-main"><span class="work-title">{{ e.src.name }} → {{ e.dst.name }}</span>
+      <span class="muted small">{{ e.day.strftime("%d %b") }} · {{ e.t.sent_milli|money(e.src.currency) }} sent{% if e.src.currency != e.dst.currency %} at {{ "%.3f"|format(e.rate) }} {{ e.dst.currency }}/{{ e.src.currency }}{% endif %}{% if e.fee %} · fee ≈ {{ e.fee|money("USD") }}{% endif %}{% if e.t.note %} · {{ e.t.note }}{% endif %}</span></span>
+    <span class="app-side"><span class="pay-amount">{{ e.t.received_milli|money(e.dst.currency) }}</span><span class="muted small">transfer</span></span>
+  </div>
+  {% endif %}
+  {% else %}
+  <p class="muted empty">{% if filtering %}Nothing in this period.{% else %}No money recorded yet this year. Payments appear here once you mark them received.{% endif %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

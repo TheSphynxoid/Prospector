@@ -396,3 +396,6 @@ section[id], .field[id] { scroll-margin-top: 4.5rem; }
 .seg input { accent-color: var(--accent); }
 .pay-form:has(input[value="received"]:checked) .when-expected,
 .pay-form:has(input[value="expected"]:checked) .when-received { display: none; }
+.money-cols .col:hover { text-decoration: none; }
+.money-cols .col-n { font-size: .65rem; }
+.money-in { color: var(--good); }

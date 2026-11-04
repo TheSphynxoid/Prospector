@@ -180,3 +180,9 @@ class WorkRepo:
     def expected(self, limit: int | None = None) -> list[Payment]:
         sql = "SELECT * FROM payments WHERE status = 'expected' ORDER BY due_on IS NULL, due_on, id"
         return [_payment(r) for r in self.conn.execute(sql + (f" LIMIT {int(limit)}" if limit else ""))]
+
+    def received_by_month(self, year: int) -> dict[int, int]:
+        """USD milli received per month (1-12) of a year; months with nothing are left out."""
+        return {int(r["m"]): r["s"] for r in self.conn.execute(
+            "SELECT substr(received_on, 6, 2) AS m, SUM(usd_milli) AS s FROM payments "
+            "WHERE status = 'received' AND substr(received_on, 1, 4) = ? GROUP BY m", (str(year),))}

@@ -1,0 +1,29 @@
+{% extends "work/base.html" %}
+{% block title %}Record transfer — Work — Prospector{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field-err">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% macro val(name, default="") %}{{ form.get(name, default) if form else default }}{% endmacro %}
+{% block work %}
+<p class="crumbs"><a href="/work/money">← Money</a></p>
+<section class="card add-card">
+  <h2 class="card-title">Record a transfer</h2>
+  <p class="muted small">Money moved between your accounts, like a Freelancer withdrawal to your bank. Enter what left and what arrived; the fee is worked out from the market rate that day.</p>
+  {% if accounts|length < 2 %}
+  <p>You need at least two accounts. <a class="btn btn-sm" href="/work/add?what=account">Add an account</a></p>
+  {% else %}
+  <form class="stack-form" method="post" action="/work/transfers">
+    {% if errors.get("accounts") %}<p class="field-err" role="alert">{{ errors["accounts"] }}</p>{% endif %}
+    <div class="form-row">
+      <label><span>From</span><select name="from_account">{% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if val('from_account') == a.id|string }}>{{ a.name }} ({{ a.currency }})</option>{% endfor %}</select></label>
+      <label class="grow"><span>Sent</span><input name="sent" inputmode="decimal" value="{{ val('sent') }}" placeholder="300" required>{{ err("sent") }}</label>
+    </div>
+    <div class="form-row">
+      <label><span>To</span><select name="to_account">{% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if val('to_account', (accounts[1].id|string)) == a.id|string }}>{{ a.name }} ({{ a.currency }})</option>{% endfor %}</select></label>
+      <label class="grow"><span>Received</span><input name="received" inputmode="decimal" value="{{ val('received') }}" placeholder="870" required>{{ err("received") }}</label>
+    </div>
+    <label><span>Date</span><input type="date" name="on_day" value="{{ val('on_day', today.isoformat()) }}">{{ err("on_day") }}</label>
+    <label><span>Note</span><input name="note" maxlength="500" value="{{ val('note') }}" placeholder="Optional"></label>
+    <div class="form-actions"><button class="btn btn-primary">Record transfer</button> <a class="btn" href="/work/money">Cancel</a></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

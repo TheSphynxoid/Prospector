@@ -44,7 +44,8 @@
     {% for acc, total, total_usd in accounts %}
     <div class="kv-row"><span>{{ acc.name }}</span>
       <span class="num">{{ total|money(acc.currency) }}{% if acc.currency != "USD" %} <span class="muted small">≈ {{ total_usd|money("USD") }}</span>{% endif %}</span></div>
-    {% else %}<p class="muted small">Add the places money lands (Freelancer balance, Payoneer, your bank) to see totals here.</p>{% endfor %}
+    {% else %}<p class="muted small">Add the places money lands (Freelancer balance, Payoneer, your bank) to see balances here.</p>{% endfor %}
+    {% if accounts|length > 1 %}<p><a class="btn btn-sm" href="/work/transfers">Record transfer</a></p>{% endif %}
   </section>
 
   <section class="card span-2">
