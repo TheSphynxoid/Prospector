@@ -6,7 +6,7 @@
 <div class="page-head">
   <h1>Leads{% if filters.q %} <span class="muted">matching “{{ filters.q }}”</span> <a class="btn btn-sm" href="/leads?tab={{ tab.value }}">Clear search</a>{% endif %}</h1>
   <nav class="tabs" aria-label="Status">
-    {% for t in tabs %}<a href="/leads?tab={{ t.value }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}" {% if t == tab %}aria-current="page"{% endif %}>{{ t.value }}</a>{% endfor %}
+    {% for t in tabs %}<a href="/leads?tab={{ t.value }}{% if kept %}&{{ kept }}{% endif %}" {% if t == tab %}aria-current="page"{% endif %}>{{ t.value }}</a>{% endfor %}
   </nav>
 </div>
 
@@ -19,13 +19,16 @@
   <label><span>Remote</span><select name="remote"><option value="">Any</option>
     {% for r in remotes %}<option value="{{ r.value }}" {{ 'selected' if filters.remote == r else '' }}>{{ r.value }}</option>{% endfor %}
   </select></label>
-  <label><span>Source</span><input name="source" placeholder="e.g. hn" value="{{ filters.source or '' }}"></label>
+  <label><span>Source</span><select name="source"><option value="">Any</option>
+    {% for src in sources %}<option value="{{ src }}" {{ 'selected' if filters.source == src else '' }}>{{ src }}</option>{% endfor %}
+  </select></label>
   <label><span>Min score</span><input name="min_score" type="number" step="0.05" min="0" max="1" placeholder="0–1" value="{{ filters.min_score if filters.min_score is not none else '' }}"></label>
   <label><span>Sort</span><select name="sort">
     <option value="score" {{ 'selected' if filters.sort == 'score' else '' }}>Best first</option>
     <option value="date" {{ 'selected' if filters.sort == 'date' else '' }}>Newest first</option>
   </select></label>
   <button class="btn btn-primary">Apply</button>
+  {% if filtering %}<a class="btn" href="/leads?tab={{ tab.value }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}">Clear filters</a>{% endif %}
 </form>
 
 <div class="lead-list card">

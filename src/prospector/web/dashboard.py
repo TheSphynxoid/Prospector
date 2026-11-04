@@ -1,4 +1,5 @@
 import hashlib
+import math
 import json
 from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
@@ -12,6 +13,7 @@ from prospector.assist.usage import used_today
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
+from prospector.sources.registry import known_source_ids
 from prospector.store.stats import TZ, StatsRepo
 from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
 from prospector.web.format import fmt_ago, fmt_pay, paragraphs
@@ -48,6 +50,21 @@ templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
 templates.env.filters["paragraphs"] = paragraphs
 
 
+def _enum(cls, value: str):
+    try:
+        return cls(value.strip()) if value.strip() else None
+    except ValueError:
+        return None
+
+
+def _score(value: str) -> float | None:
+    try:
+        x = float(value)
+    except ValueError:
+        return None
+    return min(max(x, 0.0), 1.0) if math.isfinite(x) else None
+
+
 def make_dashboard_router(ctx: AppContext) -> APIRouter:
     router = APIRouter()
     stats = StatsRepo(ctx.conn)
@@ -67,20 +84,27 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         })
 
     @router.get("/leads")
-    def leads(request: Request, tab: Status = Status.NEW, kind: Kind | None = None, remote: Remote | None = None,
-              source: str | None = None, min_score: float | None = None, sort: str = "score", page: int = 1,
-              q: str | None = None):
+    def leads(request: Request, tab: str = "", kind: str = "", remote: str = "", source: str = "",
+              min_score: str = "", sort: str = "score", page: str = "1", q: str | None = None):
+        # The filter form sends "" for "Any"; a bad value in a hand-edited URL falls back instead of a 422.
+        tab = _enum(Status, tab) or Status.NEW
+        kind, remote = _enum(Kind, kind), _enum(Remote, remote)
+        source = source.strip() or None
+        min_score = _score(min_score)
         sort = sort if sort in ("score", "date") else "score"
-        page = max(page, 1)
+        page = max(int(page), 1) if page.strip().lstrip("-").isdigit() else 1
         rows = ctx.leads.list(tab, kind=kind, remote=remote, source=source or None, min_score=min_score,
                               sort=sort, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE, q=q)
         filters = {"q": (q or "").strip() or None, "kind": kind, "remote": remote, "source": source,
                    "min_score": min_score, "sort": sort}
-        query = urlencode({"tab": tab.value, **{k: getattr(v, "value", v) for k, v in filters.items()
-                                                 if v not in (None, "")}})
+        kept = urlencode({k: getattr(v, "value", v) for k, v in filters.items()
+                          if v not in (None, "") and not (k == "sort" and v == "score")})
+        query = f"tab={tab.value}" + (f"&{kept}" if kept else "")
+        filtering = any(filters[k] not in (None, "") for k in ("kind", "remote", "source", "min_score"))
         return templates.TemplateResponse(request, "list.html", {
             "nav": "leads", "rows": rows, "tab": tab, "tabs": TABS, "kinds": list(Kind), "remotes": list(Remote),
-            "filters": filters, "query": query, "page": page, "has_next": len(rows) == PAGE_SIZE,
+            "filters": filters, "query": query, "kept": kept, "filtering": filtering, "sources": known_source_ids(),
+            "page": page, "has_next": len(rows) == PAGE_SIZE,
             "needs_you": ctx.mail.needs_you(), "paused": [h for h in ctx.health.all() if h.paused],
         })
 
