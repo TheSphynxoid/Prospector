@@ -80,7 +80,7 @@ def test_embeddings_roundtrip(make_lead):
 
 def test_new_since_and_deadlines(make_lead):
     _, leads, scores = repos()
-    now = datetime(2026, 11, 3, 8, tzinfo=UTC)
+    now = datetime.now(UTC)  # created_at is wall-clock, so the window must be too
     a = leads.insert(make_lead(canonical_url="a"))
     scores.save_stage1(a, 0.5, {})
     assert [r.lead.id for r in leads.new_since(now - timedelta(days=1), limit=10)] == [a]
