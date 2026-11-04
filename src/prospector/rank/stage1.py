@@ -6,6 +6,7 @@ from prospector.models import Lead, Remote
 from prospector.profile.filters import pay_meets_min
 from prospector.profile.interests import keyword_score
 from prospector.profile.model import Profile
+from prospector.rank.reach import competition_factor, reach
 from prospector.rank.weights import Weights
 
 
@@ -21,7 +22,8 @@ def _max_cos(vec: np.ndarray, mat: np.ndarray) -> float | None:
 
 def score_stage1(lead: Lead, lead_vec: np.ndarray, profile_vecs: np.ndarray, pos_vecs: np.ndarray,
                  neg_vecs: np.ndarray, profile: Profile, weights: Weights, now: datetime,
-                 sim_range: tuple[float, float] = (0.25, 0.65)) -> tuple[float, dict[str, float]]:
+                 sim_range: tuple[float, float] = (0.25, 0.65), bids: int | None = None,
+                 ) -> tuple[float, dict[str, float]]:
     lo, hi = sim_range
     sim = _clamp(((_max_cos(lead_vec, profile_vecs) or 0.0) - lo) / (hi - lo))
 
@@ -55,5 +57,9 @@ def score_stage1(lead: Lead, lead_vec: np.ndarray, profile_vecs: np.ndarray, pos
     parts = {"sim": sim, "keywords": keywords, "pay": pay, "remote": remote,
              "freshness": freshness, "feedback": feedback}
     w = weights.as_dict()
-    final = _clamp(sum(w[k] * v for k, v in parts.items()))
-    return final, {**parts, "final": final}
+    # Reach and competition multiply rather than weigh in: a weighted part could never pull a senior or
+    # US-only role out of the top, and learning must not trade them off against topic fit.
+    reach_factor, _ = reach(lead, profile)
+    competition = competition_factor(bids)
+    final = _clamp(sum(w[k] * v for k, v in parts.items()) * reach_factor * competition)
+    return final, {**parts, "reach": reach_factor, "competition": competition, "final": final}

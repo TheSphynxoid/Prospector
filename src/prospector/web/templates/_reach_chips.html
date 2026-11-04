@@ -1,0 +1,2 @@
+{% set tag = reach_tag(l) %}{% if tag %}<span class="chip chip-reach {{ 'reach-warn' if tag in ('Stretch', 'Europe') else 'reach-bad' }}" title="Below your reach: ranked lower">{{ tag }}</span>{% endif %}
+      {% set nb = bids_of(l.id) %}{% if nb is not none %}<span class="chip" title="Bids so far">{{ nb }} bid{{ "s" if nb != 1 }}</span>{% endif %}

@@ -36,12 +36,12 @@ def prof():
     )
 
 
-def score(lead, prof, emb, vec=None, pos=None, neg=None, weights=None):
+def score(lead, prof, emb, vec=None, pos=None, neg=None, weights=None, bids=None):
     pv = profile_vectors(prof, emb)
     v = vec if vec is not None else emb.embed([lead_text(lead)], "passage")[0]
     empty = np.zeros((0, emb.dim), dtype=np.float32)
     return score_stage1(lead, v, pv, pos if pos is not None else empty, neg if neg is not None else empty,
-                        prof, weights or Weights(), NOW)
+                        prof, weights or Weights(), NOW, bids=bids)
 
 
 def test_matching_lead_scores_higher(make_lead, prof):
@@ -56,7 +56,7 @@ def test_matching_lead_scores_higher(make_lead, prof):
 
 def test_breakdown_has_all_components(make_lead, prof):
     _, bd = score(make_lead(), prof, FakeEmbedder())
-    assert set(bd) == {"sim", "keywords", "pay", "remote", "freshness", "feedback", "final"}
+    assert set(bd) == {"sim", "keywords", "pay", "remote", "freshness", "feedback", "reach", "competition", "final"}
     assert all(0.0 <= v <= 1.0 for v in bd.values())
 
 
@@ -114,3 +114,21 @@ def test_interest_matches_whole_words_in_list_items(make_lead, prof):
     assert bd["keywords"] > 0
     _, bd = score(make_lead(title="Google ads manager", body="good pay"), prof, FakeEmbedder())
     assert bd["keywords"] == 0
+
+
+def test_senior_scores_lower(make_lead, prof):
+    emb = FakeEmbedder()
+    prof.targets.levels = ["intern", "junior"]
+    vec = emb.embed(["same text"], "passage")[0]
+    junior, _ = score(make_lead(title="Junior Go dev"), prof, emb, vec=vec)
+    senior, bd = score(make_lead(title="Senior Go dev"), prof, emb, vec=vec)
+    assert senior == pytest.approx(junior * 0.35) and bd["reach"] == 0.35
+
+
+def test_bids_lower_score(make_lead, prof):
+    emb = FakeEmbedder()
+    lead = make_lead(kind=Kind.GIG)
+    vec = emb.embed(["gig"], "passage")[0]
+    base, _ = score(lead, prof, emb, vec=vec)
+    crowded, bd = score(lead, prof, emb, vec=vec, bids=60)
+    assert crowded == pytest.approx(base * 0.65) and bd["competition"] == 0.65

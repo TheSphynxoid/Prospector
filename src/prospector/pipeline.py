@@ -58,7 +58,8 @@ def _save_stage1(ctx: AppContext, lead: Lead, vec, now: datetime, pos, neg, weig
                  profile=None, vecs=None) -> None:
     score, breakdown = score_stage1(lead, vec, ctx.profile_vecs if vecs is None else vecs, pos, neg,
                                     profile or ctx.profile, weights, now,
-                                    sim_range=getattr(ctx.embedder, "sim_range", (0.25, 0.65)))
+                                    sim_range=getattr(ctx.embedder, "sim_range", (0.25, 0.65)),
+                                    bids=ctx.signals.bids(lead.id))
     ctx.scores.save_stage1(lead.id, score, breakdown)
 
 

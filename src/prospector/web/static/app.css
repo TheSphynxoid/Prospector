@@ -114,6 +114,8 @@ a.tile:hover { border-color: var(--accent); text-decoration: none; }
   font-size: .75rem; border: 1px solid var(--line); }
 .chip-yes { background: var(--good-soft); color: var(--good); border-color: transparent; }
 .chip-hybrid { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.chip-reach.reach-bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.chip-reach.reach-warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .chip-status { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 .verdict { font-size: .875rem; margin-top: .35rem; }
 .v-strong b { color: var(--good); } .v-maybe b { color: var(--warn); } .v-weak b { color: var(--muted); }

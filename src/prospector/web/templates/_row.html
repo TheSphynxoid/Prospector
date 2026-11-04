@@ -8,6 +8,7 @@
     <div class="lead-meta">
       <span>{{ l.company or "Unknown company" }}</span>
       <span class="chip">{{ l.kind.value }}</span>
+      {% include "_reach_chips.html" %}
       <span class="chip chip-{{ l.remote.value }}">remote: {{ l.remote.value }}{% if l.remote_region %} · {{ l.remote_region }}{% endif %}</span>
       {% if l.locations %}<span class="muted">{{ l.locations|join(", ") }}</span>{% endif %}
       {% if l.pay %}<span class="pay">{{ l.pay|pay }}</span>{% endif %}

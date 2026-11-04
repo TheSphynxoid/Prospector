@@ -17,6 +17,7 @@ from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
 from prospector.sources.registry import known_source_ids
 from prospector.store.stats import TZ, StatsRepo
+from prospector.rank.reach import reach
 from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
 from prospector.web.format import fmt_ago, fmt_pay, paragraphs
 from prospector.worklife.flows import on_applied, on_unapplied
@@ -73,6 +74,9 @@ def _score(value: str) -> float | None:
 def make_dashboard_router(ctx: AppContext) -> APIRouter:
     router = APIRouter()
     stats = StatsRepo(ctx.conn)
+    # From the live profile, so changing your levels re-tags leads before any re-score.
+    templates.env.globals["reach_tag"] = lambda lead: reach(lead, ctx.profile)[1]
+    templates.env.globals["bids_of"] = ctx.signals.bids
 
     @router.get("/")
     def overview(request: Request):

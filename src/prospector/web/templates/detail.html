@@ -10,6 +10,7 @@
     <div class="lead-meta">
       <span>{{ l.company or "Unknown company" }}</span>
       <span class="chip">{{ l.kind.value }}</span>
+      {% include "_reach_chips.html" %}
       <span class="chip chip-{{ l.remote.value }}">remote: {{ l.remote.value }}{% if l.remote_region %} · {{ l.remote_region }}{% endif %}</span>
     </div>
     <div class="detail-bar">
@@ -53,7 +54,7 @@
     <section class="card">
       <h2 class="card-title">Score breakdown</h2>
       <table class="facts">
-        {% for k, v in breakdown.items() %}<tr><th>{{ k }}</th><td class="num">{{ "%.2f"|format(v) }}</td></tr>{% else %}<tr><td class="muted">Not scored.</td></tr>{% endfor %}
+        {% for k, v in breakdown.items() %}<tr><th>{{ k }}</th><td class="num">{{ ("×%g"|format(v)) if k in ("reach", "competition") else "%.2f"|format(v) }}</td></tr>{% else %}<tr><td class="muted">Not scored.</td></tr>{% endfor %}
       </table>
     </section>
   </aside>
