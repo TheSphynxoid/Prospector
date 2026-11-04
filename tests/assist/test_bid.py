@@ -51,10 +51,32 @@ def test_draft_bid_uses_lead_budget(actx, make_lead, fake):
 
 
 def test_draft_bid_adds_currency_note(actx, make_lead, fake):
-    lid = actx.leads.insert(make_lead(canonical_url="https://e/3", pay=Pay(100, 200, "EUR", "fixed")))
+    lid = actx.leads.insert(make_lead(canonical_url="https://e/3", pay=Pay(100, 200, "JPY", "fixed")))
     fake.replies = [GOOD]
     bid = draft_bid(actx, lid)
-    assert "Client budget is in EUR" in bid.rationale
+    assert "Client budget is in JPY" in bid.rationale
+
+
+def _store(actx, **codes):
+    from prospector import fx
+    for code, v in codes.items():
+        actx.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), code, v, "t"))
+
+
+def test_bid_clamps_to_converted_eur_budget(actx, make_lead, fake):
+    _store(actx, EUR=0.9)
+    lid = actx.leads.insert(make_lead(canonical_url="https://e/4", pay=Pay(100, 180, "EUR", "fixed")))
+    fake.replies = [GOOD]
+    bid = draft_bid(actx, lid)
+    assert bid.quote.fair == 200 and "converted from EUR" in bid.rationale
+
+
+def test_assistant_tnd_uses_fx(actx, lid, fake):
+    actx.fx.tnd_override = None
+    _store(actx, TND=3.5)
+    fake.replies = [GOOD]
+    bid = draft_bid(actx, lid)
+    assert bid.tnd_fair == 875 and bid.tnd_competitive == 525
 
 
 def test_draft_bid_cap(actx, lid, fake):

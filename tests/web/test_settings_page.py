@@ -244,3 +244,31 @@ def test_foreign_host_refused(setup):
     assert client.post("/settings/reveal-bridge-secret",
                        headers={"Host": "evil.example", "Origin": "http://evil.example"}).status_code == 400
     assert client.get("/healthz", headers={"Host": "127.0.0.1:8080"}).status_code == 200
+
+
+def test_blank_tnd_rate_saves_as_none(setup, env):
+    client, restarts, reload = setup
+    data = form_of(client) | {"usd_tnd_rate": "3.2"}
+    client.post("/settings", data=data)
+    assert saved(env)["usd_tnd_rate"] == 3.2
+    reload()
+    data = form_of(client) | {"usd_tnd_rate": ""}
+    client.post("/settings", data=data)
+    assert saved(env).get("usd_tnd_rate") is None
+    assert "Blank uses today" in client.get("/settings").text
+
+
+def test_settings_shows_today_rates(setup, ctx):
+    from prospector import fx
+    client, _, _ = setup
+    assert "No rates fetched yet" in client.get("/settings").text
+    for code, v in (("TND", 3.004), ("EUR", 0.893), ("GBP", 0.79)):
+        ctx.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), code, v, "open.er-api.com"))
+    page = client.get("/settings").text
+    assert "1 USD = 3.004 TND · 0.893 EUR · 0.79 GBP" in page and "open.er-api.com" in page
+    assert "out of date" not in page
+
+
+def test_settings_has_followup_days(setup):
+    client, _, _ = setup
+    assert 'name="followup_days"' in client.get("/settings").text

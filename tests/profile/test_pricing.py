@@ -47,8 +47,9 @@ def settings(**kw):
 
 def test_assistant_settings_defaults_and_bounds():
     s = settings()
-    assert (s.assistant_daily_cap, s.assistant_model, s.usd_tnd_rate) == (100, None, 3.0)
-    for bad in (dict(assistant_daily_cap=0), dict(assistant_daily_cap=2001), dict(usd_tnd_rate=0)):
+    assert (s.assistant_daily_cap, s.assistant_model, s.usd_tnd_rate, s.followup_days) == (100, None, None, 7)
+    for bad in (dict(assistant_daily_cap=0), dict(assistant_daily_cap=2001), dict(usd_tnd_rate=0),
+                dict(followup_days=0), dict(followup_days=61)):
         with pytest.raises(ValidationError):
             settings(**bad)
 

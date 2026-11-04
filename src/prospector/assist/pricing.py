@@ -1,9 +1,13 @@
 """Bid money, computed by Prospector from the model's hour estimate (the model never sets prices)."""
 import math
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from prospector.models import Pay
 from prospector.profile.model import Pricing
+
+if TYPE_CHECKING:
+    from prospector.fx import Rates
 
 
 @dataclass
@@ -47,3 +51,18 @@ def quote(hours: float, pricing: Pricing, pay: Pay | None) -> Quote:
         else:
             note = f"Client pay is per {pay.period} — compare yourself."
     return Quote(hours, fair, competitive, days, warning, note)
+
+
+def usd_pay(pay: Pay | None, rates: "Rates") -> tuple[Pay | None, str | None]:
+    """The client's budget in USD when its currency is one we have rates for, plus a note saying so."""
+    from prospector.fx import CURRENCIES
+
+    if pay is None or pay.currency in (None, "USD") or pay.currency not in CURRENCIES:
+        return pay, None
+    per_usd = rates.rate(pay.currency)
+
+    def conv(x):
+        return None if x is None else round(x / per_usd, 2)
+
+    return (Pay(conv(pay.min), conv(pay.max), "USD", pay.period),
+            f"Budget converted from {pay.currency} at {per_usd:g} per USD.")

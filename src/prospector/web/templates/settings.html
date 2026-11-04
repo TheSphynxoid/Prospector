@@ -39,6 +39,7 @@
     <div class="reveal-row"><button type="button" class="btn btn-sm" hx-post="/settings/telegram/find-chat"
          hx-target="#chat-find" hx-swap="innerHTML" hx-disabled-elt="this">Find my chat ID</button> <span id="chat-find" aria-live="polite"></span></div>
   {% endif %}
+  {% if f.name == "usd_tnd_rate" %}<p class="field-help" id="fx-line">{{ fx_line }}</p>{% endif %}
   {% if f.help %}<p class="field-help">{{ f.help }}</p>{% endif %}
   {% if errors.get(f.name) %}<p class="field-err" id="err-{{ f.name }}">{{ errors[f.name] }}</p>{% endif %}
 </div>

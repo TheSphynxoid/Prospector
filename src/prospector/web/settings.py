@@ -55,12 +55,14 @@ TUNING = [
     FieldInfo("digest_time", "Digest time", "time", "Africa/Tunis."),
     FieldInfo("assistant_model", "Assistant model", "model", "Blank uses the LLM model."),
     FieldInfo("assistant_daily_cap", "Assistant messages per day", "int", "1–2000."),
-    FieldInfo("usd_tnd_rate", "USD → TND rate", "float", "Used only to show TND equivalents."),
+    FieldInfo("usd_tnd_rate", "USD → TND rate", "float", "Blank uses today's rate."),
+    FieldInfo("followup_days", "Follow up after (days)", "int", "1–60."),
     FieldInfo("expire_days_short", "Expire gigs and bounties after (days)", "int", "Since posted, or first seen. 1–365."),
     FieldInfo("expire_days_jobs", "Expire jobs and contracts after (days)", "int", "1–365."),
     FieldInfo("expire_days_long", "Expire PFE and AI-training offers after (days)", "int", "1–365."),
 ]
 _OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "adzuna_app_id", "assistant_model"}
+_OPTIONAL_FLOAT = {"usd_tnd_rate"}  # blank means automatic
 assert {f.name for f in KEYS + TUNING} | {"enabled_sources"} == set(EDITABLE)
 
 
@@ -74,7 +76,7 @@ def _parse(info: FieldInfo, raw: str) -> Any:
     if info.kind == "int":
         return int(raw)
     if info.kind == "float":
-        return float(raw)
+        return None if raw == "" and info.name in _OPTIONAL_FLOAT else float(raw)
     if raw == "" and info.name in _OPTIONAL_STR:
         return None
     return raw
@@ -110,6 +112,15 @@ def merge_form(form, loaded: LoadedSettings) -> tuple[dict, dict[str, str]]:
     return new, errors
 
 
+def fx_line(rates) -> str:
+    day, source, values = rates.today_summary()
+    if day is None:
+        return "No rates fetched yet; using built-in rates."
+    parts = " · ".join(f"{values[c]:g} {c}" for c in ("TND", "EUR", "GBP") if c in values)
+    line = f"1 USD = {parts} — {source}, {day.day} {day.strftime('%b')}"
+    return line + (" — rates are out of date, check Sources." if rates.stale() else "")
+
+
 def make_settings_router(ctx: AppContext) -> APIRouter:
     router = APIRouter()
 
@@ -130,7 +141,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             "posted": posted, "sources": sorted(FACTORIES), "needs_creds": needs_creds, "notice": notice,
             "prow": prow or rows_from_profile(ctx.profile), "profile_error": profile_error, "kinds": list(Kind),
             "periods": ["hour", "day", "month", "year", "fixed"], "rescore": ctx.kv.get("rescore_status"),
-            "running_sources": [x.id for x in ctx.sources],
+            "running_sources": [x.id for x in ctx.sources], "fx_line": fx_line(ctx.fx),
         }, status_code=status)
 
     def apply(request: Request, new: dict):

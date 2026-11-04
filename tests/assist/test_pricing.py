@@ -63,3 +63,34 @@ def test_rounds_half_up_and_tnd():
     q = quote(0.5, P, None)
     assert (q.fair, q.competitive) == (13, 8)
     assert tnd(250, 3.0) == 750 and tnd(10, 3.15) == 32
+
+
+def _rates(**codes):
+    from prospector import fx
+    from prospector.fx import Rates
+    from prospector.store.db import connect
+    r = Rates(connect(":memory:"))
+    for code, v in codes.items():
+        r.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), code, v, "t"))
+    return r
+
+
+def test_usd_pay_converts_eur():
+    from prospector.assist.pricing import usd_pay
+    p, note = usd_pay(Pay(450, 900, "EUR", "fixed"), _rates(EUR=0.9))
+    assert (p.min, p.max, p.currency, p.period) == (500, 1000, "USD", "fixed")
+    assert note == "Budget converted from EUR at 0.9 per USD."
+
+
+def test_usd_pay_one_bound_and_usd_untouched():
+    from prospector.assist.pricing import usd_pay
+    p, _ = usd_pay(Pay(None, 90, "GBP", "hour"), _rates(GBP=0.9))
+    assert (p.min, p.max, p.period) == (None, 100, "hour")
+    usd = Pay(1, 2, "USD", "fixed")
+    assert usd_pay(usd, _rates()) == (usd, None)
+
+
+def test_usd_pay_leaves_unknown_or_missing_currency():
+    from prospector.assist.pricing import usd_pay
+    for pay in (Pay(1, 2, "JPY", "fixed"), Pay(1, 2, None, "fixed"), None):
+        assert usd_pay(pay, _rates()) == (pay, None)

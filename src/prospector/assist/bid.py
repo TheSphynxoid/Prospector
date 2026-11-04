@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from pydantic import BaseModel, Field, ValidationError
 
 from prospector.assist.chat import ask, failure, history
-from prospector.assist.pricing import Quote, quote, tnd
+from prospector.assist.pricing import Quote, quote, tnd, usd_pay
 from prospector.assist.usage import CapReached
 from prospector.context import AppContext
 from prospector.llm.client import LLMError, extract_json
@@ -61,9 +61,10 @@ def draft_bid(ctx: AppContext, lead_id: int) -> Bid | Message:
         return failure(ctx, lead_id, LLMError("the model didn't return a usable bid; try again"))
 
     lead = ctx.leads.get(lead_id)
-    q = quote(parsed.estimate_hours, ctx.profile.pricing, lead.pay)
-    rate = ctx.settings.usd_tnd_rate
-    rationale = " ".join(x for x in (parsed.rationale.strip(), q.note) if x)
+    pay, converted = usd_pay(lead.pay, ctx.fx)
+    q = quote(parsed.estimate_hours, ctx.profile.pricing, pay)
+    rate = ctx.fx.rate("TND")
+    rationale = " ".join(x for x in (parsed.rationale.strip(), converted, q.note) if x)
     bid = Bid(parsed.proposal.strip(), rationale, q, tnd(q.fair, rate), tnd(q.competitive, rate))
     ctx.assist.set_bid(lead_id, bid.as_dict())
     ctx.assist.add(lead_id, "assistant",
