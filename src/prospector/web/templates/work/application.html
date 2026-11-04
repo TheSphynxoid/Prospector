@@ -1,0 +1,27 @@
+{% extends "work/base.html" %}
+{% block title %}{{ a.title }} — Work — Prospector{% endblock %}
+{% block work %}
+<p class="crumbs"><a href="/work/applications">← Applications</a></p>
+<div class="detail-grid">
+  <section class="card detail-main">
+    <h2 class="app-title">{{ a.title }}</h2>
+    <p class="muted">{{ a.client or "No client" }} · {{ a.source or "added by hand" }} · applied {{ a.applied_on.strftime("%d %b %Y") }}
+      {% if lead %} · <a href="/lead/{{ lead.id }}">the lead</a>{% endif %}{% if a.url %} · <a href="{{ a.url }}" rel="noopener noreferrer" target="_blank">posting ↗</a>{% endif %}</p>
+    {% include "work/_app_panel.html" %}
+  </section>
+  <section class="card detail-side">
+    <details {% if error %}open{% endif %}>
+      <summary class="card-title">Edit details</summary>
+      <form class="stack-form" method="post" action="/work/applications/{{ a.id }}/edit">
+        <label><span>Title</span><input name="title" value="{{ a.title }}" required maxlength="300"></label>
+        <label><span>Client</span><input name="client" value="{{ a.client or '' }}"></label>
+        <label><span>Where you found it</span><input name="source" value="{{ a.source or '' }}"></label>
+        <label><span>Link</span><input name="url" type="url" value="{{ a.url or '' }}"></label>
+        <label><span>Applied on</span><input name="applied_on" type="date" value="{{ a.applied_on.isoformat() }}"></label>
+        {% if a.is_open %}<label><span>Follow up on</span><input name="follow_up_on" type="date" value="{{ a.follow_up_on.isoformat() if a.follow_up_on else '' }}"></label>{% endif %}
+        <button class="btn btn-primary btn-sm">Save</button>
+      </form>
+    </details>
+  </section>
+</div>
+{% endblock %}

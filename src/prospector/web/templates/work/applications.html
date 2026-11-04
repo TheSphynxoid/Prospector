@@ -1,0 +1,36 @@
+{% extends "work/base.html" %}
+{% block title %}Applications — Work — Prospector{% endblock %}
+{% block work %}
+<form class="filters card" method="get" action="/work/applications">
+  <label><span>Stage</span><select name="stage"><option value="">Any</option>
+    <option value="open" {{ 'selected' if stage == 'open' }}>Open</option>
+    <option value="closed" {{ 'selected' if stage == 'closed' }}>Closed</option>
+    {% for s in stages %}<option value="{{ s }}" {{ 'selected' if stage == s }}>{{ stage_label(s) }}</option>{% endfor %}
+  </select></label>
+  <label><span>Source</span><select name="source"><option value="">Any</option>
+    {% for src in sources %}<option value="{{ src }}" {{ 'selected' if source == src }}>{{ src }}</option>{% endfor %}
+  </select></label>
+  <button class="btn btn-primary">Apply</button>
+  {% if filtering %}<a class="btn" href="/work/applications">Clear filters</a>{% endif %}
+</form>
+<div class="card rows-card">
+  {% for a in rows %}
+  <a class="app-row" href="/work/applications/{{ a.id }}">
+    <span class="app-main"><span class="work-title">{{ a.title }}</span>
+      <span class="muted small">{{ a.client or "No client" }} · {{ a.source or "added by hand" }} · applied {{ a.applied_on.strftime("%d %b") }}</span></span>
+    <span class="app-side">
+      <span class="chip stage stage-{{ a.stage }}">{{ stage_label(a.stage) }}</span>
+      {% if a.is_open and a.follow_up_on %}<span class="small {{ 'warn-text' if a.follow_up_on <= today else 'muted' }}">{{ a.follow_up_on.strftime("%d %b") }}</span>{% endif %}
+    </span>
+  </a>
+  {% else %}
+  <p class="muted empty">{% if filtering %}No applications match.{% else %}No applications yet. Mark a lead as Applied, or <a href="/work/add">add one</a>.{% endif %}</p>
+  {% endfor %}
+</div>
+{% set q = ("stage=" ~ stage ~ "&" if stage else "") ~ ("source=" ~ source|urlencode ~ "&" if source else "") %}
+<nav class="pager" aria-label="Pages">
+  {% if page > 1 %}<a class="btn" href="/work/applications?{{ q }}page={{ page - 1 }}">← Previous</a>{% endif %}
+  <span class="muted">Page {{ page }}</span>
+  {% if has_next %}<a class="btn" href="/work/applications?{{ q }}page={{ page + 1 }}">Next →</a>{% endif %}
+</nav>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "work/base.html" %}
+{% block title %}Add — Work — Prospector{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field-err">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% macro val(name, default="") %}{{ form.get(name, default) if form else default }}{% endmacro %}
+{% block work %}
+<section class="card add-card">
+  <nav class="tabs" aria-label="What to add">
+    {% for key, label in [("application", "Application"), ("work", "Work"), ("account", "Account")] %}
+    <a href="/work/add?what={{ key }}" {% if what == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <form class="stack-form" method="post" action="/work/add">
+    <input type="hidden" name="what" value="{{ what }}">
+    {% if what == "account" %}
+      <label><span>Name</span><input name="name" value="{{ val('name') }}" placeholder="Payoneer" required>{{ err("name") }}</label>
+      <label><span>Currency</span><select name="currency">{% for c in currencies %}<option {{ 'selected' if val('currency', 'USD') == c }}>{{ c }}</option>{% endfor %}</select></label>
+    {% else %}
+      <label><span>Title</span><input name="title" value="{{ val('title') }}" placeholder="{{ 'Landing page for a café' if what == 'work' else 'Go backend for a booking API' }}" required maxlength="300">{{ err("title") }}</label>
+      <label><span>Client</span><input name="client" value="{{ val('client') }}" placeholder="Optional"></label>
+      <label><span>Type</span><select name="kind"><option value="">Not set</option>{% for k in kinds %}<option value="{{ k.value }}" {{ 'selected' if val('kind') == k.value }}>{{ k.value|replace("_", " ") }}</option>{% endfor %}</select></label>
+      {% if what == "work" %}
+      <div class="form-row">
+        <label class="grow"><span>Agreed price</span><input name="price" inputmode="decimal" value="{{ val('price') }}" placeholder="Optional">{{ err("price") }}</label>
+        <label><span>Currency</span><select name="currency">{% for c in currencies %}<option {{ 'selected' if val('currency', 'USD') == c }}>{{ c }}</option>{% endfor %}</select></label>
+      </div>
+      <label><span>Started on</span><input name="started_on" type="date" value="{{ val('started_on', today.isoformat()) }}">{{ err("started_on") }}</label>
+      {% else %}
+      <label><span>Where you found it</span><input name="source" value="{{ val('source') }}" placeholder="Referral, LinkedIn, Upwork"></label>
+      <label><span>Link</span><input name="url" type="url" value="{{ val('url') }}" placeholder="Optional"></label>
+      <div class="form-row">
+        <label><span>Applied on</span><input name="applied_on" type="date" value="{{ val('applied_on', today.isoformat()) }}">{{ err("applied_on") }}</label>
+        <label><span>Follow up on</span><input name="follow_up_on" type="date" value="{{ val('follow_up_on', followup.isoformat()) }}">{{ err("follow_up_on") }}</label>
+      </div>
+      {% endif %}
+    {% endif %}
+    <div class="form-actions"><button class="btn btn-primary">Add {{ what }}</button> <a class="btn" href="/work">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}

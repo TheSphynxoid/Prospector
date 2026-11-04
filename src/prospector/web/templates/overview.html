@@ -27,6 +27,11 @@
     <span class="tile-value">{{ assistant_used }}<small>/{{ assistant_cap }}</small></span>
     <span class="meter" aria-hidden="true"><span style="width: {{ [100, assistant_used * 100 // assistant_cap]|min }}%"></span></span>
   </div>
+  <a class="tile" href="/work">
+    <span class="tile-label">Work</span>
+    <span class="tile-value">{{ work.month_usd|money("USD") }}<small> this month</small></span>
+    <span class="tile-sub {{ 'warn-text' if work.due else 'muted' }}">{{ work.due }} follow-up{{ "" if work.due == 1 else "s" }} due</span>
+  </a>
   <div class="tile">
     <span class="tile-label">Digest</span>
     <span class="tile-sub">Next {{ next_digest|local }}</span>

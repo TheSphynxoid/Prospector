@@ -1,0 +1,37 @@
+{# Stage, actions, timeline and notes of one application. Context: a, events, work, error, today. #}
+<div id="app-panel" class="app-panel">
+  <div class="app-status">
+    <span class="chip stage stage-{{ a.stage }}">{{ stage_label(a.stage) }}</span>
+    {% if a.is_open and a.follow_up_on %}
+    <span class="{{ 'warn-text' if a.follow_up_on <= today else 'muted' }}">
+      {{ "Next step" if a.stage == "interview" else "Follow up" }} {{ a.follow_up_on.strftime("%a %d %b") }}{% if a.next_step %} · {{ a.next_step }}{% endif %}</span>
+    {% endif %}
+    {% if work %}<a href="/work/jobs/{{ work.id }}">Open the work →</a>{% endif %}
+  </div>
+  {% if error %}<p class="field-err" role="alert">{{ error }}</p>{% endif %}
+  {% if a.is_open %}
+  <div class="actions app-actions" role="group" aria-label="Update">
+    {% for action, label in [("followed_up", "Followed up"), ("won", "Won"), ("rejected", "Rejected"), ("no_reply", "No reply"), ("withdrawn", "Withdraw")] %}
+    <button class="btn btn-sm{% if action == 'won' %} btn-good{% endif %}" hx-post="/work/applications/{{ a.id }}/act"
+            hx-vals='{"action": "{{ action }}"}' hx-target="#app-panel" hx-swap="outerHTML" hx-disabled-elt="this">{{ label }}</button>
+    {% endfor %}
+  </div>
+  <form class="inline-form" hx-post="/work/applications/{{ a.id }}/act" hx-target="#app-panel" hx-swap="outerHTML">
+    <label><span>Date</span><input type="date" name="on"></label>
+    <label class="grow"><span>Next step</span><input name="text" placeholder="Interview with the CTO"></label>
+    <button class="btn btn-sm" name="action" value="interview">Set next step</button>
+    <button class="btn btn-sm" name="action" value="snooze">Snooze to date</button>
+  </form>
+  {% endif %}
+  <h3 class="small">Timeline</h3>
+  <ol class="timeline">
+    {% for e in events|reverse %}
+    <li><span class="tl-when muted small">{{ e.at|local }}</span>
+      <span>{{ {"applied": "Applied", "followed_up": "Followed up", "note": "Note", "snoozed": "Snoozed to", "stage": "Stage"}.get(e.kind, e.kind) }}{% if e.text %}: {{ e.text }}{% endif %}</span></li>
+    {% endfor %}
+  </ol>
+  <form class="inline-form" hx-post="/work/applications/{{ a.id }}/note" hx-target="#app-panel" hx-swap="outerHTML">
+    <label class="grow"><span>Add a note</span><input name="text" maxlength="2000" placeholder="Sent the portfolio link"></label>
+    <button class="btn btn-sm">Add note</button>
+  </form>
+</div>

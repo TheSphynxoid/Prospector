@@ -147,6 +147,13 @@
     const input = btn && document.querySelector(btn.dataset.fill);
     if (input) { input.value = btn.dataset.value; input.focus(); }
   });
+  // Inline validation errors come back as 400 with the form re-rendered: swap them in like a 200.
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.htmx) {
+      htmx.config.responseHandling = [{ code: "204", swap: false }, { code: "[23]..", swap: true },
+        { code: "400", swap: true, error: false }, { code: "[45]..", swap: false, error: true }];
+    }
+  });
   document.addEventListener("DOMContentLoaded", () => { updateCounts(); scrollLog(); });
   document.body.addEventListener("htmx:afterSettle", () => { updateCounts(); scrollLog(); });
 

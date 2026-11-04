@@ -1,0 +1,34 @@
+{# Follow-ups due. Context: due, today, error (optional). Re-rendered after each action. #}
+<section class="card followups" id="followups" aria-label="Follow-ups due">
+  <h2 class="card-title">Follow-ups due {% if due %}<span class="muted">· {{ due|length }}</span>{% endif %}</h2>
+  {% if error %}<p class="field-err" role="alert">{{ error }}</p>{% endif %}
+  {% for a in due %}
+  {% set days = (today - a.applied_on).days %}
+  <div class="fu-row">
+    <div class="fu-main">
+      <a class="fu-title" href="/work/applications/{{ a.id }}">{{ a.title }}</a>
+      <span class="muted small">{{ a.source or "added by hand" }} ·
+        {% if a.stage == "interview" %}{{ a.next_step or "next step" }}, due {{ a.follow_up_on.strftime("%a %d %b") }}
+        {% else %}applied {{ "today" if days <= 0 else ("%d day%s ago"|format(days, "" if days == 1 else "s")) }},
+          {{ "no answer" if not a.follow_ups else ("followed up once" if a.follow_ups == 1 else "followed up %d times"|format(a.follow_ups)) }}{% endif %}</span>
+    </div>
+    <div class="fu-actions">
+      {% for action, label in [("followed_up", "Followed up"), ("rejected", "Rejected"), ("no_reply", "No reply"), ("won", "Won")] %}
+      <button class="btn btn-sm{% if action == 'won' %} btn-good{% endif %}" hx-post="/work/applications/{{ a.id }}/act"
+              hx-vals='{"action": "{{ action }}"}' hx-target="#followups" hx-swap="outerHTML" hx-disabled-elt="this">{{ label }}</button>
+      {% endfor %}
+      <details class="fu-more">
+        <summary class="btn btn-sm">More</summary>
+        <form class="inline-form" hx-post="/work/applications/{{ a.id }}/act" hx-target="#followups" hx-swap="outerHTML">
+          <label><span>Date</span><input type="date" name="on" required></label>
+          <label class="grow"><span>Next step</span><input name="text" placeholder="Call with the CTO"></label>
+          <button class="btn btn-sm" name="action" value="interview">Interview</button>
+          <button class="btn btn-sm" name="action" value="snooze">Snooze</button>
+        </form>
+      </details>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted empty">Nothing to chase today.</p>
+  {% endfor %}
+</section>

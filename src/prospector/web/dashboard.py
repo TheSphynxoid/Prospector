@@ -74,6 +74,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
 
     @router.get("/")
     def overview(request: Request):
+        from prospector.web.work import work_tile  # web.work imports this module's templates
         if "tab" in request.query_params:  # old list links and bookmarks
             return RedirectResponse(f"/leads?{request.query_params}", status_code=307)
         now = datetime.now(UTC)
@@ -84,6 +85,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
             "last_digest": ctx.kv.get("last_digest_at"), "next_digest": next_digest(now, parse_hhmm(ctx.settings.digest_time)),
             "sources": ctx.health.all(), "needs_you": ctx.mail.needs_you(),
             "setup": setup_items(ctx.settings, ctx.kv, ctx.settings.profile_path, EXAMPLE_PROFILE),
+            "work": work_tile(ctx),
         })
 
     @router.get("/leads")

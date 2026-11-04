@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Work</h1>
+  <nav class="tabs" aria-label="Work sections">
+    {% for key, href, label in [("overview", "/work", "Overview"), ("applications", "/work/applications", "Applications"), ("jobs", "/work/jobs", "Work"), ("money", "/work/money", "Money")] %}
+    <a href="{{ href }}" {% if tab == key %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <a class="btn btn-primary btn-sm page-head-end" href="/work/add">+ Add</a>
+</div>
+{% block work %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "work/base.html" %}
+{% block title %}Work — Prospector{% endblock %}
+{% block work %}
+{% if empty %}
+<section class="card empty-state">
+  <h2>Add your first application</h2>
+  <p class="muted">Mark a lead as <b>Applied</b> and it shows up here with a follow-up reminder, or add one you found elsewhere.</p>
+  <p class="actions"><a class="btn btn-primary" href="/work/add">Add application</a> <a class="btn" href="/work/add?what=work">Add work</a> <a class="btn" href="/leads?tab=starred">Starred leads</a></p>
+</section>
+{% else %}
+<section class="tiles tiles-4" aria-label="Key numbers">
+  <a class="tile" href="/work/money"><span class="tile-label">Received this month</span>
+    <span class="tile-value">{{ received_usd|money("USD") }}</span><span class="tile-sub muted">{{ received_usd|tnd }}</span></a>
+  <a class="tile" href="/work/money"><span class="tile-label">Expected</span>
+    <span class="tile-value">{{ expected_usd|money("USD") }}</span>
+    <span class="tile-sub muted">{{ expected_week }} due this week</span></a>
+  <a class="tile" href="/work/jobs"><span class="tile-label">Active work</span>
+    <span class="tile-value">{{ active|length }}</span>
+    <span class="tile-sub muted">{{ active|selectattr("w.stage", "equalto", "delivered")|list|length }} delivered</span></a>
+  <a class="tile" href="/work/applications"><span class="tile-label">Applications · 30 days</span>
+    <span class="tile-value">{{ counts.sent }}</span>
+    <span class="tile-sub muted">{{ counts.replied }} {{ "reply" if counts.replied == 1 else "replies" }} · {{ counts.won }} won</span></a>
+</section>
+
+{% if due %}{% include "work/_followups.html" %}{% endif %}
+
+<div class="grid">
+  <section class="card span-2">
+    <h2 class="card-title">Applications <a class="card-link" href="/work/applications">All →</a></h2>
+    <div class="pipeline">
+      {% for label, key, items in pipeline %}
+      {% set n = (stage_counts.get("rejected", 0) + stage_counts.get("no_reply", 0) + stage_counts.get("withdrawn", 0)) if key == "closed" else stage_counts.get(key, 0) %}
+      <a class="pipe-col pipe-{{ key }}" href="/work/applications?stage={{ key }}">
+        <span class="pipe-head">{{ label }} <b>{{ n }}</b></span>
+        {% for a in items %}<span class="pipe-item">{{ a.title }}</span>{% endfor %}
+        {% if n > items|length %}<span class="muted small">+{{ n - items|length }} more</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card" id="accounts">
+    <h2 class="card-title">Accounts <a class="card-link" href="/work/add?what=account">+ Add</a></h2>
+    {% for acc, total, total_usd in accounts %}
+    <div class="kv-row"><span>{{ acc.name }}</span>
+      <span class="num">{{ total|money(acc.currency) }}{% if acc.currency != "USD" %} <span class="muted small">≈ {{ total_usd|money("USD") }}</span>{% endif %}</span></div>
+    {% else %}<p class="muted small">Add the places money lands (Freelancer balance, Payoneer, your bank) to see totals here.</p>{% endfor %}
+  </section>
+
+  <section class="card span-2">
+    <h2 class="card-title">Active work <a class="card-link" href="/work/jobs">All →</a></h2>
+    {% for r in active %}
+    <a class="work-row" href="/work/jobs/{{ r.w.id }}">
+      <span class="work-main"><span class="work-title">{{ r.w.title }}</span>
+        <span class="muted small">{{ r.w.client or "No client" }} · {{ stage_label(r.w.stage) }}</span></span>
+      <span class="work-paid">
+        {% if r.price %}<span class="meter paid-bar" aria-hidden="true"><span style="width: {{ r.pct }}%"></span></span>{% endif %}
+        <span class="muted small">{{ r.paid|money("USD") }}{% if r.price %} of {{ r.price|money("USD") }}{% else %} paid{% endif %}</span>
+      </span>
+    </a>
+    {% else %}<p class="muted empty">No active work. Mark an application as won to start one.</p>{% endfor %}
+  </section>
+</div>
+{% endif %}
+{% endblock %}
