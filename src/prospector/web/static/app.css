@@ -378,3 +378,21 @@ section[id], .field[id] { scroll-margin-top: 4.5rem; }
   .work-paid { flex-basis: 6.5rem; }
   .page-head-end { margin-left: 0; }
 }
+.sub-tabs { margin-bottom: 1rem; width: fit-content; max-width: 100%; }
+.stack > .card + .card { margin-top: 1rem; }
+.pay-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem;
+  padding: .65rem 0; border-top: 1px solid var(--line); }
+.card-title + .pay-row, .paid-bar + .pay-row { border-top: 0; }
+.pay-main { display: flex; flex-direction: column; min-width: 0; }
+.pay-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pay-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.inline-form.tight { margin: 0; gap: .35rem; }
+.inline-form.tight input, .inline-form.tight select { width: auto; padding: .3rem .45rem; font-size: .85rem; }
+.pay-form { border-top: 1px solid var(--line); margin-top: .75rem; padding-top: .25rem; }
+.seg { display: inline-flex; gap: .25rem; background: var(--soft); padding: .2rem; border-radius: 10px; }
+.seg label { display: flex; align-items: center; gap: .3rem; padding: .25rem .65rem; border-radius: 8px; font-size: .85rem;
+  cursor: pointer; }
+.seg label:has(input:checked) { background: var(--card); box-shadow: var(--shadow); font-weight: 600; }
+.seg input { accent-color: var(--accent); }
+.pay-form:has(input[value="received"]:checked) .when-expected,
+.pay-form:has(input[value="expected"]:checked) .when-received { display: none; }

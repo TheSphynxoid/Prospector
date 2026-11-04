@@ -1,0 +1,49 @@
+{# Payments of one work item, with the add form. Context: see payments_data in web/work.py. #}
+<section class="card" id="payments" aria-label="Payments">
+  <h2 class="card-title">Payments
+    <span class="muted">· {{ paid|money("USD") }}{% if price %} of {{ price|money("USD") }}{% else %} received{% endif %}</span></h2>
+  {% if price %}<span class="meter paid-bar" aria-hidden="true"><span style="width: {{ pct }}%"></span></span>{% endif %}
+  {% for p in payments %}
+  <div class="pay-row">
+    <div class="pay-main">
+      <span class="pay-amount">{{ p.amount_milli|money(p.currency) }}{% if p.currency != "USD" and p.usd_milli %} <span class="muted small">≈ {{ p.usd_milli|money("USD") }}</span>{% endif %}</span>
+      <span class="muted small">{% if p.status == "received" %}Received {{ p.received_on.strftime("%d %b %Y") }} · {{ names.get(p.account_id, "unknown account") }}{% if p.currency != "USD" %} · {{ "%g"|format(p.usd_rate) }} {{ p.currency }}/USD{% endif %}
+        {% else %}Expected{% if p.due_on %} {{ p.due_on.strftime("%d %b %Y") }}{% endif %}{% endif %}{% if p.note %} · {{ p.note }}{% endif %}</span>
+    </div>
+    <div class="pay-actions">
+      {% if p.status == "expected" %}
+      <form class="inline-form tight" hx-post="/work/payments/{{ p.id }}/receive" hx-target="#payments" hx-swap="outerHTML">
+        <input type="date" name="received_on" value="{{ today.isoformat() }}" aria-label="Received on">
+        <select name="account_id" aria-label="Account">{% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == default_account }}>{{ a.name }}</option>{% endfor %}</select>
+        <button class="btn btn-sm btn-good">Mark received</button>
+      </form>
+      {% endif %}
+      <button class="btn btn-sm" hx-post="/work/payments/{{ p.id }}/delete" hx-target="#payments" hx-swap="outerHTML"
+              hx-confirm="Remove this payment?" aria-label="Remove payment">✕</button>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted small">No payments yet.</p>
+  {% endfor %}
+
+  <form class="pay-form" hx-post="/work/jobs/{{ w.id }}/payments" hx-target="#payments" hx-swap="outerHTML">
+    <h3 class="small">Add a payment</h3>
+    {% set kind = form.get("kind", "received") if form else "received" %}
+    <div class="seg" role="radiogroup" aria-label="Payment kind">
+      <label><input type="radio" name="kind" value="received" {{ 'checked' if kind == 'received' }}> Received</label>
+      <label><input type="radio" name="kind" value="expected" {{ 'checked' if kind == 'expected' }}> Expected</label>
+    </div>
+    <div class="inline-form">
+      <label class="grow"><span>Amount</span><input name="amount" inputmode="decimal" placeholder="300" value="{{ form.get('amount', '') if form else '' }}" required></label>
+      <label><span>Currency</span><select name="currency">{% for c in currencies %}<option {{ 'selected' if c == (form.get('currency') if form else w.currency) }}>{{ c }}</option>{% endfor %}</select></label>
+      <label class="when-received"><span>Received on</span><input type="date" name="received_on" value="{{ today.isoformat() }}"></label>
+      <label class="when-expected"><span>Due on</span><input type="date" name="due_on"></label>
+      <label class="when-received"><span>Into</span>
+        {% if accounts %}<select name="account_id">{% for a in accounts %}<option value="{{ a.id }}" {{ 'selected' if a.id == default_account }}>{{ a.name }}</option>{% endfor %}</select>
+        {% else %}<a class="btn btn-sm" href="/work/add?what=account">Add an account</a>{% endif %}</label>
+      <label class="grow"><span>Note</span><input name="note" maxlength="500" placeholder="Milestone 1"></label>
+      <button class="btn btn-primary btn-sm">Add</button>
+    </div>
+    {% for key in ("amount", "currency", "day", "account_id") %}{% if errors.get(key) %}<p class="field-err" role="alert">{{ errors[key] }}</p>{% endif %}{% endfor %}
+  </form>
+</section>

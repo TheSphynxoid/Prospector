@@ -1,0 +1,22 @@
+{% extends "work/base.html" %}
+{% block title %}{{ w.title }} — Work — Prospector{% endblock %}
+{% block work %}
+<p class="crumbs"><a href="/work/jobs">← Work</a></p>
+<div class="detail-grid">
+  <div class="stack">
+    <section class="card">
+      <h2 class="app-title">{{ w.title }}</h2>
+      <p class="muted">{{ w.client or "No client" }}{% if w.kind %} · {{ w.kind|replace("_", " ") }}{% endif %}{% if w.price_milli %} · agreed {{ w.price_milli|money(w.currency) }}{% endif %}
+        {% if application %} · <a href="/work/applications/{{ application.id }}">the application</a>{% endif %}{% if lead %} · <a href="/lead/{{ lead.id }}">the lead</a>{% endif %}</p>
+      {% include "work/_job_stage.html" %}
+    </section>
+    {% include "work/_payments.html" %}
+  </div>
+  <section class="card detail-side">
+    <h2 class="card-title">Accounts</h2>
+    {% for a in accounts %}<div class="kv-row"><span>{{ a.name }}</span><span class="muted small">{{ a.currency }}</span></div>
+    {% else %}<p class="muted small">No accounts yet.</p>{% endfor %}
+    <p><a class="btn btn-sm" href="/work/add?what=account">+ Add account</a></p>
+  </section>
+</div>
+{% endblock %}

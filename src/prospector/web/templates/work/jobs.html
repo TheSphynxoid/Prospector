@@ -1,0 +1,29 @@
+{% extends "work/base.html" %}
+{% block title %}Work — Prospector{% endblock %}
+{% block work %}
+<nav class="tabs sub-tabs" aria-label="Stage">
+  <a href="/work/jobs" {% if not stage %}aria-current="page"{% endif %}>All</a>
+  {% for s in stages %}<a href="/work/jobs?stage={{ s }}" {% if stage == s %}aria-current="page"{% endif %}>{{ stage_label(s) }}</a>{% endfor %}
+</nav>
+{% for s, rows in groups %}
+<section class="card">
+  <h2 class="card-title">{{ stage_label(s) }} <span class="muted">· {{ rows|length }}</span></h2>
+  {% for r in rows %}
+  <a class="work-row" href="/work/jobs/{{ r.w.id }}">
+    <span class="work-main"><span class="work-title">{{ r.w.title }}</span>
+      <span class="muted small">{{ r.w.client or "No client" }} · started {{ r.w.started_on.strftime("%d %b") }}</span></span>
+    <span class="work-paid">
+      {% if r.price %}<span class="meter paid-bar" aria-hidden="true"><span style="width: {{ r.pct }}%"></span></span>{% endif %}
+      <span class="muted small">{{ r.paid|money("USD") }}{% if r.price %} of {{ r.price|money("USD") }}{% else %} paid{% endif %}</span>
+    </span>
+  </a>
+  {% else %}<p class="muted empty">Nothing here.</p>{% endfor %}
+</section>
+{% else %}
+<section class="card empty-state">
+  <h2>No work yet</h2>
+  <p class="muted">Mark an application as won, or add work you got another way.</p>
+  <p class="actions"><a class="btn btn-primary" href="/work/add?what=work">Add work</a></p>
+</section>
+{% endfor %}
+{% endblock %}

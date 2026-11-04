@@ -42,10 +42,10 @@ def _int(raw: str, default: int = 1) -> int:
     return max(int(raw), 1) if raw.isdigit() else default
 
 
-def toast(msg: str, undo: str | None = None) -> dict:
+def toast(msg: str, undo: str | None = None, target: str | None = None) -> dict:
     t = {"msg": msg}
     if undo:
-        t["undo"] = undo
+        t["undo"], t["target"] = undo, target
     return {"HX-Trigger": json.dumps({"toast": t})}
 
 
@@ -249,6 +249,147 @@ def make_work_router(ctx: AppContext) -> APIRouter:
                               source=form.get("source", "").strip() or None, kind=kind,
                               url=form.get("url", "").strip() or None, applied_on=applied, follow_up_on=follow)
         return RedirectResponse(f"/work/applications/{aid}", status_code=303)
+
+    # Work items and payments
+
+    def job_or_404(work_id: int):
+        w = ctx.works.get(work_id)
+        if w is None:
+            raise HTTPException(404)
+        return w
+
+    def payments_data(work_id: int, errors: dict | None = None, form=None) -> dict:
+        w = ctx.works.get(work_id)
+        last = ctx.accounts.last_used()
+        price = usd(w.price_milli, w.currency) if w.price_milli else None
+        paid = ctx.works.paid_usd_milli(work_id)
+        return {"w": w, "payments": ctx.works.payments(work_id), "paid": paid, "price": price,
+                "pct": min(100, round(paid * 100 / price)) if price else None,
+                "accounts": ctx.accounts.list(), "names": {a.id: a.name for a in ctx.accounts.list(True)},
+                "default_account": last.id if last else None, "currencies": CURRENCIES, "today": fx.today(),
+                "errors": errors or {}, "form": form or {}}
+
+    def payments_fragment(request: Request, work_id: int, status: int = 200, headers: dict | None = None,
+                          errors: dict | None = None, form=None):
+        return render(request, "work/_payments.html", payments_data(work_id, errors, form), status, headers)
+
+    def stage_fragment(request: Request, work_id: int, headers: dict | None = None):
+        return render(request, "work/_job_stage.html", {"w": ctx.works.get(work_id)}, headers=headers)
+
+    @router.get("/jobs")
+    def jobs(request: Request, stage: str = ""):
+        from prospector.store.works import WORK_STAGES
+
+        stage = stage if stage in WORK_STAGES else ""
+        groups = [(s, work_rows(ctx.works.list(stage=s, limit=200))) for s in ((stage,) if stage else WORK_STAGES)]
+        return render(request, "work/jobs.html", {"tab": "jobs", "groups": [g for g in groups if g[1] or stage],
+                                                  "stage": stage, "stages": WORK_STAGES})
+
+    @router.get("/jobs/{work_id}")
+    def job(request: Request, work_id: int):
+        w = job_or_404(work_id)
+        return render(request, "work/job.html", {
+            "tab": "jobs", **payments_data(work_id),
+            "application": ctx.apps.get(w.application_id) if w.application_id else None,
+            "lead": ctx.leads.get(w.lead_id) if w.lead_id else None})
+
+    @router.post("/jobs/{work_id}/stage")
+    async def job_stage(request: Request, work_id: int):
+        from prospector.store.works import WORK_STAGES
+
+        w = job_or_404(work_id)
+        stage = (await request.form()).get("stage", "")
+        if stage not in WORK_STAGES:
+            raise HTTPException(400, "unknown stage")
+        ended = fx.today() if stage in ("closed", "cancelled") else None
+        ctx.works.update(work_id, stage=stage, ended_on=ended)
+        undo = f"/work/jobs/{work_id}/stage-undo?to={w.stage}&ended={w.ended_on.isoformat() if w.ended_on else ''}"
+        headers = toast(f"Marked {STAGE_LABEL[stage].lower()}", undo, "#job-stage")
+        return stage_fragment(request, work_id, headers)
+
+    @router.post("/jobs/{work_id}/stage-undo")
+    def job_stage_undo(request: Request, work_id: int, to: str, ended: str = ""):
+        from prospector.store.works import WORK_STAGES
+
+        job_or_404(work_id)
+        if to not in WORK_STAGES:
+            raise HTTPException(400)
+        try:
+            ended_on = parse_day(ended)
+        except ValueError:
+            raise HTTPException(400) from None
+        ctx.works.update(work_id, stage=to, ended_on=ended_on)
+        return stage_fragment(request, work_id)
+
+    @router.post("/jobs/{work_id}/payments")
+    async def add_payment(request: Request, work_id: int):
+        job_or_404(work_id)
+        form = await request.form()
+        errors: dict[str, str] = {}
+        kind = form.get("kind", "received")
+        currency = form.get("currency", "USD")
+        try:
+            amount = parse_amount(form.get("amount", ""))
+        except ValueError as e:
+            errors["amount"], amount = str(e), None
+        if currency not in CURRENCIES:
+            errors["currency"] = "Pick a currency."
+        try:
+            day = parse_day(form.get("received_on" if kind == "received" else "due_on"),
+                            fx.today() if kind == "received" else None)
+        except ValueError as e:
+            errors["day"], day = str(e), None
+        account = None
+        if kind == "received":
+            raw = (form.get("account_id") or "").strip()
+            account = ctx.accounts.get(int(raw)) if raw.isdigit() else None
+            if account is None:
+                errors["account_id"] = "Pick the account it landed in."
+        if errors:
+            return payments_fragment(request, work_id, 400, errors=errors, form=form)
+        note = form.get("note", "").strip()[:500]
+        if kind == "received":
+            ctx.works.add_received(work_id, amount, currency, day, account.id, rates, note)
+        else:
+            ctx.works.add_expected(work_id, amount, currency, day, note)
+        return payments_fragment(request, work_id, headers=toast("Payment added"))
+
+    def payment_or_404(payment_id: int):
+        p = ctx.works.payment(payment_id)
+        if p is None:
+            raise HTTPException(404)
+        return p
+
+    @router.post("/payments/{payment_id}/receive")
+    async def receive(request: Request, payment_id: int):
+        p = payment_or_404(payment_id)
+        form = await request.form()
+        errors = {}
+        try:
+            day = parse_day(form.get("received_on"), fx.today())
+        except ValueError as e:
+            errors["day"], day = str(e), None
+        raw = (form.get("account_id") or "").strip()
+        account = ctx.accounts.get(int(raw)) if raw.isdigit() else ctx.accounts.last_used()
+        if account is None:
+            errors["account_id"] = "Pick the account it landed in."
+        if errors:
+            return payments_fragment(request, p.work_id, 400, errors=errors)
+        ctx.works.receive(payment_id, day, account.id, rates)
+        return payments_fragment(request, p.work_id, headers=toast("Marked received"))
+
+    @router.post("/payments/{payment_id}/delete")
+    def delete_payment(request: Request, payment_id: int):
+        p = payment_or_404(payment_id)
+        ctx.works.delete_payment(payment_id)
+        return payments_fragment(request, p.work_id, headers=toast("Payment removed"))
+
+    @router.post("/accounts/{account_id}/archive")
+    def archive_account(account_id: int):
+        if ctx.accounts.get(account_id) is None:
+            raise HTTPException(404)
+        ctx.accounts.archive(account_id)
+        return RedirectResponse("/work#accounts", status_code=303)
 
     return router
 

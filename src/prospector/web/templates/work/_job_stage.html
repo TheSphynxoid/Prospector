@@ -1,0 +1,13 @@
+{# Stage of one work item and the buttons to move it. Context: w. #}
+<div id="job-stage" class="app-status">
+  <span class="chip stage stage-{{ w.stage }}">{{ stage_label(w.stage) }}</span>
+  <span class="muted small">Started {{ w.started_on.strftime("%d %b %Y") }}{% if w.ended_on %} · ended {{ w.ended_on.strftime("%d %b %Y") }}{% endif %}</span>
+  <span class="actions" role="group" aria-label="Move to">
+    {% for s, label in [("in_progress", "In progress"), ("delivered", "Delivered"), ("closed", "Closed"), ("cancelled", "Cancelled")] %}
+    {% if s != w.stage %}
+    <button class="btn btn-sm{% if s == 'closed' %} btn-good{% endif %}" hx-post="/work/jobs/{{ w.id }}/stage" hx-vals='{"stage": "{{ s }}"}'
+            hx-target="#job-stage" hx-swap="outerHTML" hx-disabled-elt="this">{{ label }}</button>
+    {% endif %}
+    {% endfor %}
+  </span>
+</div>
