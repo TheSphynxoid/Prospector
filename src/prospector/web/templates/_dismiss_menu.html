@@ -1,0 +1,10 @@
+{# Dismiss with a reason. Needs `l` (the lead) and `target` (the element the response replaces). #}
+<details class="dismiss-menu" data-dismiss-menu>
+  <summary class="btn btn-sm act-dismiss" title="Dismiss" aria-label="Dismiss">{{ label }}</summary>
+  <div class="dismiss-options" role="menu">
+    {% for key, text in dismiss_reasons.items() %}
+    <button type="button" class="btn btn-sm" role="menuitem" hx-post="/lead/{{ l.id }}/dismiss" hx-vals='{"reason": "{{ key }}"}'
+            hx-target="{{ target }}" hx-swap="outerHTML">{{ text }}</button>
+    {% endfor %}
+  </div>
+</details>

@@ -217,3 +217,9 @@ CREATE TABLE IF NOT EXISTS lead_signals (
     bid_count INTEGER,
     updated_at TEXT NOT NULL
 );
+
+-- Why a lead was dismissed; one row per dismiss feedback row.
+CREATE TABLE IF NOT EXISTS dismiss_reasons (
+    feedback_id INTEGER PRIMARY KEY REFERENCES feedback(id) ON DELETE CASCADE,
+    reason TEXT NOT NULL
+);

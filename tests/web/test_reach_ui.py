@@ -15,7 +15,7 @@ def test_row_shows_reach_tag_and_bids(ctx, client, make_lead):
     ctx.leads.insert(make_lead(canonical_url="j", title="Junior Go Engineer"))
     ctx.signals.set_bids(lid, 52)
     page = client.get("/?tab=new").text
-    assert page.count("Too senior") == 1 and "52 bids" in page
+    assert page.count("chip chip-reach") == 1 and "52 bids" in page
     assert "Too senior" in client.get(f"/lead/{lid}").text
 
 

@@ -138,3 +138,15 @@ def rescore_state(ctx: "AppContext") -> dict | None:
     if status and status.get("state") == "running" and not ctx.rescoring:
         return None
     return status
+
+
+def miss_rows(ctx) -> list[tuple]:
+    """Leads dismissed as too senior or can't-apply that reach did not tag: what the detectors missed."""
+    from prospector.rank.reach import reach
+    from prospector.store.feedback import REASONS
+    out = []
+    for lead_id, reason in ctx.feedback.misses():
+        lead = ctx.leads.get(lead_id)
+        if lead is not None and reach(lead, ctx.profile)[1] is None:
+            out.append((lead, REASONS[reason]))
+    return out

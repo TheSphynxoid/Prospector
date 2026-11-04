@@ -33,4 +33,15 @@
   </section>
   <div class="form-actions"><button type="submit" class="btn btn-primary" data-save>Save and restart</button></div>
 </form>
+<section class="card" id="misses">
+  <h2 class="card-title">Detection misses</h2>
+  <p class="muted small">Leads you dismissed as too senior or can't-apply that weren't tagged. These show which titles and regions the level and region checks miss.</p>
+  {% if misses %}
+  <ul class="plain">
+    {% for lead, why in misses %}
+    <li><a href="/lead/{{ lead.id }}">{{ lead.title }}</a> <span class="muted small">· {{ lead.remote_region or "no region" }} · {{ why }}</span></li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted small">No misses yet.</p>{% endif %}
+</section>
 {% endblock %}

@@ -25,7 +25,7 @@ from prospector.store import conn_status
 from prospector.web.dashboard import templates
 from prospector.web.settings.apply import COLD, apply_overrides
 from prospector.web.settings.pages import (AREAS, BY_KEY, area_status, connection_cards, queue_rescore,
-                                          reload_profile, rescore_state, source_rows)
+                                          reload_profile, miss_rows, rescore_state, source_rows)
 
 
 @dataclass(frozen=True)
@@ -155,7 +155,7 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         if area.key == "connections":
             extra = {"cards": connection_cards(ctx), "fields": FIELDS, **(extra or {})}
         elif area.key == "sources":
-            extra = {"rows": source_rows(ctx), **(extra or {})}
+            extra = {"rows": source_rows(ctx), "misses": miss_rows(ctx), **(extra or {})}
         elif area.key == "profile":
             from prospector.profile.yaml_io import dump
             extra = {"yaml_text": dump(ctx.profile), "yaml_error": "", "cvs": ctx.cvs.list(), "cv_error": "",

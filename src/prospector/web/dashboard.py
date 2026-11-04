@@ -16,6 +16,7 @@ from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
 from prospector.sources.registry import known_source_ids
+from prospector.store.feedback import REASONS
 from prospector.store.stats import TZ, StatsRepo
 from prospector.rank.reach import reach
 from prospector.web.checklist import EXAMPLE_PROFILE, setup_items
@@ -77,6 +78,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
     # From the live profile, so changing your levels re-tags leads before any re-score.
     templates.env.globals["reach_tag"] = lambda lead: reach(lead, ctx.profile)[1]
     templates.env.globals["bids_of"] = ctx.signals.bids
+    templates.env.globals["dismiss_reasons"] = REASONS
 
     @router.get("/")
     def overview(request: Request):
@@ -161,7 +163,8 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         return fragment(request, lead_id)
 
     @router.post("/lead/{lead_id}/{action}")
-    def act(request: Request, lead_id: int, action: str):
+    async def act(request: Request, lead_id: int, action: str):
+        reason = str((await request.form()).get("reason", "")) or None
         status = _ACTIONS.get(action)
         lead = ctx.leads.get(lead_id)
         if status is None or lead is None:
@@ -172,7 +175,7 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         ctx.leads.set_status(lead_id, status)
         if action == "applied":
             on_applied(ctx, lead_id, fx.today())
-        fb = ctx.feedback.record(lead_id, action)
+        fb = ctx.feedback.record(lead_id, action, reason)
         target = "#detail-actions" if request.headers.get("hx-target") == "detail-actions" else f"#lead-{lead_id}"
         trigger = {"toast": {"msg": _TOAST[action], "target": target,
                              "undo": f"/lead/{lead_id}/undo?{urlencode({'to': previous.value, 'fb': fb})}"}}

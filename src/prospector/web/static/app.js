@@ -327,4 +327,22 @@
   window.addEventListener("beforeunload", (e) => {
     if ([...dirtyForms].some((f) => document.body.contains(f))) { e.preventDefault(); e.returnValue = ""; }
   });
+
+  // Dismiss menus: one open at a time; Escape or a click elsewhere closes it; opening focuses the first reason.
+  const closeMenus = (except) => document.querySelectorAll("[data-dismiss-menu][open]").forEach((m) => {
+    if (m !== except) m.open = false;
+  });
+  document.addEventListener("toggle", (e) => {
+    const m = e.target;
+    if (!m.matches?.("[data-dismiss-menu]") || !m.open) return;
+    closeMenus(m);
+    m.querySelector(".dismiss-options button")?.focus();
+  }, true);
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest?.("[data-dismiss-menu]")) closeMenus();
+  });
+  document.addEventListener("keydown", (e) => {
+    const m = e.target.closest?.("[data-dismiss-menu]");
+    if (e.key === "Escape" && m?.open) { m.open = false; m.querySelector("summary")?.focus(); }
+  });
 })();

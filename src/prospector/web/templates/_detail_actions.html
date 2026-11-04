@@ -2,7 +2,8 @@
 <div id="detail-actions" class="actions detail-actions" role="group" aria-label="Actions">
   <span class="chip chip-status">{{ l.status.value }}</span>
   {% for action, label in [("star", "★ Star"), ("applied", "Applied"), ("dismiss", "✕ Dismiss"), ("reset", "↺ Back to new")] %}
-  {% if not (action == "reset" and l.status.value == "new") %}
+  {% if action == "dismiss" %}{% with target = "#detail-actions" %}{% include "_dismiss_menu.html" %}{% endwith %}
+  {% elif not (action == "reset" and l.status.value == "new") %}
   <button class="btn btn-sm act-{{ action }}" hx-post="/lead/{{ l.id }}/{{ action }}" hx-target="#detail-actions"
           hx-swap="outerHTML">{{ label }}</button>
   {% endif %}
