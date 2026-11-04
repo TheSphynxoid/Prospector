@@ -102,3 +102,23 @@ def source_rows(ctx: "AppContext") -> list[dict]:
         rows.append({"id": sid, "h": h, "state": state, "enabled": sid in ctx.settings.enabled_sources,
                      "needs_creds": FACTORIES[sid](ctx.settings, ctx.mail) is None, "running": sid in running})
     return rows
+
+
+def reload_profile(ctx: "AppContext", profile) -> bool:
+    """Save and switch to the new profile without a restart; re-score leads in the background.
+    Returns whether a re-score was queued (not when one is already running)."""
+    from datetime import UTC, datetime
+
+    from prospector.pipeline import rescore_all
+    from prospector.profile.form import save_profile
+
+    save_profile(ctx.settings.profile_path, profile)
+    ctx.profile = profile
+    ctx.profile_vecs = None  # rebuilt from the new skills and projects on next use
+    status = ctx.kv.get("rescore_status") or {}
+    if ctx.embedder is None or status.get("state") == "running":
+        return False
+    total = ctx.conn.execute("SELECT COUNT(*) FROM scores WHERE embedding IS NOT NULL").fetchone()[0]
+    ctx.kv.set("rescore_status", {"state": "running", "count": total})
+    ctx.run_background(lambda: rescore_all(ctx, datetime.now(UTC)))
+    return True

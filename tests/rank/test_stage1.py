@@ -106,8 +106,11 @@ def test_reweight_moves_toward_positive_component_and_sums_to_one():
     assert all(0.05 <= v <= 0.60 for v in w.as_dict().values())
 
 
-def test_boost_keyword_with_spaces_matches_list_items(make_lead, prof):
-    prof.boost_keywords = {" go ": 1.0}
+def test_interest_matches_whole_words_in_list_items(make_lead, prof):
+    from prospector.profile.model import Interest
+    prof.interests = [Interest(phrase="go", weight=1.0)]
     lead = make_lead(title="Backend engineer", body="Skills:\n- go\n- kubernetes")
     _, bd = score(lead, prof, FakeEmbedder())
     assert bd["keywords"] > 0
+    _, bd = score(make_lead(title="Google ads manager", body="good pay"), prof, FakeEmbedder())
+    assert bd["keywords"] == 0

@@ -23,7 +23,8 @@ from prospector.settings_store import LoadedSettings, save_overrides, validate_o
 from prospector.store import conn_status
 from prospector.web.dashboard import templates
 from prospector.web.settings.apply import COLD, apply_overrides
-from prospector.web.settings.pages import AREAS, BY_KEY, area_status, connection_cards, source_rows
+from prospector.web.settings.pages import (AREAS, BY_KEY, area_status, connection_cards, reload_profile,
+                                          source_rows)
 
 
 @dataclass(frozen=True)
@@ -238,9 +239,13 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
                         profile_error=f"{'.'.join(map(str, err['loc']))}: {err['msg']}")
         except ValueError as e:
             return page(request, "profile", 400, prow=rows, profile_error=str(e))
-        save_profile(ctx.settings.profile_path, profile)
-        ctx.restart()
-        return templates.TemplateResponse(request, "restarting.html", {"nav": "settings"})
+        # Blocks this form doesn't edit are kept as they are.
+        keep = {k: getattr(ctx.profile, k) for k in ("about", "pricing") if not rows.get(f"has_{k}")}
+        queued = reload_profile(ctx, profile.model_copy(update=keep))
+        status = ctx.kv.get("rescore_status") or {}
+        note = (f"Saved. Re-scoring {status.get('count', 0)} leads in the background." if queued or
+                status.get("state") == "running" else "Saved.")
+        return page(request, "profile", notice=note)
 
     def rescore_fragment(status: dict | None) -> HTMLResponse:
         if status and status.get("state") == "running":

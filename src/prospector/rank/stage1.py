@@ -4,6 +4,7 @@ import numpy as np
 
 from prospector.models import Lead, Remote
 from prospector.profile.filters import pay_meets_min
+from prospector.profile.interests import keyword_score
 from prospector.profile.model import Profile
 from prospector.rank.weights import Weights
 
@@ -24,9 +25,7 @@ def score_stage1(lead: Lead, lead_vec: np.ndarray, profile_vecs: np.ndarray, pos
     lo, hi = sim_range
     sim = _clamp(((_max_cos(lead_vec, profile_vecs) or 0.0) - lo) / (hi - lo))
 
-    # One line padded with spaces, so " go " also matches list items and words at line ends.
-    text = " " + " ".join(f"{lead.title}\n{lead.body}".lower().split()) + " "
-    keywords = _clamp(sum(w for kw, w in profile.boost_keywords.items() if kw.lower() in text) / 3)
+    keywords = keyword_score(lead, profile.interests)
 
     meets = pay_meets_min(lead.pay, profile)
     pay = 0.5 if lead.pay is None else (0.0 if meets is False else 1.0)

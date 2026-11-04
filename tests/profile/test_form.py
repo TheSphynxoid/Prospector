@@ -35,7 +35,7 @@ def test_form_parsing_drops_empty_rows():
     assert p.filters.exclude_unpaid is False  # unchecked box is absent
     assert [(m.currency, m.amount) for m in p.filters.min_pay] == [("USD", 30000)]
     assert p.filters.languages == ["en", "fr"] and p.filters.blocked_companies == ["Evil Corp"]
-    assert p.boost_keywords == {"golang": 1.0}
+    assert [(i.phrase, i.weight, i.where) for i in p.interests] == [("golang", 1.0, "anywhere")]
 
 
 @pytest.mark.parametrize("bad", [("skills[0][weight]", "7"), ("skills[0][weight]", "abc"),

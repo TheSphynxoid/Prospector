@@ -8,11 +8,11 @@ from typing import Any
 
 import yaml
 
-from prospector.profile.model import Filters, MinPay, Pricing, Profile, Project, Targets
+from prospector.profile.model import About, Filters, Interest, MinPay, Pricing, Profile, Project, Targets
 
 _ROW = re.compile(r"^(\w+)\[(\d+)\]\[(\w+)\]$")
 GROUPS = {"skills": ("name", "weight"), "projects": ("name", "writeup", "tags"),
-          "min_pay": ("currency", "period", "amount"), "boost": ("keyword", "weight")}
+          "min_pay": ("currency", "period", "amount"), "boost": ("keyword", "weight", "where")}
 _KEYS = {"skills": "name", "projects": "name", "min_pay": "currency", "boost": "keyword"}
 
 
@@ -43,7 +43,7 @@ def rows_from_profile(p: Profile) -> dict[str, Any]:
         "languages": ", ".join(f.languages),
         "blocked_keywords": ", ".join(f.blocked_keywords),
         "blocked_companies": ", ".join(f.blocked_companies),
-        "boost": [{"keyword": k, "weight": _num(v)} for k, v in p.boost_keywords.items()],
+        "boost": [{"keyword": i.phrase, "weight": _num(i.weight), "where": i.where} for i in p.interests],
         "pricing": {k: _num(v) for k, v in p.pricing.model_dump().items()},
     }
 
@@ -62,6 +62,7 @@ def rows_from_form(form) -> dict[str, Any]:
         rows[name] = str(form.get(name, ""))
     rows["exclude_unpaid"] = bool(form.get("exclude_unpaid"))
     rows["pricing"] = {k: str(form.get(f"pricing[{k}]", "")).strip() for k in Pricing.model_fields}
+    rows["has_pricing"] = any(rows["pricing"].values())
     return rows
 
 
@@ -84,7 +85,9 @@ def profile_from_rows(rows: dict[str, Any]) -> Profile:
             blocked_companies=_csv(rows["blocked_companies"]),
         ),
         # Keywords keep their spaces: " go " deliberately matches the word, not "google".
-        boost_keywords={r["keyword"]: _weight(r["weight"]) for r in keep("boost")},
+        interests=[Interest(phrase=r["keyword"].strip(), weight=float(r["weight"]), where=r.get("where") or "anywhere")
+                   for r in keep("boost")],
+        about=rows.get("about") or About(),
         pricing=Pricing(**{k: float(v) for k, v in rows.get("pricing", {}).items() if v}),
     )
 

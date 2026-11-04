@@ -209,12 +209,12 @@ def example_profile(setup, ctx, env):
     return setup
 
 
-def test_profile_page_round_trip_saves_and_restarts(example_profile, ctx):
+def test_profile_page_round_trip_saves_without_restart(example_profile, ctx):
     from prospector.profile.model import load_profile
     client, restarts, _ = example_profile
     before = ctx.profile
     r = client.post("/settings/profile", data=as_form(profile_form_of(client)))
-    assert "Restarting" in r.text and restarts == [1]
+    assert "Saved." in r.text and restarts == []
     assert load_profile(ctx.settings.profile_path) == before
     assert ctx.settings.profile_path.with_name("profile.yaml.bak").exists() or \
         ctx.settings.profile_path.with_suffix(ctx.settings.profile_path.suffix + ".bak").exists()
