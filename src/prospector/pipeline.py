@@ -11,6 +11,7 @@ from prospector.normalize.normalize import normalize
 from prospector.notify.digest import build_digest, render_telegram
 from prospector.profile.filters import apply_hard_filters
 from prospector.rank.embed import lead_text, profile_vectors
+from prospector.notify.alerts import send_alerts
 from prospector.rank.stage1 import score_stage1
 from prospector.rank.stage2 import run_stage2
 from prospector.rank.weights import COMPONENTS, Weights, reweight
@@ -145,6 +146,7 @@ def tick(ctx: AppContext, now: datetime) -> None:
         if should_run(ctx.health.get(source.id), source, now):
             ingest(ctx, source, now)
     stage2(ctx, now.date())
+    send_alerts(ctx, now)
 
 
 def digest_preview(ctx: AppContext, now: datetime) -> list[str]:

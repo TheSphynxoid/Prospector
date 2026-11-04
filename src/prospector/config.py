@@ -13,6 +13,7 @@ EDITABLE: tuple[str, ...] = (
     "access_team_domain", "access_aud", "adzuna_app_id", "adzuna_app_key", "github_token", "dashboard_url",
     "llm_model", "llm_fallback_model", "llm_daily_cap", "stage2_threshold", "enabled_sources", "digest_time",
     "assistant_model", "assistant_daily_cap", "usd_tnd_rate", "followup_days", "expire_days_short", "expire_days_jobs", "expire_days_long",
+    "alerts_enabled", "alert_threshold", "alert_daily_max",
 )
 SECRETS: frozenset[str] = frozenset({"llm_api_key", "telegram_token", "bridge_secret", "adzuna_app_key", "github_token"})
 _HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -39,6 +40,9 @@ class Settings(BaseSettings):
     assistant_model: str | None = None  # blank: llm_model
     assistant_daily_cap: int = Field(100, ge=1, le=2000)
     usd_tnd_rate: float | None = Field(None, gt=0, le=100)  # manual override; None = today's fetched rate
+    alerts_enabled: bool = True  # instant Telegram alerts for fresh leads within reach
+    alert_threshold: float = Field(0.60, ge=0, le=1)
+    alert_daily_max: int = Field(6, ge=0, le=50)
     followup_days: int = Field(7, ge=1, le=60)  # days after applying (or following up) before a reminder
     # Leads older than this (days since posted, else first seen) expire: gigs/bounties, jobs/contracts, PFE/AI training.
     expire_days_short: int = Field(14, ge=1, le=365)

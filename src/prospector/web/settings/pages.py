@@ -28,8 +28,8 @@ AREAS: list[Area] = [
           "stage2_threshold"]),
     Area("profile", "Profile", "About you, skills, projects, interests and CVs."),
     Area("pricing", "Pricing and money", "Your rates and the TND exchange rate.", ["usd_tnd_rate"]),
-    Area("schedule", "Schedule and Work", "Digest time, follow-ups and when leads expire.",
-         ["digest_time", "followup_days", "expire_days_short", "expire_days_jobs", "expire_days_long"]),
+    Area("schedule", "Schedule and Work", "Digest time, instant alerts, follow-ups and when leads expire.",
+         ["digest_time", "alerts_enabled", "alert_threshold", "alert_daily_max", "followup_days", "expire_days_short", "expire_days_jobs", "expire_days_long"]),
 ]
 BY_KEY = {a.key: a for a in AREAS}
 

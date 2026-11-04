@@ -282,3 +282,15 @@ def test_settings_shows_today_rates(setup, ctx):
 def test_settings_has_followup_days(setup):
     client, _, _ = setup
     assert 'name="followup_days"' in client.get("/settings/schedule").text
+
+
+def test_alert_settings_live(setup, env, ctx):
+    client, restarts, _ = setup
+    data = form_of(client)
+    assert data["alerts_enabled"] == ["1"] and data["alert_threshold"] == "0.6"
+    data |= {"alert_threshold": "0.8", "_area": "schedule"}
+    data.pop("alerts_enabled")  # untick
+    r = client.post("/settings", data=data)
+    assert r.status_code in (200, 303) and restarts == []
+    assert ctx.settings.alert_threshold == 0.8 and ctx.settings.alerts_enabled is False
+    assert saved(env)["alerts_enabled"] is False

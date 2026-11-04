@@ -62,6 +62,10 @@ TUNING = [
     FieldInfo("assistant_daily_cap", "Assistant messages per day", "int", "1–2000."),
     FieldInfo("usd_tnd_rate", "USD → TND rate", "float", "Blank uses today's rate."),
     FieldInfo("followup_days", "Follow up after (days)", "int", "1–60."),
+    FieldInfo("alerts_enabled", "Instant alerts", "bool",
+              "A Telegram message right away for a fresh strong lead within your reach."),
+    FieldInfo("alert_threshold", "Alert threshold", "float", "Leads scoring at least this (0–1)."),
+    FieldInfo("alert_daily_max", "Alerts per day", "int", "0–50."),
     FieldInfo("expire_days_short", "Expire gigs and bounties after (days)", "int", "Since posted, or first seen. 1–365."),
     FieldInfo("expire_days_jobs", "Expire jobs and contracts after (days)", "int", "1–365."),
     FieldInfo("expire_days_long", "Expire PFE and AI-training offers after (days)", "int", "1–365."),
@@ -97,6 +101,13 @@ def merge_form(form, loaded: LoadedSettings) -> tuple[dict, dict[str, str]]:
                 new.pop(name, None)
             elif form.get(name):
                 new[name] = form[name]
+            continue
+        if info.kind == "bool":  # an unticked box posts nothing; the marker says the field was on the page
+            if f"{name}_present" not in form:
+                continue
+            value = form.get(name) in ("1", "on", "true")
+            if name in new or value != _current(loaded.settings, name):
+                new[name] = value
             continue
         if name not in form:
             continue

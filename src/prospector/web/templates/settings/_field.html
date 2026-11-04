@@ -15,6 +15,9 @@
       <input {{ attrs }} inputmode="numeric" value="{{ value if value is not none else '' }}">
     {% elif f.kind == "float" %}
       <input {{ attrs }} inputmode="decimal" value="{{ value if value is not none else '' }}">
+    {% elif f.kind == "bool" %}
+      <input type="hidden" name="{{ f.name }}_present" value="1">
+      <label class="switch"><input {{ attrs }} type="checkbox" value="1" {% if value in (true, "1", "on", "true") %}checked{% endif %}><span aria-hidden="true"></span></label>
     {% elif f.kind == "time" %}
       <input {{ attrs }} type="time" value="{{ value or '' }}">
     {% elif f.kind == "model" %}
