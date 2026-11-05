@@ -332,7 +332,7 @@ rejects the title unless it also has engineer, developer or software.
 - [ ] **Step 2: Run them.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
   - The button is
-    `hx-post="/lead/{{ lead_id }}/assist/lookup" hx-target="#assist-messages" hx-swap="beforeend" hx-disabled-elt="this"`.
+    `hx-post="/lead/{{ lead_id }}/assist/lookup" hx-target="#assist-log" hx-swap="beforeend" hx-disabled-elt="this"`.
     Use the same target id the message form uses; check `_assist.html`.
 - [ ] **Step 4: Run the suite.** Expected: PASS.
 - [ ] **Step 5: Commit** with message `feat(assist): look up a company through web search`.
