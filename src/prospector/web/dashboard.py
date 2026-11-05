@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from prospector.assist.drafts import split as split_drafts
+from prospector.assist.lookup import split_research
 from prospector.assist.usage import used_today
 from prospector import fx
 from prospector.config import parse_hhmm
@@ -55,6 +56,7 @@ templates.env.filters["pay"] = fmt_pay
 templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
 templates.env.filters["paragraphs"] = paragraphs
 templates.env.filters["drafts"] = split_drafts
+templates.env.filters["research"] = split_research
 
 
 def _enum(cls, value: str):

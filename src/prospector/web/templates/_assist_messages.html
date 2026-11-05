@@ -13,6 +13,13 @@
         </div>
         {%- else %}{{ text(part) }}{% endif %}
       {%- endfor %}
+    {%- elif m.role == "user" %}
+      {%- set before, research, n = m.content|research %}
+      {{- text(before) }}
+      {%- if research is not none %}
+      <details class="research-block"><summary>{{ n }} search result{{ "s" if n != 1 }}</summary>
+        <pre class="research-text">{{ research }}</pre></details>
+      {%- endif %}
     {%- else %}{{ text(m.content) }}{% endif -%}
   </div>
 </div>

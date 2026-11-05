@@ -4,7 +4,9 @@ from fastapi import APIRouter, Form, HTTPException, Request
 from prospector.assist.bid import draft_bid
 from prospector.assist.chat import send
 from prospector.assist.fetch import refresh_posting
+from prospector.assist.lookup import lookup
 from prospector.context import AppContext
+from prospector.search.client import search_ready
 from prospector.store.assist import Message
 from prospector.web.dashboard import templates
 
@@ -18,7 +20,9 @@ def assist_context(ctx: AppContext, lead_id: int) -> dict:
     if not row.fetch_tried:
         ctx.run_background(lambda: refresh_posting(ctx, lead_id, keep_pasted=True))
         row = ctx.assist.get(lead_id)
+    lead = ctx.leads.get(lead_id)
     return {"assist": row, "messages": ctx.assist.messages(lead_id), "bid": row.bid,
+            "can_lookup": bool(lead and lead.company and search_ready(ctx)),
             "usd_tnd": ctx.fx.rate("TND"), "poll": 0, "poll_max": POLL_MAX}
 
 
@@ -59,6 +63,11 @@ def make_assist_router(ctx: AppContext) -> APIRouter:
         lead_or_404(lead_id)
         new = send(ctx, lead_id, text.strip()) if text.strip() else []
         return render(request, "_assist_messages.html", lead_id, messages=new)
+
+    @router.post("/lookup")
+    def look_up(request: Request, lead_id: int):
+        lead_or_404(lead_id)
+        return render(request, "_assist_messages.html", lead_id, messages=lookup(ctx, lead_id))
 
     @router.post("/bid")
     def bid(request: Request, lead_id: int):

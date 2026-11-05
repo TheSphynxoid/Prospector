@@ -541,3 +541,8 @@ table.companies th { text-align: left; color: var(--muted); font-weight: 500; fo
 table.companies td { padding: .4rem .5rem; border-top: 1px solid var(--line, var(--soft)); vertical-align: top; }
 table.companies tr.company-muted td { opacity: .6; }
 @media (max-width: 720px) { table.companies th:nth-child(5), table.companies td:nth-child(5) { display: none; } }
+
+/* Assistant: company lookup research, collapsed under the request */
+.research-block { margin-top: .4rem; }
+.research-block summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
+.research-text { white-space: pre-wrap; word-break: break-word; font: inherit; font-size: .82rem; margin: .4rem 0 0; color: var(--muted); }
