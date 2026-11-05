@@ -26,7 +26,7 @@ def test_digest_job_runs_at_8_tunis(tmp_path):
 
 def test_jobs_registered_single_instance(tmp_path):
     sched = build_scheduler(make_ctx(tmp_path))
-    assert {j.id for j in sched.get_jobs()} == {"tick", "digest", "nightly", "expiry", "links", "fx"}
+    assert {j.id for j in sched.get_jobs()} == {"tick", "digest", "nightly", "expiry", "links", "fx", "discover"}
     assert all(j.max_instances == 1 and j.coalesce for j in sched.get_jobs())
     nightly = sched.get_job("nightly").trigger.get_next_fire_time(None, datetime(2026, 11, 3, 6, 0, tzinfo=UTC))
     assert nightly.astimezone(UTC) == datetime(2026, 11, 4, 2, 0, tzinfo=UTC)
@@ -44,3 +44,9 @@ def test_fx_job_daily_at_0330_tunis(tmp_path):
     sched = build_scheduler(make_ctx(tmp_path))
     nxt = sched.get_job("fx").trigger.get_next_fire_time(None, datetime(2026, 11, 3, 6, 0, tzinfo=UTC))
     assert nxt.astimezone(UTC) == datetime(2026, 11, 4, 2, 30, tzinfo=UTC)
+
+
+def test_discover_job_daily_at_0400_tunis(tmp_path):
+    trigger = build_scheduler(make_ctx(tmp_path)).get_job("discover").trigger
+    nxt = trigger.get_next_fire_time(None, datetime(2026, 11, 3, 0, 0, tzinfo=UTC))
+    assert nxt.astimezone(UTC) == datetime(2026, 11, 3, 3, 0, tzinfo=UTC)
