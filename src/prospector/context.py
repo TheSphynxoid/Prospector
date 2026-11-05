@@ -11,6 +11,7 @@ from prospector.profile.model import Profile
 from prospector.store.accounts import AccountRepo
 from prospector.store.applications import ApplicationRepo
 from prospector.store.assist import AssistRepo
+from prospector.store.companies import CompanyRepo
 from prospector.store.cvs import CvRepo
 from prospector.store.expiry import ExpiryRepo
 from prospector.store.feedback import FeedbackRepo
@@ -51,6 +52,7 @@ class AppContext:
     works: WorkRepo
     accounts: AccountRepo
     cvs: CvRepo
+    companies: CompanyRepo
     verifier: "AccessVerifier | None" = None
     embedder: "Embedder | None" = None
     llm: "LLMClient | None" = None
@@ -74,5 +76,5 @@ class AppContext:
                    health=HealthRepo(conn), mail=MailRepo(conn), kv=KV(conn), assist=AssistRepo(conn), expiry=ExpiryRepo(conn),
                    fx=Rates(conn, tnd_override=settings.usd_tnd_rate), apps=ApplicationRepo(conn),
                    works=WorkRepo(conn), accounts=AccountRepo(conn),
-                   cvs=CvRepo(conn, settings.data_dir / "cv"),
+                   cvs=CvRepo(conn, settings.data_dir / "cv"), companies=CompanyRepo(conn),
                    **extra)

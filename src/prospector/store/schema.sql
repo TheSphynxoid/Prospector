@@ -223,3 +223,18 @@ CREATE TABLE IF NOT EXISTS dismiss_reasons (
     feedback_id INTEGER PRIMARY KEY REFERENCES feedback(id) ON DELETE CASCADE,
     reason TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS companies (
+    id INTEGER PRIMARY KEY,
+    board TEXT NOT NULL,
+    token TEXT NOT NULL,
+    name TEXT,
+    state TEXT NOT NULL DEFAULT 'watching',  -- watching | muted | paused
+    found_by TEXT,
+    added_at TEXT NOT NULL,
+    last_checked TEXT,
+    last_count INTEGER,
+    last_error TEXT,
+    failures INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(board, token)
+);
