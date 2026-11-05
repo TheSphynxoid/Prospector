@@ -161,7 +161,8 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         if area is None:
             return templates.TemplateResponse(request, "settings/hub.html", {
                 "nav": "settings", "area": None, "areas": AREAS, "notice": notice, "errors": {},
-                "statuses": {a.key: area_status(ctx, a.key) for a in AREAS}}, status_code=status)
+                "statuses": {a.key: area_status(ctx, a.key) for a in AREAS},
+                "company_counts": ctx.companies.counts()}, status_code=status)
         needs_creds = {sid for sid, f in FACTORIES.items() if f(ctx.settings, ctx.mail) is None}
         name = {"profile": "settings/profile.html", "pricing": "settings/pricing.html",
                 "connections": "settings/connections.html", "sources": "settings/sources.html"}.get(area.key,
@@ -169,7 +170,8 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
         if area.key == "connections":
             extra = {"cards": connection_cards(ctx), "fields": FIELDS, **(extra or {})}
         elif area.key == "sources":
-            extra = {"rows": source_rows(ctx), "misses": miss_rows(ctx), **(extra or {})}
+            extra = {"rows": source_rows(ctx), "misses": miss_rows(ctx), "company_counts": ctx.companies.counts(),
+                     **(extra or {})}
         elif area.key == "profile":
             from prospector.profile.yaml_io import dump
             extra = {"yaml_text": dump(ctx.profile), "yaml_error": "", "cvs": ctx.cvs.list(), "cv_error": "",

@@ -1,0 +1,57 @@
+{% extends "settings/base.html" %}
+{% block title %}Companies — Settings — Prospector{% endblock %}
+{% block settings %}
+{% if error %}<p class="notice notice-bad" role="alert">{{ error }}</p>{% endif %}
+<section class="card">
+  <h2 class="card-title">Company career boards</h2>
+  <p class="muted small">Prospector reads the tech roles of these companies straight from their Greenhouse, Lever or Ashby board, once a day each. Discovery finds new ones through web search at 04:00.</p>
+  <div class="companies-head">
+    <form method="post" action="/settings/companies/discover">
+      <button type="submit" class="btn btn-sm" {% if not search_ready %}disabled aria-describedby="no-search"{% endif %}>Discover now</button>
+    </form>
+    {% if not search_ready %}<span id="no-search" class="muted small"><a href="/settings/connections">{{ no_search }}</a></span>{% endif %}
+    <span class="muted small">
+      {% if last %}Last discovery {{ last.at|local }} · searched {{ last.searched }}, added {{ last.added }}{% if last.error %} · {{ last.error }}{% endif %}
+      {% else %}No discovery yet{% endif %}
+      {% if backoff %} · search throttled, next run {{ backoff|local }}{% endif %}
+    </span>
+  </div>
+  <form class="companies-add" method="post" action="/settings/companies/add">
+    <label for="company-url" class="small">Add a company</label>
+    <input id="company-url" name="url" type="url" required placeholder="https://jobs.lever.co/acme" autocomplete="off">
+    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+  </form>
+</section>
+
+<section class="card">
+  <nav class="tabs" aria-label="Filter companies">
+    {% for f in filters %}<a href="/settings/companies?state={{ f }}" {% if f == filter %}aria-current="page"{% endif %}>{{ f }}{% if f != "all" %} · {{ counts[f] }}{% endif %}</a>{% endfor %}
+  </nav>
+  {% if companies %}
+  <table class="companies">
+    <thead><tr><th>Company</th><th>Board</th><th>Relevant jobs</th><th>Last checked</th><th>Found by</th><th>State</th><th></th></tr></thead>
+    <tbody>
+      {% for c in companies %}
+      <tr id="company-{{ c.id }}" class="company-{{ c.state }}">
+        <td>{{ c.display_name }}</td>
+        <td>{{ labels[c.board] }}</td>
+        <td>{{ c.last_count if c.last_count is not none else "—" }}</td>
+        <td class="small">{{ c.last_checked|local if c.last_checked else "never" }}</td>
+        <td class="small muted">{{ c.found_by or "" }}</td>
+        <td class="small">{{ c.state }}{% if c.state == "paused" and c.last_error %}<br><span class="field-err">{{ c.last_error }}</span>{% endif %}</td>
+        <td>
+          <form method="post" action="/settings/companies/{{ c.id }}/state">
+            {% if c.state == "watching" %}<input type="hidden" name="state" value="muted"><button type="submit" class="btn btn-sm">Mute</button>
+            {% elif c.state == "muted" %}<input type="hidden" name="state" value="watching"><button type="submit" class="btn btn-sm">Unmute</button>
+            {% else %}<input type="hidden" name="state" value="watching"><button type="submit" class="btn btn-sm">Resume</button>{% endif %}
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No companies here yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -5,7 +5,8 @@
   <input type="hidden" name="enabled_sources_present" value="1">
   <section class="card">
     <h2 class="card-title">Sources <span class="restart-tag">restart</span></h2>
-    <p class="muted small">Turning a source on or off restarts Prospector (about 25 seconds).</p>
+    <p class="muted small">Turning a source on or off restarts Prospector (about 25 seconds).
+      <a href="/settings/companies">Companies: {{ company_counts.watching }} watching</a></p>
     {% if errors.get("enabled_sources") %}<p class="field-err" id="err-enabled_sources">{{ errors["enabled_sources"] }}</p>{% endif %}
     {% set chosen = posted.getlist("enabled_sources") if posted is not none else s.enabled_sources %}
     <ul class="plain src-list">

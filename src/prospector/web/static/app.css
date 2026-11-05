@@ -531,3 +531,13 @@ form.is-dirty .form-actions::before { content: "Unsaved changes"; color: var(--m
   .filter-toggle > summary { display: inline-flex; margin-bottom: .5rem; list-style: none; cursor: pointer; }
   .filter-toggle > summary::-webkit-details-marker { display: none; }
 }
+
+/* Settings → Companies */
+.companies-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: .5rem 0; }
+.companies-add { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .75rem; }
+.companies-add input { flex: 1 1 18rem; min-width: 0; }
+table.companies { margin-top: .75rem; font-size: .9rem; }
+table.companies th { text-align: left; color: var(--muted); font-weight: 500; font-size: .8rem; padding: .35rem .5rem; }
+table.companies td { padding: .4rem .5rem; border-top: 1px solid var(--line, var(--soft)); vertical-align: top; }
+table.companies tr.company-muted td { opacity: .6; }
+@media (max-width: 720px) { table.companies th:nth-child(5), table.companies td:nth-child(5) { display: none; } }

@@ -8,5 +8,10 @@
     <span class="hub-status">{{ statuses[a.key] }}</span>
   </a>
   {% endfor %}
+  <a class="card hub-card" href="/settings/companies">
+    <span class="hub-title">Companies</span>
+    <span class="muted small">Career boards read directly: Greenhouse, Lever and Ashby.</span>
+    <span class="hub-status">{{ company_counts.watching }} watching{% if company_counts.paused %} · {{ company_counts.paused }} paused{% endif %}</span>
+  </a>
 </div>
 {% endblock %}
