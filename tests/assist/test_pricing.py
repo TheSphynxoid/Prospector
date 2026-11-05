@@ -75,22 +75,24 @@ def _rates(**codes):
     return r
 
 
-def test_usd_pay_converts_eur():
-    from prospector.assist.pricing import usd_pay
-    p, note = usd_pay(Pay(450, 900, "EUR", "fixed"), _rates(EUR=0.9))
-    assert (p.min, p.max, p.currency, p.period) == (500, 1000, "USD", "fixed")
-    assert note == "Budget converted from EUR at 0.9 per USD."
-
-
-def test_usd_pay_one_bound_and_usd_untouched():
-    from prospector.assist.pricing import usd_pay
-    p, _ = usd_pay(Pay(None, 90, "GBP", "hour"), _rates(GBP=0.9))
-    assert (p.min, p.max, p.period) == (None, 100, "hour")
-    usd = Pay(1, 2, "USD", "fixed")
-    assert usd_pay(usd, _rates()) == (usd, None)
-
-
-def test_usd_pay_leaves_unknown_or_missing_currency():
-    from prospector.assist.pricing import usd_pay
+def test_bid_currency_follows_supported_pay():
+    from prospector.assist.pricing import bid_currency
+    assert bid_currency(Pay(1, 2, "EUR", "fixed")) == "EUR"
+    assert bid_currency(Pay(1, 2, "TND", "month")) == "TND"
     for pay in (Pay(1, 2, "JPY", "fixed"), Pay(1, 2, None, "fixed"), None):
-        assert usd_pay(pay, _rates()) == (pay, None)
+        assert bid_currency(pay) == "USD"
+
+
+def test_pricing_in_currency_scales_rate_and_floor():
+    from prospector.assist.pricing import in_currency
+    p = in_currency(P, 0.9)
+    assert (p.rate, p.floor, p.hours_per_day) == (22.5, 13.5, 6)
+
+
+def test_quote_in_eur_compares_eur_budget():
+    from prospector.assist.pricing import in_currency
+    q = quote(10, in_currency(P, 0.9), Pay(100, 180, "EUR", "fixed"), "EUR")
+    assert (q.fair, q.competitive, q.currency, q.note) == (180, 135, "EUR", None)
+    q = quote(10, in_currency(P, 0.9), Pay(5, 10, "EUR", "hour"), "EUR")
+    assert q.warning == ("Even the competitive price is above the client's budget (max 10 EUR/hour) — "
+                         "skip it or bid high and explain.")

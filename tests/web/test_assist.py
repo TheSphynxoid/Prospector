@@ -83,6 +83,26 @@ def test_bid_fragment(ctx, client, lid, fake, fetched):
     assert f"/lead/{lid}" in client.get(f"/lead/{lid}").text and "$250" in client.get(f"/lead/{lid}").text
 
 
+def test_bid_card_in_posting_currency(ctx, client, make_lead, fake, fetched):
+    from prospector import fx
+    from prospector.models import Pay
+    ctx.fx.tnd_override = None
+    for code, v in (("EUR", 0.9), ("TND", 3.15)):
+        ctx.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), code, v, "t"))
+    lid = ctx.leads.insert(make_lead(canonical_url="https://e/eur-card", pay=Pay(100, 180, "EUR", "fixed")))
+    fake.replies = [GOOD]
+    r = client.post(f"/lead/{lid}/assist/bid").text
+    assert "€180" in r and "≈ 630 TND" in r and "€135" in r and "$" not in r.split("Proposal")[0]
+
+
+def test_old_bid_without_currency_shows_usd(ctx, client, lid, fetched):
+    ctx.assist.set_bid(lid, {"proposal": "p" * 120, "rationale": "", "hours": 10, "fair": 250, "competitive": 150,
+                             "delivery_days": 2, "warning": None, "note": None, "tnd_fair": 750,
+                             "tnd_competitive": 450})
+    page = client.get(f"/lead/{lid}").text
+    assert "$250" in page and "≈ 750 TND" in page
+
+
 def test_bid_error_shown(client, lid, fake, fetched):
     fake.replies = ["nope", "nope"]
     r = client.post(f"/lead/{lid}/assist/bid")

@@ -16,6 +16,7 @@ from prospector import fx
 from prospector.config import parse_hhmm
 from prospector.context import AppContext
 from prospector.models import Kind, Remote, Status
+from prospector.money import fmt as money_fmt
 from prospector.sources.registry import known_source_ids
 from prospector.store.feedback import REASONS
 from prospector.store.stats import TZ, StatsRepo
@@ -57,6 +58,7 @@ templates.env.filters["ago"] = lambda ts: fmt_ago(ts, datetime.now(UTC))
 templates.env.filters["paragraphs"] = paragraphs
 templates.env.filters["drafts"] = split_drafts
 templates.env.filters["research"] = split_research
+templates.env.filters["money"] = money_fmt  # milli amount, currency code
 
 
 def _enum(cls, value: str):

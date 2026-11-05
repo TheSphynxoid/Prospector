@@ -22,8 +22,7 @@ def assist_context(ctx: AppContext, lead_id: int) -> dict:
         row = ctx.assist.get(lead_id)
     lead = ctx.leads.get(lead_id)
     return {"assist": row, "messages": ctx.assist.messages(lead_id), "bid": row.bid,
-            "can_lookup": bool(lead and lead.company and search_ready(ctx)),
-            "usd_tnd": ctx.fx.rate("TND"), "poll": 0, "poll_max": POLL_MAX}
+            "can_lookup": bool(lead and lead.company and search_ready(ctx)), "poll": 0, "poll_max": POLL_MAX}
 
 
 def make_assist_router(ctx: AppContext) -> APIRouter:
@@ -37,7 +36,7 @@ def make_assist_router(ctx: AppContext) -> APIRouter:
 
     def render(request: Request, name: str, lead_id: int, **extra):
         return templates.TemplateResponse(request, name, {"lead_id": lead_id, "assist": ctx.assist.get(lead_id),
-                                                          "usd_tnd": ctx.fx.rate("TND"), "poll": 0,
+                                                          "poll": 0,
                                                           "poll_max": POLL_MAX, **extra})
 
     @router.get("/posting-status")

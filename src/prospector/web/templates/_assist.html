@@ -1,4 +1,4 @@
-{# The lead assistant card. Context: lead_id, assist, messages, bid, usd_tnd. #}
+{# The lead assistant card. Context: lead_id, assist, messages, bid. #}
 <section class="card assistant" id="assistant">
   <h2 class="card-title">Assistant <span class="muted">· drafts only, you copy and send</span></h2>
   {% if row is defined and row.closed_reason %}<p class="notice notice-bad small">This lead may already be closed — {{ row.closed_reason }} Check the posting before you bid.</p>{% endif %}

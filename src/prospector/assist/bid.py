@@ -5,10 +5,11 @@ from pydantic import BaseModel, Field, ValidationError
 
 from prospector.assist import drafts
 from prospector.assist.chat import ask, failure, history
-from prospector.assist.pricing import Quote, quote, tnd, usd_pay
+from prospector.assist.pricing import Quote, bid_currency, in_currency, quote, tnd
 from prospector.assist.usage import CapReached
 from prospector.context import AppContext
 from prospector.llm.client import LLMError, extract_json
+from prospector.money import fmt, to_milli
 from prospector.store.assist import Message
 
 MIN_PROPOSAL = 100
@@ -35,7 +36,7 @@ class Bid:
     tnd_competitive: int
 
     def as_dict(self) -> dict:
-        q = asdict(self.quote)
+        q = asdict(self.quote)  # carries "currency"; bids saved before it existed are USD
         return {"proposal": self.proposal, "rationale": self.rationale, **q,
                 "tnd_fair": self.tnd_fair, "tnd_competitive": self.tnd_competitive}
 
@@ -62,13 +63,16 @@ def draft_bid(ctx: AppContext, lead_id: int) -> Bid | Message:
         return failure(ctx, lead_id, LLMError("the model didn't return a usable bid; try again"))
 
     lead = ctx.leads.get(lead_id)
-    pay, converted = usd_pay(lead.pay, ctx.fx)
-    q = quote(parsed.estimate_hours, ctx.profile.pricing, pay)
-    rate = ctx.fx.rate("TND")
-    rationale = " ".join(x for x in (parsed.rationale.strip(), converted, q.note) if x)
-    bid = Bid(parsed.proposal.strip(), rationale, q, tnd(q.fair, rate), tnd(q.competitive, rate))
+    code = bid_currency(lead.pay)
+    per_usd = ctx.fx.rate(code)
+    q = quote(parsed.estimate_hours, in_currency(ctx.profile.pricing, per_usd), lead.pay, code)
+    priced = f"Priced in {code} from your USD rate at {per_usd:g} per USD." if code != "USD" else None
+    rationale = " ".join(x for x in (parsed.rationale.strip(), priced, q.note) if x)
+    tnd_rate = ctx.fx.rate("TND") / per_usd  # TND per unit of the bid's currency
+    bid = Bid(parsed.proposal.strip(), rationale, q, tnd(q.fair, tnd_rate), tnd(q.competitive, tnd_rate))
     ctx.assist.set_bid(lead_id, bid.as_dict())
     ctx.assist.add(lead_id, "assistant",
-                   f"Bid drafted: ${q.fair} fair / ${q.competitive} competitive, about {q.hours:g} hours, "
+                   f"Bid drafted: {fmt(to_milli(q.fair), code)} fair / {fmt(to_milli(q.competitive), code)} competitive, "
+                   f"about {q.hours:g} hours, "
                    f"{q.delivery_days} day(s).\n\n{drafts.wrap(bid.proposal)}")
     return bid

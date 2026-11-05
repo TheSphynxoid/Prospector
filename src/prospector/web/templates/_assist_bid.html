@@ -1,11 +1,12 @@
-{% macro money(usd) %}<b>${{ usd }}</b> <span class="muted">≈ {{ (usd * usd_tnd + 0.5)|int }} TND</span>{% endmacro %}
+{# Bids saved before the currency field existed are USD. #}
+{% macro price(amount, in_tnd) %}{% set cur = bid.currency or "USD" %}<b>{{ (amount * 1000)|int|money(cur) }}</b>{% if cur != "TND" %} <span class="muted">≈ {{ in_tnd }} TND</span>{% endif %}{% endmacro %}
 <div id="assist-bid" class="assist-bid">
   {% if error %}<p class="notice notice-bad">{{ error }}</p>{% endif %}
   {% if bid %}
   <div class="bid-prices">
-    <div class="bid-price"><span class="tile-label">Fair</span><span>{{ money(bid.fair) }}</span>
+    <div class="bid-price"><span class="tile-label">Fair</span><span>{{ price(bid.fair, bid.tnd_fair) }}</span>
       <button type="button" class="btn btn-sm" data-copy="{{ bid.fair }}">Copy</button></div>
-    <div class="bid-price"><span class="tile-label">Competitive</span><span>{{ money(bid.competitive) }}</span>
+    <div class="bid-price"><span class="tile-label">Competitive</span><span>{{ price(bid.competitive, bid.tnd_competitive) }}</span>
       <button type="button" class="btn btn-sm" data-copy="{{ bid.competitive }}">Copy</button></div>
     <div class="bid-price"><span class="tile-label">Delivery</span><span><b>{{ bid.delivery_days }} day{{ "s" if bid.delivery_days != 1 }}</b> <span class="muted">· about {{ "%g"|format(bid.hours) }} h</span></span>
       <button type="button" class="btn btn-sm" data-copy="{{ bid.delivery_days }}">Copy</button></div>

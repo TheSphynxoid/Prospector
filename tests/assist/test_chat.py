@@ -71,3 +71,17 @@ def test_send_llm_error(actx, lid, fake):
 def test_send_without_client(actx, lid):
     actx.assistant_llm = None
     assert send(actx, lid, "hi")[-1].role == "error"
+
+
+def test_prompt_gives_rate_in_posting_currency(actx, make_lead):
+    from prospector import fx
+    from prospector.models import Pay
+    actx.conn.execute("INSERT INTO fx_rates VALUES (?,?,?,?)", (fx.today().isoformat(), "EUR", 0.9, "t"))
+    lid = actx.leads.insert(make_lead(canonical_url="https://e/eur", pay=Pay(500, 900, "EUR", "fixed")))
+    p = system_prompt(actx, lid)
+    assert ("This lead pays in EUR: your target is about 22.5 EUR/hour and your lowest about 13.5 EUR/hour "
+            "(at 0.9 EUR per USD). Give any prices in EUR.") in p
+
+
+def test_prompt_stays_usd_without_supported_currency(actx, lid):
+    assert "This lead pays in" not in system_prompt(actx, lid)
