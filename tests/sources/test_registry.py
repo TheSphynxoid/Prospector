@@ -27,3 +27,14 @@ def test_build_sources_enabled_only_and_skips_missing_credentials(monkeypatch):
     assert registry.FACTORIES is not FACTORIES
     out = build_sources(settings(enabled_sources=["a", "b", "zzz"]), MailRepo(connect(":memory:")))
     assert [s.id for s in out] == ["a"]
+
+
+NEW = ["weworkremotely", "jobicy", "golangprojects", "tunisietravail", "codeur", "gsoc", "outreachy"]
+
+
+def test_new_sources_registered_and_default():
+    from prospector.sources.registry import known_source_ids
+    assert set(NEW) <= set(known_source_ids())
+    assert set(NEW) <= set(settings().enabled_sources)
+    built = build_sources(settings(), MailRepo(connect(":memory:")))
+    assert set(NEW) <= {s.id for s in built}
