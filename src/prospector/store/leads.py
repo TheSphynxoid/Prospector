@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal
@@ -112,10 +113,10 @@ class LeadRepo:
                           (status.value, reason, id))
 
     def list(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None,
-             source: str | None = None, min_score: float | None = None,
+             source: str | Sequence[str] | None = None, min_score: float | None = None,
              sort: Literal["score", "date"] = "score", limit: int = 50, offset: int = 0,
-             q: str | None = None) -> list[LeadRow]:
-        where, args = self._filters(tab, kind, remote, source, min_score, q)
+             q: str | None = None, skip_sources: Sequence[str] = ()) -> list[LeadRow]:
+        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources)
         order = "COALESCE(s.stage1, -1) DESC, l.id DESC" if sort == "score" else "l.id DESC"
         rows = self.conn.execute(
             f"{_SELECT} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ? OFFSET ?",
@@ -123,15 +124,16 @@ class LeadRepo:
         ).fetchall()
         return [_row(r) for r in rows]
 
-    def count(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None, source: str | None = None,
-              min_score: float | None = None, q: str | None = None) -> int:
+    def count(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None,
+              source: str | Sequence[str] | None = None, min_score: float | None = None, q: str | None = None,
+              skip_sources: Sequence[str] = ()) -> int:
         """How many leads `list` would return across all pages."""
-        where, args = self._filters(tab, kind, remote, source, min_score, q)
+        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources)
         return self.conn.execute(f"SELECT COUNT(*) AS n FROM ({_SELECT} WHERE {' AND '.join(where)})",
                                  args).fetchone()["n"]
 
     @staticmethod
-    def _filters(tab, kind, remote, source, min_score, q) -> tuple[list[str], list]:
+    def _filters(tab, kind, remote, source, min_score, q, skip_sources=()) -> tuple[list[str], list]:
         where, args = ["l.status = ?"], [tab.value]
         if q and q.strip():
             like = "%" + "".join("!" + c if c in "!%_" else c for c in q.strip()) + "%"  # ! escapes LIKE wildcards
@@ -143,9 +145,14 @@ class LeadRepo:
         if remote:
             where.append("l.remote = ?")
             args.append(remote.value)
-        if source:
-            where.append("EXISTS (SELECT 1 FROM json_each(l.sources) WHERE value = ?)")
-            args.append(source)
+        only = [source] if isinstance(source, str) else list(source or ())
+        if only:  # found on any of these
+            where.append(f"EXISTS (SELECT 1 FROM json_each(l.sources) WHERE value IN ({','.join('?' * len(only))}))")
+            args += only
+        if skip_sources:  # hidden only when every source that found it is skipped
+            where.append("EXISTS (SELECT 1 FROM json_each(l.sources) "
+                         f"WHERE value NOT IN ({','.join('?' * len(skip_sources))}))")
+            args += list(skip_sources)
         if min_score is not None:
             where.append("s.stage1 >= ?")
             args.append(min_score)

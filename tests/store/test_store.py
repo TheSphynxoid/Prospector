@@ -150,3 +150,30 @@ def test_search_escapes_wildcards(make_lead):
     leads.insert(make_lead(canonical_url="3", title="snake_case fan"))
     assert [r.lead.canonical_url for r in leads.list(Status.NEW, q="%")] == ["1"]
     assert [r.lead.canonical_url for r in leads.list(Status.NEW, q="_")] == ["3"]
+
+
+def _by_source(make_lead):
+    _, leads, _ = repos()
+    leads.insert(make_lead(canonical_url="hn", sources=["hn"]))
+    leads.insert(make_lead(canonical_url="boards", sources=["company_boards"]))
+    leads.insert(make_lead(canonical_url="both", sources=["company_boards", "remotive"]))
+    leads.insert(make_lead(canonical_url="codeur", sources=["codeur"]))
+    return leads
+
+
+def _urls(rows):
+    return sorted(r.lead.canonical_url for r in rows)
+
+
+def test_filter_by_several_sources(make_lead):
+    leads = _by_source(make_lead)
+    assert _urls(leads.list(Status.NEW, source=["hn", "codeur"])) == ["codeur", "hn"]
+    assert _urls(leads.list(Status.NEW, source="hn")) == ["hn"]  # one source, as before
+    assert leads.count(Status.NEW, source=["remotive"]) == 1
+
+
+def test_exclude_sources_keeps_leads_also_seen_elsewhere(make_lead):
+    leads = _by_source(make_lead)
+    assert _urls(leads.list(Status.NEW, skip_sources=["company_boards"])) == ["both", "codeur", "hn"]
+    assert _urls(leads.list(Status.NEW, skip_sources=["company_boards", "remotive", "hn"])) == ["codeur"]
+    assert leads.count(Status.NEW, skip_sources=["company_boards"]) == 3

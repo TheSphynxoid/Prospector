@@ -21,9 +21,19 @@
   <label><span>Remote</span><select name="remote"><option value="">Any</option>
     {% for r in remotes %}<option value="{{ r.value }}" {{ 'selected' if filters.remote == r else '' }}>{{ r.value }}</option>{% endfor %}
   </select></label>
-  <label><span>Source</span><select name="source"><option value="">Any</option>
-    {% for src in sources %}<option value="{{ src }}" {{ 'selected' if filters.source == src else '' }}>{{ src }}</option>{% endfor %}
-  </select></label>
+  <div class="filter-field"><span>Source</span>
+    <details class="source-pick">
+      <summary>Source: {{ source_label }}</summary>
+      <div class="source-pick-menu">
+        <fieldset class="source-mode"><legend class="sr-only">Show</legend>
+          <label><input type="radio" name="source_mode" value="only" {{ 'checked' if filters.source_mode != 'except' else '' }}> Only checked</label>
+          <label><input type="radio" name="source_mode" value="except" {{ 'checked' if filters.source_mode == 'except' else '' }}> All except checked</label>
+        </fieldset>
+        {% for src in sources %}<label><input type="checkbox" name="source" value="{{ src }}"{{ ' checked' if src in filters.source else '' }}> {{ src }}</label>
+        {% endfor %}
+      </div>
+    </details>
+  </div>
   <label><span>Min score</span><input name="min_score" type="number" step="0.05" min="0" max="1" placeholder="0–1" value="{{ filters.min_score if filters.min_score is not none else '' }}"></label>
   <label><span>Sort</span><select name="sort">
     <option value="score" {{ 'selected' if filters.sort == 'score' else '' }}>Best first</option>

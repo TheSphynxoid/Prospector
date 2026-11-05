@@ -5,7 +5,7 @@ from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -100,31 +100,44 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
             "work": work_tile(ctx),
         })
 
+    def _source_label(picked: list[str], mode: str) -> str:
+        what = picked[0] if len(picked) == 1 else f"{len(picked)} sources"
+        return "Any" if not picked else what if mode == "only" else f"all but {what}"
+
     @router.get("/leads")
-    def leads(request: Request, tab: str = "", kind: str = "", remote: str = "", source: str = "",
+    def leads(request: Request, tab: str = "", kind: str = "", remote: str = "",
+              source: list[str] = Query([]), source_mode: str = "only",
               min_score: str = "", sort: str = "score", page: str = "1", q: str | None = None):
         # The filter form sends "" for "Any"; a bad value in a hand-edited URL falls back instead of a 422.
         tab = _enum(Status, tab) or Status.NEW
         kind, remote = _enum(Kind, kind), _enum(Remote, remote)
-        source = source.strip() or None
+        picked = list(dict.fromkeys(x.strip() for x in source if x.strip()))  # checked boxes, in order, once
+        source_mode = "except" if source_mode == "except" and picked else "only"
+        only, skip = (picked, []) if source_mode == "only" else ([], picked)
         min_score = _score(min_score)
         sort = sort if sort in ("score", "date") else "score"
         page = max(int(page), 1) if page.strip().lstrip("-").isdigit() else 1
-        rows = ctx.leads.list(tab, kind=kind, remote=remote, source=source or None, min_score=min_score,
+        rows = ctx.leads.list(tab, kind=kind, remote=remote, source=only, skip_sources=skip, min_score=min_score,
                               sort=sort, limit=PAGE_SIZE, offset=(page - 1) * PAGE_SIZE, q=q)
-        total = ctx.leads.count(tab, kind=kind, remote=remote, source=source or None, min_score=min_score, q=q)
+        total = ctx.leads.count(tab, kind=kind, remote=remote, source=only, skip_sources=skip,
+                                min_score=min_score, q=q)
         first = (page - 1) * PAGE_SIZE + 1
         showing = (f"Showing {total} of {total}" if total <= PAGE_SIZE and page == 1 else
                    f"Showing {first}–{first + len(rows) - 1} of {total}" if rows else f"Showing 0 of {total}")
-        filters = {"q": (q or "").strip() or None, "kind": kind, "remote": remote, "source": source,
-                   "min_score": min_score, "sort": sort}
-        kept = urlencode({k: getattr(v, "value", v) for k, v in filters.items()
-                          if v not in (None, "") and not (k == "sort" and v == "score")})
+        filters = {"q": (q or "").strip() or None, "kind": kind, "remote": remote, "source": picked,
+                   "source_mode": source_mode, "min_score": min_score, "sort": sort}
+        pairs = [(k, getattr(v, "value", v)) for k, v in filters.items()
+                 if v not in (None, "") and k not in ("source", "source_mode", "sort")]
+        pairs += [("source", x) for x in picked] + ([("source_mode", "except")] if source_mode == "except" else [])
+        if sort != "score":
+            pairs.append(("sort", sort))
+        kept = urlencode(pairs)
         query = f"tab={tab.value}" + (f"&{kept}" if kept else "")
-        filtering = any(filters[k] not in (None, "") for k in ("kind", "remote", "source", "min_score"))
+        filtering = bool(picked) or any(filters[k] not in (None, "") for k in ("kind", "remote", "min_score"))
         return templates.TemplateResponse(request, "list.html", {
             "nav": "leads", "rows": rows, "tab": tab, "tabs": TABS, "kinds": list(Kind), "remotes": list(Remote),
             "filters": filters, "query": query, "kept": kept, "filtering": filtering, "sources": known_source_ids(),
+            "source_label": _source_label(picked, source_mode),
             "page": page, "has_next": page * PAGE_SIZE < total, "showing": showing,
             "needs_you": ctx.mail.needs_you(), "paused": [h for h in ctx.health.all() if h.paused],
         })

@@ -58,10 +58,43 @@ def test_tab_value_still_selects(client, ctx, make_lead):
     assert "Starred lead" in client.get("/leads?tab=starred&kind=&remote=").text
 
 
-def test_source_is_a_dropdown(client, leads):
+@pytest.fixture
+def sourced(ctx, make_lead):
+    ctx.leads.insert(make_lead(canonical_url="https://e/hn", title="HN lead", sources=["hn"]))
+    ctx.leads.insert(make_lead(canonical_url="https://e/cb", title="Board lead", sources=["company_boards"]))
+    ctx.leads.insert(make_lead(canonical_url="https://e/cd", title="Codeur lead", sources=["codeur"]))
+
+
+def test_sources_are_checkboxes(client, sourced):
     page = client.get("/leads?source=hn").text
-    assert '<select name="source">' in page and '<option value="hn" selected>' in page
-    assert '<option value="">Any</option>' in page
+    assert '<input type="checkbox" name="source" value="hn" checked>' in page
+    assert '<input type="checkbox" name="source" value="codeur">' in page
+    assert '<input type="radio" name="source_mode" value="only" checked>' in page
+    assert "Source: hn" in page
+
+
+def test_several_sources_shown(client, sourced):
+    page = client.get("/leads?source=hn&source=codeur").text
+    assert "HN lead" in page and "Codeur lead" in page and "Board lead" not in page
+    assert "Source: 2 sources" in page
+
+
+def test_except_sources_hidden(client, sourced):
+    page = client.get("/leads?source=company_boards&source_mode=except").text
+    assert "HN lead" in page and "Codeur lead" in page and "Board lead" not in page
+    assert '<input type="radio" name="source_mode" value="except" checked>' in page
+    assert "Source: all but company_boards" in page
+
+
+def test_source_filters_kept_in_tabs_and_pages(client, sourced):
+    page = client.get("/leads?source=hn&source=codeur&source_mode=except").text
+    starred = page[page.index('href="/leads?tab=starred'):].split('"')[1]
+    assert "source=hn&amp;source=codeur&amp;source_mode=except" in starred
+
+
+def test_mode_without_sources_is_no_filter(client, sourced):
+    page = client.get("/leads?source_mode=except&source=").text
+    assert "HN lead" in page and "Board lead" in page and "Clear filters" not in page
 
 
 def test_tabs_keep_filters(client, leads):
