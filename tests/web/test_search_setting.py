@@ -33,8 +33,9 @@ def test_search_card_and_test_route(client, ctx):
     assert "test-err" in r.text and conn_status.get(ctx.kv, "search")["ok"] is False
 
 
-def test_searxng_url_validated():
+def test_searxng_url_validated(tmp_path):
     from prospector.config import EDITABLE, Settings
     assert "searxng_url" in EDITABLE
     with pytest.raises(ValueError):
-        Settings(_env_file=None, bridge_secret="s", access_team_domain="t", access_aud="a", searxng_url="ftp://x")
+        Settings(_env_file=None, llm_api_key="k", bridge_secret="s", access_team_domain="t", access_aud="a",
+                 profile_path=tmp_path / "p", data_dir=tmp_path, searxng_url="ftp://x")
