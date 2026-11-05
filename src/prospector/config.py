@@ -13,7 +13,7 @@ EDITABLE: tuple[str, ...] = (
     "access_team_domain", "access_aud", "adzuna_app_id", "adzuna_app_key", "github_token", "dashboard_url",
     "llm_model", "llm_fallback_model", "llm_daily_cap", "stage2_threshold", "enabled_sources", "digest_time",
     "assistant_model", "assistant_daily_cap", "usd_tnd_rate", "followup_days", "expire_days_short", "expire_days_jobs", "expire_days_long",
-    "alerts_enabled", "alert_threshold", "alert_daily_max",
+    "alerts_enabled", "alert_threshold", "alert_daily_max", "searxng_url",
 )
 SECRETS: frozenset[str] = frozenset({"llm_api_key", "telegram_token", "bridge_secret", "adzuna_app_key", "github_token"})
 _HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     telegram_token: SecretStr | None = None
     telegram_chat_id: str | None = None
     bridge_url: str | None = None
+    searxng_url: str | None = None  # the owner's SearXNG, for company discovery and lookup
     bridge_secret: SecretStr
 
     access_team_domain: str
@@ -73,7 +74,7 @@ class Settings(BaseSettings):
     tailscale_ip: str | None = None
     allowed_hosts: list[str] = []
 
-    @field_validator("llm_base_url", "bridge_url", "dashboard_url")
+    @field_validator("llm_base_url", "bridge_url", "dashboard_url", "searxng_url")
     @classmethod
     def _http_url(cls, v: str | None) -> str | None:
         # Checked the way httpx will parse it later, so a saved value cannot crash startup.

@@ -2,7 +2,7 @@
 from prospector.store.db import now_iso
 from prospector.store.kv import KV
 
-NAMES = ("llm", "telegram", "email", "github", "access")
+NAMES = ("llm", "telegram", "email", "github", "access", "search")
 
 
 def record(kv: KV, name: str, ok: bool, error: str | None = None) -> None:

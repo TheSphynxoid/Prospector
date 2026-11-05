@@ -21,6 +21,7 @@ from prospector.models import Kind
 from prospector.profile.model import LEVELS
 from prospector.profile.form import profile_from_rows, rows_from_form, rows_from_profile, save_profile
 from prospector.settings_store import LoadedSettings, save_overrides, validate_overrides
+from prospector.search.client import search, search_ready
 from prospector.store import conn_status
 from prospector.web.dashboard import templates
 from prospector.web.settings.apply import COLD, apply_overrides
@@ -51,6 +52,8 @@ KEYS = [
     FieldInfo("adzuna_app_key", "Adzuna app key", "secret"),
     FieldInfo("github_token", "GitHub token", "secret", "Read-only public scope is enough (bounty search)."),
     FieldInfo("dashboard_url", "Dashboard URL", "url", "Used for links in the digest."),
+    FieldInfo("searxng_url", "SearXNG URL", "url",
+              "Your SearXNG instance, e.g. http://100.101.83.89:8081. Used for company discovery and lookup."),
 ]
 TUNING = [
     FieldInfo("llm_model", "LLM model", "model"),
@@ -70,7 +73,7 @@ TUNING = [
     FieldInfo("expire_days_jobs", "Expire jobs and contracts after (days)", "int", "1–365."),
     FieldInfo("expire_days_long", "Expire PFE and AI-training offers after (days)", "int", "1–365."),
 ]
-_OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "adzuna_app_id", "assistant_model"}
+_OPTIONAL_STR = {"telegram_chat_id", "bridge_url", "searxng_url", "adzuna_app_id", "assistant_model"}
 _OPTIONAL_FLOAT = {"usd_tnd_rate"}  # blank means automatic
 assert {f.name for f in KEYS + TUNING} | {"enabled_sources"} == set(EDITABLE)
 
@@ -399,6 +402,17 @@ def make_settings_router(ctx: AppContext) -> APIRouter:
             return result(False, describe_error(e))
         conn_status.record(ctx.kv, "telegram", True)
         return result(True, "Sent — check Telegram.")
+
+    @router.post("/settings/test/search")
+    def test_search():
+        if not search_ready(ctx):
+            return result(False, "SearXNG URL not set.")
+        r = search(ctx, "prospector test", engines=None)
+        if r.error:
+            conn_status.record(ctx.kv, "search", False, r.error)
+            return result(False, r.error)
+        conn_status.record(ctx.kv, "search", True)
+        return result(True, f"Connected · {len(r.results)} results")
 
     @router.post("/settings/telegram/find-chat")
     def find_chat():

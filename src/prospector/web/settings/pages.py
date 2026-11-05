@@ -21,7 +21,8 @@ class Area:
 AREAS: list[Area] = [
     Area("connections", "Connections", "LLM, Telegram, email, GitHub and Cloudflare Access.",
          ["llm_api_key", "llm_base_url", "telegram_token", "telegram_chat_id", "bridge_url", "bridge_secret",
-          "github_token", "access_team_domain", "access_aud", "dashboard_url", "adzuna_app_id", "adzuna_app_key"]),
+          "github_token", "access_team_domain", "access_aud", "dashboard_url", "adzuna_app_id", "adzuna_app_key",
+          "searxng_url"]),
     Area("sources", "Sources", "Where leads come from, and how each source is doing.", ["enabled_sources"]),
     Area("ai", "AI and limits", "Models, daily caps and the review threshold.",
          ["llm_model", "llm_fallback_model", "assistant_model", "llm_daily_cap", "assistant_daily_cap",
@@ -60,6 +61,7 @@ CARDS = [
     ("email", "Email digest (mail-bridge Worker)", ["bridge_url", "bridge_secret"], ["bridge_url"],
      "/settings/test/email"),
     ("github", "GitHub", ["github_token"], ["github_token"], None),
+    ("search", "Web search", ["searxng_url"], ["searxng_url"], "/settings/test/search"),
     ("access", "Cloudflare Access", ["access_team_domain", "access_aud"], ["access_team_domain", "access_aud"], None),
 ]
 STATE_LABEL = {"ok": "Connected", "failing": "Failing", "not_set": "Not set", "untested": "Not tested yet"}
