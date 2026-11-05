@@ -36,7 +36,11 @@ def _find_existing(ctx: AppContext, lead: Lead) -> Lead | None:
     found = ctx.leads.by_canonical_url(lead.canonical_url)
     if found:
         return found
-    return next((c for c in ctx.leads.recent_by_company(company_norm(lead.company)) if is_duplicate(lead, c)), None)
+    # Two postings on the same company board are different roles (one per location, say) even with the same title;
+    # their own URLs already identify them.
+    exact = "company_boards" in lead.sources
+    return next((c for c in ctx.leads.recent_by_company(company_norm(lead.company))
+                 if is_duplicate(lead, c) and not (exact and "company_boards" in c.sources)), None)
 
 
 def _score(ctx: AppContext, lead: Lead, now: datetime) -> None:

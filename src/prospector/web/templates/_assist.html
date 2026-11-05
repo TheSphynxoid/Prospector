@@ -11,6 +11,11 @@
       <button type="submit" class="btn btn-primary">Draft bid</button>
       <span id="assist-bid-wait" class="htmx-indicator muted small">Drafting…</span>
     </form>
+    {% if can_lookup %}
+    <button type="button" class="btn" hx-post="/lead/{{ lead_id }}/assist/lookup" hx-target="#assist-log" hx-swap="beforeend"
+            hx-disabled-elt="this" hx-indicator="#assist-lookup-wait">Look up this company</button>
+    <span id="assist-lookup-wait" class="htmx-indicator muted small">Searching…</span>
+    {% endif %}
   </div>
   {% include "_assist_bid.html" %}
 

@@ -11,6 +11,7 @@ from prospector.web.assist import make_assist_router
 from prospector.web.dashboard import make_dashboard_router
 from prospector.web.ingest import make_ingest_router
 from prospector.web.settings import make_settings_router
+from prospector.web.settings.companies import make_companies_router
 from prospector.web.settings.cvs import make_cv_router
 from prospector.web.work import make_work_router
 
@@ -26,6 +27,7 @@ def create_app(ctx: AppContext, lifespan=None) -> FastAPI:
     app.include_router(make_assist_router(ctx))  # before the dashboard's /lead/{id}/{action}
     app.include_router(make_work_router(ctx))
     app.include_router(make_cv_router(ctx))  # before settings' catch-all /settings/{area}
+    app.include_router(make_companies_router(ctx))  # same
     app.include_router(make_dashboard_router(ctx))
     app.include_router(make_settings_router(ctx))
 

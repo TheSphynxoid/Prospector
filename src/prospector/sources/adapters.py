@@ -11,8 +11,10 @@ from prospector.sources.hn import HackerNewsHiring
 from prospector.sources.himalayas import Himalayas
 from prospector.sources.jobicy import Jobicy
 from prospector.sources.keejob import Keejob
+from prospector.sources.company_boards import CompanyBoards
 from prospector.sources.outreachy import Outreachy
 from prospector.sources.registry import register
+from prospector.store.companies import CompanyRepo
 from prospector.sources.remoteok import RemoteOK
 from prospector.sources.remotive import Remotive
 from prospector.sources.tunisietravail import TunisieTravail
@@ -37,3 +39,4 @@ register("tunisietravail")(lambda s, m: TunisieTravail())
 register("codeur")(lambda s, m: Codeur())
 register("gsoc")(lambda s, m: GSoC())
 register("outreachy")(lambda s, m: Outreachy())
+register("company_boards")(lambda s, m: CompanyBoards(CompanyRepo(m.conn)))
