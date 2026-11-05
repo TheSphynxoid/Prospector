@@ -2,6 +2,7 @@
 from prospector.sources.adzuna import Adzuna
 from prospector.sources.alerts import AlertsSource
 from prospector.sources.arbeitnow import Arbeitnow
+from prospector.sources.codeur import Codeur
 from prospector.sources.freelancer import Freelancer
 from prospector.sources.github_bounties import GitHubBounties
 from prospector.sources.golangprojects import Golangprojects
@@ -12,6 +13,7 @@ from prospector.sources.keejob import Keejob
 from prospector.sources.registry import register
 from prospector.sources.remoteok import RemoteOK
 from prospector.sources.remotive import Remotive
+from prospector.sources.tunisietravail import TunisieTravail
 from prospector.sources.weworkremotely import WeWorkRemotely
 
 register("remotive")(lambda s, m: Remotive())
@@ -29,3 +31,5 @@ register("keejob")(lambda s, m: Keejob())
 register("weworkremotely")(lambda s, m: WeWorkRemotely())
 register("jobicy")(lambda s, m: Jobicy())
 register("golangprojects")(lambda s, m: Golangprojects())
+register("tunisietravail")(lambda s, m: TunisieTravail())
+register("codeur")(lambda s, m: Codeur())
