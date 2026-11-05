@@ -3,9 +3,10 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from prospector.companies.boards import LABEL, parse_board_url
-from prospector.companies.discover import discover
+from prospector.companies.discover import discover, is_running
 from prospector.context import AppContext
 from prospector.search.client import search_ready
 from prospector.store.companies import STATES
@@ -35,11 +36,13 @@ def make_companies_router(ctx: AppContext) -> APIRouter:
             "companies": ctx.companies.list(None if state == "all" else state), "counts": ctx.companies.counts(),
             "filter": state, "filters": FILTERS, "labels": LABEL, "search_ready": search_ready(ctx),
             "no_search": NO_SEARCH, "last": ctx.kv.get("discover_last"), "backoff": _backoff(ctx),
+            "running": is_running(),
         }, status_code=status)
 
     @router.get("")
-    def show(request: Request, state: str = "all"):
-        return page(request, state)
+    def show(request: Request, state: str = "all", started: str = ""):
+        notice = "Discovery started — new companies appear here in a few minutes" if started else ""
+        return page(request, state, notice=notice)
 
     @router.post("/add")
     async def add(request: Request):
@@ -69,7 +72,9 @@ def make_companies_router(ctx: AppContext) -> APIRouter:
     def discover_now(request: Request):
         if not search_ready(ctx):
             return page(request, error=NO_SEARCH, status=400)
+        if is_running():
+            return page(request, notice="Discovery is already running")
         ctx.run_background(lambda: discover(ctx, datetime.now(UTC), manual=True))
-        return page(request, notice="Discovery started — new companies appear here in a few minutes")
+        return RedirectResponse("/settings/companies?started=1", status_code=303)  # a refresh doesn't start another
 
     return router

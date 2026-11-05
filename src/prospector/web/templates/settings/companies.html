@@ -7,7 +7,7 @@
   <p class="muted small">Prospector reads the tech roles of these companies straight from their Greenhouse, Lever or Ashby board, once a day each. Discovery finds new ones through web search at 04:00.</p>
   <div class="companies-head">
     <form method="post" action="/settings/companies/discover">
-      <button type="submit" class="btn btn-sm" {% if not search_ready %}disabled aria-describedby="no-search"{% endif %}>Discover now</button>
+      <button type="submit" class="btn btn-sm" {% if not search_ready %}disabled aria-describedby="no-search"{% elif running %}disabled{% endif %}>{{ "Discovery running…" if running else "Discover now" }}</button>
     </form>
     {% if not search_ready %}<span id="no-search" class="muted small"><a href="/settings/connections">{{ no_search }}</a></span>{% endif %}
     <span class="muted small">

@@ -6,6 +6,7 @@ next day's run.
 """
 import logging
 import re
+import threading
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -20,6 +21,8 @@ DOMAINS: tuple[str, ...] = ("jobs.lever.co", "boards.greenhouse.io", "job-boards
 DISCOVER_GAP = 20  # seconds between searches
 RUN_AT_HOUR = 4    # Tunis, the scheduled run
 _PLAIN = re.compile(r"^[a-z0-9]+$")
+STOP_AFTER_EMPTY = 2  # empty answers in a row; one can be honest ("golang intern" on one board)
+_RUNNING = threading.Lock()  # one run at a time: two would double the rate seen from the shared IP
 
 
 @dataclass
@@ -53,22 +56,40 @@ def _backoff_until(now: datetime) -> datetime:
     return datetime(day.year, day.month, day.day, RUN_AT_HOUR, tzinfo=TZ)
 
 
+def is_running() -> bool:
+    return _RUNNING.locked()
+
+
 def discover(ctx, now: datetime, *, manual: bool = False, sleep=time.sleep) -> DiscoverStats:
     stats = DiscoverStats()
     if not search_ready(ctx):
         stats.error = "Web search is not set up"
         return stats
+    if not _RUNNING.acquire(blocking=False):
+        stats.error = "Discovery is already running"
+        return stats
+    try:
+        _run(ctx, now, stats, sleep)
+    finally:
+        _RUNNING.release()
+    ctx.kv.set("discover_last", {"at": now.isoformat(), "manual": manual, **asdict(stats)})
+    return stats
+
+
+def _run(ctx, now: datetime, stats: DiscoverStats, sleep) -> None:
+    empty = 0
     for i, query in enumerate(queries(ctx.profile)):
         if i:
             sleep(DISCOVER_GAP)
         result = search(ctx, query, engines="brave")
         stats.searched += 1
-        if result.throttled or result.error or not result.results:
+        empty = 0 if result.results else empty + 1
+        if result.throttled or result.error or empty >= STOP_AFTER_EMPTY:
             stats.throttled, stats.error = result.throttled, result.error
             ctx.kv.set("discover_backoff_until", _backoff_until(now).isoformat())
-            log.info("discovery stopped at %r: throttled=%s error=%s results=%d",
-                     query, result.throttled, result.error, len(result.results))
-            break
+            log.info("discovery stopped at %r: throttled=%s error=%s empty=%d",
+                     query, result.throttled, result.error, empty)
+            return
         for hit in result.results:
             parsed = parse_board_url(hit.url)
             if parsed is None:
@@ -76,10 +97,7 @@ def discover(ctx, now: datetime, *, manual: bool = False, sleep=time.sleep) -> D
             stats.found += 1
             if ctx.companies.add(*parsed, found_by=query):
                 stats.added += 1
-    else:
-        ctx.kv.set("discover_backoff_until", None)  # a clean run: the engine is fine again
-    ctx.kv.set("discover_last", {"at": now.isoformat(), "manual": manual, **asdict(stats)})
-    return stats
+    ctx.kv.set("discover_backoff_until", None)  # a clean run: the engine is fine again
 
 
 def scheduled_discover(ctx, now: datetime) -> None:

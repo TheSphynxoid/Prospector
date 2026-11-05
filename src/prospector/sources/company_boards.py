@@ -33,9 +33,9 @@ class CompanyBoards:
         for company in batch:
             try:
                 name, leads = fetch_board(http, company)
-            except (BoardError, httpx.HTTPError) as e:
+            except Exception as e:  # noqa: BLE001 — a bad answer from one board must never stop the others
                 last_error, failed = e, failed + 1
-                self.companies.record_error(company.id, describe_error(e) if isinstance(e, httpx.HTTPError) else str(e))
+                self.companies.record_error(company.id, str(e) if isinstance(e, BoardError) else describe_error(e))
                 log.info("company board %s:%s failed: %s", company.board, company.token, e)
                 continue
             self.companies.record_ok(company.id, len(leads), name)

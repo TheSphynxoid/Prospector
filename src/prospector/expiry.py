@@ -50,7 +50,9 @@ def max_age_days(kind: Kind, s: Settings) -> int:
 
 
 def age_signal(lead: Lead, created_at: str | None, now: datetime, s: Settings) -> Signal | None:
-    when, label = (lead.posted_at, "Posted") if lead.posted_at else (
+    # A company's own board lists only open roles, and evergreen roles keep their old date: age those from first seen.
+    posted = None if "company_boards" in lead.sources else lead.posted_at
+    when, label = (posted, "Posted") if posted else (
         datetime.fromisoformat(created_at) if created_at else None, "First seen")
     if when is None:
         return None

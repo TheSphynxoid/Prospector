@@ -71,7 +71,7 @@ def test_discover_stops_when_throttled(ctx, monkeypatch):
     assert ctx.kv.get("discover_last")["throttled"] is True
 
 
-@pytest.mark.parametrize("bad", [SearchResult([], False, None), SearchResult([], False, "HTTP 500 from h")])
+@pytest.mark.parametrize("bad", [SearchResult([], False, "HTTP 500 from h")])  # empty: see STOP_AFTER_EMPTY
 def test_discover_stops_on_empty_or_error(ctx, monkeypatch, bad):
     s, calls = fake(lambda i: bad if i == 1 else ok("https://jobs.lever.co/a/1"))
     monkeypatch.setattr(d, "search", s)

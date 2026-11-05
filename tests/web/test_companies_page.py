@@ -71,6 +71,10 @@ def test_discover_now(client, ctx, monkeypatch):
     r = client.post("/settings/companies/discover")
     assert r.status_code == 200 and "Discovery started" in r.text
     assert [c.token for c in ctx.companies.list()] == ["acme"]
+    assert r.history and r.history[0].status_code == 303  # a refresh doesn't start another run
+    monkeypatch.setattr("prospector.web.settings.companies.is_running", lambda: True)
+    r = client.post("/settings/companies/discover")
+    assert "Discovery is already running" in r.text and "disabled" in r.text
 
 
 def test_last_discovery_and_backoff_shown(client, ctx):

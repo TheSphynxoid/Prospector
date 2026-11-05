@@ -38,8 +38,15 @@ def split_research(content: str) -> tuple[str, str | None, int]:
     return content[:start].strip(), body, len(_NUMBERED.findall(body))
 
 
-def _hits(ctx: AppContext, company: str) -> list[Hit]:
-    name = company.replace('"', "").strip()
+NAME_LIMIT = 100
+
+
+def _name(company: str) -> str:
+    """The lead's company name is stranger text: one line, markers disarmed, no quotes, capped."""
+    return _one_line(company).replace('"', "").strip()[:NAME_LIMIT].strip()
+
+
+def _hits(ctx: AppContext, name: str) -> list[Hit]:
     seen, out = set(), []
     for query in (f'"{name}"', f'"{name}" reviews OR scam OR layoffs'):
         for h in search(ctx, query, engines=None, max_results=10).results:
@@ -53,7 +60,9 @@ def lookup(ctx: AppContext, lead_id: int) -> list[Message]:
     lead = ctx.leads.get(lead_id)
     if lead is None or not lead.company or not search_ready(ctx):
         return []
-    company = lead.company
+    company = _name(lead.company)
+    if not company:
+        return []
     intro = f"Look up {company}: what they do, size and location, and any red flags."
     found = _hits(ctx, company)
     if not found:
