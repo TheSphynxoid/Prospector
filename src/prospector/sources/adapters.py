@@ -4,12 +4,15 @@ from prospector.sources.alerts import AlertsSource
 from prospector.sources.arbeitnow import Arbeitnow
 from prospector.sources.freelancer import Freelancer
 from prospector.sources.github_bounties import GitHubBounties
+from prospector.sources.golangprojects import Golangprojects
 from prospector.sources.hn import HackerNewsHiring
 from prospector.sources.himalayas import Himalayas
+from prospector.sources.jobicy import Jobicy
 from prospector.sources.keejob import Keejob
 from prospector.sources.registry import register
 from prospector.sources.remoteok import RemoteOK
 from prospector.sources.remotive import Remotive
+from prospector.sources.weworkremotely import WeWorkRemotely
 
 register("remotive")(lambda s, m: Remotive())
 register("remoteok")(lambda s, m: RemoteOK())
@@ -23,3 +26,6 @@ register("github_bounties")(lambda s, m: GitHubBounties(s.github_token.get_secre
 register("freelancer")(lambda s, m: Freelancer())
 register("alerts")(lambda s, m: AlertsSource(m))
 register("keejob")(lambda s, m: Keejob())
+register("weworkremotely")(lambda s, m: WeWorkRemotely())
+register("jobicy")(lambda s, m: Jobicy())
+register("golangprojects")(lambda s, m: Golangprojects())
