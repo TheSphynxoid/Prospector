@@ -29,7 +29,9 @@ def run_source(source: Source, http: httpx.Client, health: HealthRepo, now: date
         if st.consecutive_failures >= PAUSE_AFTER:
             health.set_paused(source.id, True)
         return []
-    drift = not leads or _missing_ratio(leads) > 0.5
+    # Nothing back usually means the site changed, except for sources that are empty between rounds (GSoC).
+    empty_ok = getattr(source, "may_be_empty", False)
+    drift = (not leads and not empty_ok) or (bool(leads) and _missing_ratio(leads) > 0.5)
     health.record_success(source.id, len(leads), drift)
     return leads
 

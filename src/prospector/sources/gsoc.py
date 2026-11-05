@@ -31,6 +31,7 @@ def _deadline(program: dict) -> datetime | None:
 class GSoC:
     id = "gsoc"
     interval_hours = 24
+    may_be_empty = True  # no leads between rounds is normal, not a broken source
 
     def fetch(self, http: httpx.Client) -> list[RawLead]:
         resp = http.get(f"{BASE}/api/program/")

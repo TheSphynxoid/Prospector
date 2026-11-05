@@ -105,3 +105,19 @@ def test_robots_missing_allows():
     respx.get("https://site.test/robots.txt").mock(return_value=httpx.Response(404))
     with httpx.Client() as http:
         assert robots_allowed("https://site.test/jobs", http, "prospector/0.1.0")
+
+
+def test_seasonal_source_may_be_empty():
+    class Seasonal(FakeSource):
+        may_be_empty = True  # e.g. GSoC between rounds
+    h = HealthRepo(connect(":memory:"))
+    run(Seasonal([]), h)
+    assert not h.get("fake").drift and h.get("fake").last_count == 0
+    run(Seasonal([lead(1, body=""), lead(2, body="")]), h)
+    assert h.get("fake").drift  # broken fields still count
+
+
+def test_program_sources_are_seasonal():
+    from prospector.sources.gsoc import GSoC
+    from prospector.sources.outreachy import Outreachy
+    assert GSoC.may_be_empty and Outreachy.may_be_empty

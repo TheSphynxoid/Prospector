@@ -28,6 +28,7 @@ def parse_deadline(text: str) -> date | None:
 class Outreachy:
     id = "outreachy"
     interval_hours = 24
+    may_be_empty = True  # no open projects between rounds is normal
 
     def fetch(self, http: httpx.Client) -> list[RawLead]:
         resp = http.get(URL)
@@ -57,5 +58,5 @@ class Outreachy:
                 body=f"{name}\n\nSkills: {', '.join(skills)}", location_text="Remote",
                 deadline=deadline or page_deadline, kind_hint=Kind.INTERNSHIP, raw_payload=card.html or ""))
         if not out:
-            log.warning("outreachy: no open projects found on the page")
+            log.info("outreachy: no open projects on the page")
         return out
