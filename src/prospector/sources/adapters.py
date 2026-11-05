@@ -6,10 +6,12 @@ from prospector.sources.codeur import Codeur
 from prospector.sources.freelancer import Freelancer
 from prospector.sources.github_bounties import GitHubBounties
 from prospector.sources.golangprojects import Golangprojects
+from prospector.sources.gsoc import GSoC
 from prospector.sources.hn import HackerNewsHiring
 from prospector.sources.himalayas import Himalayas
 from prospector.sources.jobicy import Jobicy
 from prospector.sources.keejob import Keejob
+from prospector.sources.outreachy import Outreachy
 from prospector.sources.registry import register
 from prospector.sources.remoteok import RemoteOK
 from prospector.sources.remotive import Remotive
@@ -33,3 +35,5 @@ register("jobicy")(lambda s, m: Jobicy())
 register("golangprojects")(lambda s, m: Golangprojects())
 register("tunisietravail")(lambda s, m: TunisieTravail())
 register("codeur")(lambda s, m: Codeur())
+register("gsoc")(lambda s, m: GSoC())
+register("outreachy")(lambda s, m: Outreachy())

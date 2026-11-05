@@ -1,0 +1,172 @@
+[
+ {
+  "name": "Kiwix",
+  "slug": "kiwix",
+  "logo_url": "https://summerofcode.withgoogle.com/media/org/kiwix/b6zuffwiyoulh0ku-360.png",
+  "website_url": "https://www.kiwix.org",
+  "tagline": "Internet content available offline.",
+  "license": "GPL-3.0",
+  "categories": [
+   "End user applications",
+   "Other"
+  ],
+  "contributor_guidance_url": "https://kiwix.org/en/writing-your-google-summer-of-code-application/",
+  "description": "Kiwix provides copies of websites that can be browsed offline. We run scrapers that will crawl a given website and compress it into a single .zim archive (based on the openZIM format). <br/><br/>\n\nThe zim files can then be stored locally and read on the fly by Kiwix in such a way that the user experience is similar to being online. <br/><br/>\n\nWe can fit the entirety of Wikipedia on a regular Android phone, but there are more than 7,000 zim files available in 100+ languages, mostly focused on educational content (e.g. Wikipedia, StackOverflow, Khan Academy, etc.).\n\n<br/><br/>\n\nKiwix runs on al",
+  "tech_tags": [
+   "python",
+   "c++",
+   "nodejs",
+   "kotlin",
+   "vue.js"
+  ],
+  "topic_tags": [
+   "offline",
+   "browser",
+   "compression"
+  ],
+  "contact_links": [
+   {
+    "name": "email",
+    "value": "contact+gsoc@kiwix.org"
+   },
+   {
+    "name": "chat",
+    "value": "https://join.slack.com/t/kiwixoffline/shared_invite/zt-c5fgl342-VDYtm7fwY6w0BAeBqYxIGg"
+   }
+  ],
+  "source_code": "https://www.github.com/kiwix",
+  "ideas_link": "https://kiwix.org/en/google-summer-of-code/",
+  "direct_comm_methods": [
+   {
+    "name": "email",
+    "value": "contact+gsoc@kiwix.org"
+   },
+   {
+    "name": "chat",
+    "value": "https://join.slack.com/t/kiwixoffline/shared_invite/zt-c5fgl342-VDYtm7fwY6w0BAeBqYxIGg"
+   }
+  ],
+  "social_comm_methods": []
+ },
+ {
+  "name": "MetaCall",
+  "slug": "metacall",
+  "logo_url": "https://summerofcode.withgoogle.com/media/org/metacall/rezoq3uue7dpdzw5-360.png",
+  "website_url": "https://metacall.io",
+  "tagline": "Simplifying the embedding of programming languages",
+  "license": "Apache-2.0",
+  "categories": [
+   "Programming languages",
+   "Infrastructure and cloud"
+  ],
+  "contributor_guidance_url": "https://github.com/metacall/gsoc-2026",
+  "description": "When working with different technologies and developers of different programming languages, the productivity of the entire team worsens due to the lack of interoperability and communication between them. If the developers need two technologies which are written in different programming languages, for instance, a C/C++ library called from NodeJS, the team usually needs to port to one of the two languages or write a wrapper around them. Maintaining a port of a library or the plumbing code is frequently error-prone, time-consuming, and does not add any value to the final product.\n\nThe main object",
+  "tech_tags": [
+   "python",
+   "c++",
+   "rust",
+   "nodejs",
+   "docker"
+  ],
+  "topic_tags": [
+   "cloud",
+   "polyglot",
+   "faas",
+   "languages",
+   "ffi"
+  ],
+  "contact_links": [
+   {
+    "name": "email",
+    "value": "contact@metacall.io"
+   },
+   {
+    "name": "chat",
+    "value": "https://discord.gg/upwP4mwJWa"
+   },
+   {
+    "name": "chat",
+    "value": "https://t.me/joinchat/BMSVbBatp0Vi4s5l4VgUgg"
+   },
+   {
+    "name": "chat",
+    "value": "https://matrix.to/#/#metacall:matrix.org"
+   },
+   {
+    "name": "twitter",
+    "value": "https://twitter.com/metacallio"
+   }
+  ],
+  "source_code": "https://github.com/metacall",
+  "ideas_link": "https://github.com/metacall/gsoc-2026",
+  "direct_comm_methods": [
+   {
+    "name": "email",
+    "value": "contact@metacall.io"
+   },
+   {
+    "name": "chat",
+    "value": "https://discord.gg/upwP4mwJWa"
+   },
+   {
+    "name": "chat",
+    "value": "https://t.me/joinchat/BMSVbBatp0Vi4s5l4VgUgg"
+   },
+   {
+    "name": "chat",
+    "value": "https://matrix.to/#/#metacall:matrix.org"
+   }
+  ],
+  "social_comm_methods": [
+   {
+    "name": "twitter",
+    "value": "https://twitter.com/metacallio"
+   }
+  ]
+ },
+ {
+  "name": "Django Software Foundation",
+  "slug": "django-software-foundation-8o",
+  "logo_url": "https://summerofcode.withgoogle.com/media/org/django-software-foundation-8o/685unxpkksrvfugu-360.png",
+  "website_url": "https://www.djangoproject.com",
+  "tagline": "Web framework for perfectionists with deadlines",
+  "license": "BSD-3-Clause",
+  "categories": [
+   "Web"
+  ],
+  "contributor_guidance_url": "https://code.djangoproject.com/wiki/SummerOfCode2026",
+  "description": "Django is a high-level Python Web framework originally developed at the Lawrence-Journal World. Django was designed to handle two challenges: the intensive deadlines of a newsroom and the stringent requirements of the experienced Web developers who wrote it. It lets you build high-performing, elegant Web applications quickly.",
+  "tech_tags": [
+   "python",
+   "django"
+  ],
+  "topic_tags": [
+   "web",
+   "python"
+  ],
+  "contact_links": [
+   {
+    "name": "mailingList",
+    "value": "https://forum.djangoproject.com/c/internals/mentorship/10"
+   },
+   {
+    "name": "blog",
+    "value": "https://www.djangoproject.com/weblog/"
+   }
+  ],
+  "source_code": "https://github.com/django/django",
+  "ideas_link": "https://code.djangoproject.com/wiki/SummerOfCode2026",
+  "direct_comm_methods": [
+   {
+    "name": "mailingList",
+    "value": "https://forum.djangoproject.com/c/internals/mentorship/10"
+   }
+  ],
+  "social_comm_methods": [
+   {
+    "name": "blog",
+    "value": "https://www.djangoproject.com/weblog/"
+   }
+  ]
+ }
+]

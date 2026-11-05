@@ -1,0 +1,961 @@
+[
+ {
+  "name": "2022",
+  "slug": "2022",
+  "is_active": false,
+  "phase": "program_archived",
+  "terms_contributor": "2022.01",
+  "terms_member": "2022.01",
+  "terms_organization": "2022.01",
+  "terms_rules": "2022.01",
+  "date_created": "2022-06-13T19:17:28.507015Z",
+  "date_updated": "2022-06-13T19:17:28.507015Z",
+  "milestones": [
+   {
+    "name": "prog_announce",
+    "datetime": "2021-11-05T17:00:00Z",
+    "label": "Program Announce Date"
+   },
+   {
+    "name": "org_application_start",
+    "datetime": "2022-02-07T18:00:00Z",
+    "label": "Org Applications Open"
+   },
+   {
+    "name": "org_application_deadline",
+    "datetime": "2022-02-21T18:00:00Z",
+    "label": "Org Application Deadline"
+   },
+   {
+    "name": "org_notification",
+    "datetime": "2022-03-06T18:00:00Z",
+    "label": "Org Notification Date"
+   },
+   {
+    "name": "org_announce_public",
+    "datetime": "2022-03-07T18:00:00Z",
+    "label": "Accepted Orgs Announced"
+   },
+   {
+    "name": "contributor_proposals_open",
+    "datetime": "2022-04-04T16:30:00Z",
+    "label": "Contributor Proposals Open"
+   },
+   {
+    "name": "proposal_deadline",
+    "datetime": "2022-04-19T18:00:00Z",
+    "label": "Proposal Deadline"
+   },
+   {
+    "name": "proposal_ranking_deadline",
+    "datetime": "2022-05-12T18:00:00Z",
+    "label": "Proposal Ranking Deadline"
+   },
+   {
+    "name": "project_announce_oa",
+    "datetime": "2022-05-19T18:00:00Z",
+    "label": "Projects Announced to Orgs"
+   },
+   {
+    "name": "project_announce_public",
+    "datetime": "2022-05-20T18:00:00Z",
+    "label": "Accepted Projects Announced"
+   },
+   {
+    "name": "project_work_start",
+    "datetime": "2022-06-13T18:00:00Z",
+    "label": "Project Work Period Start"
+   },
+   {
+    "name": "program_end",
+    "datetime": "2022-12-02T18:00:00Z",
+    "label": "Program End Date"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2022-07-25T18:00:00Z",
+    "label": "Midterm Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2022-07-29T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2022-09-05T18:00:00Z",
+    "label": "Final Submission Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2022-09-12T18:00:00Z",
+    "label": "Final Submission Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2022-09-12T18:00:00Z",
+    "label": "Final Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2022-09-19T18:00:00Z",
+    "label": "Final Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2022-11-28T18:00:00Z",
+    "label": "Project Completion Date (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2022-07-25T18:00:00Z",
+    "label": "Midterm Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2022-07-29T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2022-09-05T18:00:00Z",
+    "label": "Final Submission Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2022-09-12T18:00:00Z",
+    "label": "Final Submission Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2022-09-12T18:00:00Z",
+    "label": "Final Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2022-09-19T18:00:00Z",
+    "label": "Final Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2022-11-28T18:00:00Z",
+    "label": "Project Completion Date (large project)",
+    "project_size": "large"
+   }
+  ],
+  "stats": {
+   "orgs_accepted": 202,
+   "allocated_projects": 1227
+  },
+  "project_sizes": [
+   "medium",
+   "large"
+  ]
+ },
+ {
+  "name": "2023",
+  "slug": "2023",
+  "is_active": false,
+  "phase": "program_archived",
+  "terms_contributor": "2023.01",
+  "terms_member": "2023.01",
+  "terms_organization": "2023.01",
+  "terms_rules": "2023.01",
+  "date_created": "2023-11-20T20:10:58Z",
+  "date_updated": "2023-11-20T20:10:58Z",
+  "milestones": [
+   {
+    "name": "prog_announce",
+    "datetime": "2022-12-12T18:00:00Z",
+    "label": "Program Announce Date"
+   },
+   {
+    "name": "org_application_start",
+    "datetime": "2023-01-23T18:00:00Z",
+    "label": "Org Applications Open"
+   },
+   {
+    "name": "org_application_deadline",
+    "datetime": "2023-02-07T18:00:00Z",
+    "label": "Org Application Deadline"
+   },
+   {
+    "name": "org_notification",
+    "datetime": "2023-02-21T18:00:00Z",
+    "label": "Org Notification Date"
+   },
+   {
+    "name": "org_announce_public",
+    "datetime": "2023-02-22T18:00:00Z",
+    "label": "Accepted Orgs Announced"
+   },
+   {
+    "name": "contributor_proposals_open",
+    "datetime": "2023-03-20T18:00:00Z",
+    "label": "Contributor Proposals Open"
+   },
+   {
+    "name": "proposal_deadline",
+    "datetime": "2023-04-04T18:00:00Z",
+    "label": "Proposal Deadline"
+   },
+   {
+    "name": "proposal_ranking_deadline",
+    "datetime": "2023-04-27T18:00:00Z",
+    "label": "Proposal Ranking Deadline"
+   },
+   {
+    "name": "project_announce_oa",
+    "datetime": "2023-05-03T18:00:00Z",
+    "label": "Projects Announced to Orgs"
+   },
+   {
+    "name": "project_announce_public",
+    "datetime": "2023-05-04T18:00:00Z",
+    "label": "Accepted Projects Announced"
+   },
+   {
+    "name": "project_work_start",
+    "datetime": "2023-05-29T18:00:00Z",
+    "label": "Project Work Period Start"
+   },
+   {
+    "name": "program_end",
+    "datetime": "2023-11-17T18:00:00Z",
+    "label": "Program End Date"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2023-07-10T18:00:00Z",
+    "label": "Midterm Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2023-07-14T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2023-08-21T18:00:00Z",
+    "label": "Final Submission Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2023-08-28T18:00:00Z",
+    "label": "Final Submission Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2023-08-28T18:00:00Z",
+    "label": "Final Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2023-09-04T18:00:00Z",
+    "label": "Final Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2023-11-14T19:00:00Z",
+    "label": "Project Completion Date (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2023-07-10T18:00:00Z",
+    "label": "Midterm Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2023-07-14T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2023-08-21T18:00:00Z",
+    "label": "Final Submission Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2023-08-28T18:00:00Z",
+    "label": "Final Submission Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2023-08-28T18:00:00Z",
+    "label": "Final Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2023-09-04T18:00:00Z",
+    "label": "Final Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2023-11-14T19:00:00Z",
+    "label": "Project Completion Date (large project)",
+    "project_size": "large"
+   }
+  ],
+  "stats": {
+   "orgs_accepted": 171,
+   "allocated_projects": 972
+  },
+  "project_sizes": [
+   "medium",
+   "large"
+  ]
+ },
+ {
+  "name": "2024",
+  "slug": "2024",
+  "is_active": false,
+  "phase": "program_archived",
+  "terms_contributor": "2024.01",
+  "terms_member": "2024.01",
+  "terms_organization": "2024.01",
+  "terms_rules": "2024.01",
+  "date_created": "2024-11-20T17:45:52Z",
+  "date_updated": "2025-09-30T16:06:05.020425Z",
+  "milestones": [
+   {
+    "name": "prog_announce",
+    "datetime": "2023-11-20T18:00:00Z",
+    "label": "Program Announce Date"
+   },
+   {
+    "name": "org_application_start",
+    "datetime": "2024-01-22T18:00:00Z",
+    "label": "Org Applications Open"
+   },
+   {
+    "name": "org_application_deadline",
+    "datetime": "2024-02-06T18:00:00Z",
+    "label": "Org Application Deadline"
+   },
+   {
+    "name": "org_notification",
+    "datetime": "2024-02-20T18:00:00Z",
+    "label": "Org Notification Date"
+   },
+   {
+    "name": "org_announce_public",
+    "datetime": "2024-02-21T18:00:00Z",
+    "label": "Accepted Orgs Announced"
+   },
+   {
+    "name": "contributor_proposals_open",
+    "datetime": "2024-03-18T18:00:00Z",
+    "label": "Contributor Proposals Open"
+   },
+   {
+    "name": "proposal_deadline",
+    "datetime": "2024-04-02T18:00:00Z",
+    "label": "Proposal Deadline"
+   },
+   {
+    "name": "proposal_ranking_deadline",
+    "datetime": "2024-04-24T18:00:00Z",
+    "label": "Proposal Ranking Deadline"
+   },
+   {
+    "name": "project_announce_oa",
+    "datetime": "2024-04-30T18:00:00Z",
+    "label": "Projects Announced to Orgs"
+   },
+   {
+    "name": "project_announce_public",
+    "datetime": "2024-05-01T18:00:00Z",
+    "label": "Accepted Projects Announced"
+   },
+   {
+    "name": "project_work_start",
+    "datetime": "2024-05-27T18:00:00Z",
+    "label": "Project Work Period Start"
+   },
+   {
+    "name": "program_end",
+    "datetime": "2024-11-14T18:00:00Z",
+    "label": "Program End Date"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2024-06-24T18:00:00Z",
+    "label": "Midterm Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2024-06-28T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2024-07-22T18:00:00Z",
+    "label": "Final Submission Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2024-07-29T18:00:00Z",
+    "label": "Final Submission Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2024-07-29T18:00:00Z",
+    "label": "Final Mentor Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2024-08-05T18:00:00Z",
+    "label": "Final Mentor Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2024-09-10T18:00:00Z",
+    "label": "Project Completion Date (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2024-07-08T18:00:00Z",
+    "label": "Midterm Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2024-07-12T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2024-08-19T18:00:00Z",
+    "label": "Final Submission Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2024-08-26T18:00:00Z",
+    "label": "Final Submission Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2024-08-26T18:00:00Z",
+    "label": "Final Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2024-09-02T18:00:00Z",
+    "label": "Final Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2024-11-12T18:00:00Z",
+    "label": "Project Completion Date (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2024-07-08T18:00:00Z",
+    "label": "Midterm Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2024-07-12T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2024-08-19T18:00:00Z",
+    "label": "Final Submission Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2024-08-26T18:00:00Z",
+    "label": "Final Submission Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2024-08-26T18:00:00Z",
+    "label": "Final Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2024-09-02T18:00:00Z",
+    "label": "Final Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2024-11-12T18:00:00Z",
+    "label": "Project Completion Date (large project)",
+    "project_size": "large"
+   }
+  ],
+  "stats": {
+   "orgs_accepted": 195,
+   "allocated_projects": 1223
+  },
+  "project_sizes": [
+   "small",
+   "medium",
+   "large"
+  ]
+ },
+ {
+  "name": "2025",
+  "slug": "2025",
+  "is_active": false,
+  "phase": "program_archived",
+  "terms_contributor": "2025.01",
+  "terms_member": "2025.01",
+  "terms_organization": "2025.01",
+  "terms_rules": "2025.01",
+  "date_created": "2025-01-13T18:46:30.532496Z",
+  "date_updated": "2025-12-03T17:44:05.177341Z",
+  "milestones": [
+   {
+    "name": "prog_announce",
+    "datetime": "2025-01-14T19:00:00Z",
+    "label": "Program Announce Date"
+   },
+   {
+    "name": "org_application_start",
+    "datetime": "2025-01-27T18:00:00Z",
+    "label": "Org Applications Open"
+   },
+   {
+    "name": "org_application_deadline",
+    "datetime": "2025-02-11T18:00:00Z",
+    "label": "Org Application Deadline"
+   },
+   {
+    "name": "org_notification",
+    "datetime": "2025-02-26T23:00:00Z",
+    "label": "Org Notification Date"
+   },
+   {
+    "name": "org_announce_public",
+    "datetime": "2025-02-27T18:00:00Z",
+    "label": "Accepted Orgs Announced"
+   },
+   {
+    "name": "contributor_proposals_open",
+    "datetime": "2025-03-24T18:00:00Z",
+    "label": "Contributor Proposals Open"
+   },
+   {
+    "name": "proposal_deadline",
+    "datetime": "2025-04-08T18:00:00Z",
+    "label": "Proposal Deadline"
+   },
+   {
+    "name": "proposal_ranking_deadline",
+    "datetime": "2025-04-29T18:00:00Z",
+    "label": "Proposal Ranking Deadline"
+   },
+   {
+    "name": "project_announce_oa",
+    "datetime": "2025-05-07T18:00:00Z",
+    "label": "Projects Announced to Orgs"
+   },
+   {
+    "name": "project_announce_public",
+    "datetime": "2025-05-08T18:00:00Z",
+    "label": "Accepted Projects Announced"
+   },
+   {
+    "name": "project_work_start",
+    "datetime": "2025-06-02T18:00:00Z",
+    "label": "Project Work Period Start"
+   },
+   {
+    "name": "program_end",
+    "datetime": "2025-11-19T18:00:00Z",
+    "label": "Program End Date"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2025-06-30T18:00:00Z",
+    "label": "Midterm Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2025-07-04T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2025-07-28T18:00:00Z",
+    "label": "Final Submission Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2025-08-04T18:00:00Z",
+    "label": "Final Submission Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2025-08-04T18:00:00Z",
+    "label": "Final Mentor Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2025-08-11T18:00:00Z",
+    "label": "Final Mentor Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2025-09-10T18:00:00Z",
+    "label": "Project Completion Date (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2025-07-14T18:00:00Z",
+    "label": "Midterm Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2025-07-18T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2025-08-25T18:00:00Z",
+    "label": "Final Submission Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2025-09-01T18:00:00Z",
+    "label": "Final Submission Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2025-09-01T18:00:00Z",
+    "label": "Final Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2025-09-08T18:00:00Z",
+    "label": "Final Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2025-11-19T18:00:00Z",
+    "label": "Project Completion Date (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2025-07-14T18:00:00Z",
+    "label": "Midterm Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2025-07-18T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2025-08-25T18:00:00Z",
+    "label": "Final Submission Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2025-09-01T18:00:00Z",
+    "label": "Final Submission Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2025-09-01T18:00:00Z",
+    "label": "Final Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2025-09-08T18:00:00Z",
+    "label": "Final Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2025-11-19T18:00:00Z",
+    "label": "Project Completion Date (large project)",
+    "project_size": "large"
+   }
+  ],
+  "stats": {
+   "orgs_accepted": 185,
+   "allocated_projects": 1293
+  },
+  "project_sizes": [
+   "small",
+   "medium",
+   "large"
+  ]
+ },
+ {
+  "name": "2026",
+  "slug": "2026",
+  "is_active": true,
+  "phase": "project_work",
+  "terms_contributor": "2026.01",
+  "terms_member": "2026.01",
+  "terms_organization": "2026.01",
+  "terms_rules": "2026.01",
+  "date_created": "2025-11-24T21:40:30.291707Z",
+  "date_updated": "2026-05-18T16:59:18.670079Z",
+  "milestones": [
+   {
+    "name": "prog_announce",
+    "datetime": "2025-12-03T19:00:00Z",
+    "label": "Program Announce Date"
+   },
+   {
+    "name": "org_application_start",
+    "datetime": "2026-01-19T18:00:00Z",
+    "label": "Org Applications Open"
+   },
+   {
+    "name": "org_application_deadline",
+    "datetime": "2026-02-03T18:00:00Z",
+    "label": "Org Application Deadline"
+   },
+   {
+    "name": "org_notification",
+    "datetime": "2026-02-18T18:00:00Z",
+    "label": "Org Notification Date"
+   },
+   {
+    "name": "org_announce_public",
+    "datetime": "2026-02-19T18:00:00Z",
+    "label": "Accepted Orgs Announced"
+   },
+   {
+    "name": "contributor_proposals_open",
+    "datetime": "2026-03-16T18:00:00Z",
+    "label": "Contributor Proposals Open"
+   },
+   {
+    "name": "proposal_deadline",
+    "datetime": "2026-03-31T18:00:00Z",
+    "label": "Proposal Deadline"
+   },
+   {
+    "name": "proposal_ranking_deadline",
+    "datetime": "2026-04-21T18:00:00Z",
+    "label": "Proposal Ranking Deadline"
+   },
+   {
+    "name": "project_announce_oa",
+    "datetime": "2026-04-29T18:00:00Z",
+    "label": "Projects Announced to Orgs"
+   },
+   {
+    "name": "project_announce_public",
+    "datetime": "2026-04-30T18:00:00Z",
+    "label": "Accepted Projects Announced"
+   },
+   {
+    "name": "project_work_start",
+    "datetime": "2026-05-25T18:00:00Z",
+    "label": "Project Work Period Start"
+   },
+   {
+    "name": "program_end",
+    "datetime": "2026-11-11T18:00:00Z",
+    "label": "Program End Date"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2026-06-22T18:00:00Z",
+    "label": "Midterm Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2026-06-26T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2026-07-20T18:00:00Z",
+    "label": "Final Submission Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2026-07-27T18:00:00Z",
+    "label": "Final Submission Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2026-07-27T18:00:00Z",
+    "label": "Final Mentor Evaluation Start (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2026-08-03T18:00:00Z",
+    "label": "Final Mentor Evaluation Deadline (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2026-08-31T18:00:00Z",
+    "label": "Project Completion Date (small project)",
+    "project_size": "small"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2026-07-06T18:00:00Z",
+    "label": "Midterm Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2026-07-10T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2026-08-17T18:00:00Z",
+    "label": "Final Submission Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2026-08-24T18:00:00Z",
+    "label": "Final Submission Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2026-08-24T18:00:00Z",
+    "label": "Final Evaluation Start (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2026-08-31T18:00:00Z",
+    "label": "Final Evaluation Deadline (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2026-11-09T18:00:00Z",
+    "label": "Project Completion Date (medium project)",
+    "project_size": "medium"
+   },
+   {
+    "name": "midterm_evaluation_start",
+    "datetime": "2026-07-06T18:00:00Z",
+    "label": "Midterm Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "midterm_evaluation_deadline",
+    "datetime": "2026-07-10T18:00:00Z",
+    "label": "Midterm Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_start",
+    "datetime": "2026-08-17T18:00:00Z",
+    "label": "Final Submission Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_submission_deadline",
+    "datetime": "2026-08-24T18:00:00Z",
+    "label": "Final Submission Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_start",
+    "datetime": "2026-08-24T18:00:00Z",
+    "label": "Final Evaluation Start (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "final_evaluation_deadline",
+    "datetime": "2026-08-31T18:00:00Z",
+    "label": "Final Evaluation Deadline (large project)",
+    "project_size": "large"
+   },
+   {
+    "name": "project_completion",
+    "datetime": "2026-11-09T18:00:00Z",
+    "label": "Project Completion Date (large project)",
+    "project_size": "large"
+   }
+  ],
+  "stats": {
+   "orgs_accepted": 184,
+   "allocated_projects": 1156
+  },
+  "project_sizes": [
+   "small",
+   "medium",
+   "large"
+  ]
+ }
+]
