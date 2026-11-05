@@ -20,11 +20,19 @@ def _ts(value: str | None) -> datetime | None:
     return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
 
 
+def _num(value) -> int | None:
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
 def _pay(job: dict) -> str | None:
-    lo, hi, cur = job.get("salaryMin"), job.get("salaryMax"), job.get("salaryCurrency")
+    """Pay text, or None: one odd salary value must never fail the whole fetch."""
+    lo, hi, cur = _num(job.get("salaryMin")), _num(job.get("salaryMax")), job.get("salaryCurrency")
     if not lo or not cur:
         return None
-    return f"{int(lo)}-{int(hi or lo)} {cur} per {_PERIOD.get(job.get('salaryPeriod') or '', 'year')}"
+    return f"{lo}-{hi or lo} {cur} per {_PERIOD.get(job.get('salaryPeriod') or '', 'year')}"
 
 
 class Jobicy:

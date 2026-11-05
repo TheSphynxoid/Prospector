@@ -110,3 +110,30 @@ def test_alerted_list_capped(ctx):
     alerts._mark(ctx, 999)
     kept = ctx.kv.get("alerted")
     assert len(kept) == 500 and kept[-1] == 999
+
+
+def test_alert_escapes_html(ctx, make_lead):
+    add(ctx, make_lead, 1, 0.9, title="Go/C++ dev <remote> & more", company="A<B>")
+    send_alerts(ctx, NOW)
+    assert "&lt;remote&gt; &amp; more" in ctx.sent[0] and "A&lt;B&gt;" in ctx.sent[0]
+
+
+def test_alert_rejected_message_does_not_block_queue(ctx, make_lead, monkeypatch):
+    bad = add(ctx, make_lead, 1, 0.95, title="bad one")
+    add(ctx, make_lead, 2, 0.9, title="good one")
+
+    def send(http, token, chat, text):
+        if "bad one" in text:
+            raise httpx.HTTPStatusError("400", request=httpx.Request("POST", "https://t.test"),
+                                        response=httpx.Response(400))
+        ctx.sent.append(text)
+    monkeypatch.setattr(alerts, "send_telegram", send)
+    assert send_alerts(ctx, NOW) == 1 and "good one" in ctx.sent[0]
+    assert bad in ctx.kv.get("alerted")  # a message Telegram refuses is not retried forever
+
+
+def test_alerts_not_starved_by_old_top_leads(ctx, make_lead):
+    for i in range(60):
+        add(ctx, make_lead, i, 0.95, title=f"old {i}", posted=NOW - timedelta(days=5))
+    add(ctx, make_lead, 99, 0.62, title="fresh one")
+    assert send_alerts(ctx, NOW) == 1 and "fresh one" in ctx.sent[0]

@@ -84,3 +84,33 @@ def test_level_words_inside_other_words(make_lead):
     assert lead_level(make_lead(title="Go Engineer at an early-stage startup")) is None
     assert lead_level(make_lead(title="International Backend Engineer")) is None
     assert lead_level(make_lead(title="Co-lead developer relations")) is None
+
+
+@pytest.mark.parametrize("title,level", [
+    ("Senior Engineer, seed stage startup", "senior"),
+    ("Senior Software Engineer (Internships team)", "senior"),
+    ("Senior Go dev — no interns", "senior"),
+    ("Senior Data Engineer (Apprenticeship programme)", "senior"),
+    ("Acme | Senior Backend Engineer | Remote | Early stage startup", "senior"),
+    ("Foo | Staff Engineer | Remote (US) | Series A stage", "lead"),
+    ("Stage développeur Go", "intern"), ("Offre de stage PFE", "intern"),
+    ("Software Engineering Intern", "intern"), ("Product Manager intern", "intern"),
+])
+def test_intern_words_as_plain_nouns(make_lead, title, level):
+    assert lead_level(make_lead(title=title)) == level
+
+
+@pytest.mark.parametrize("body,level", [
+    ("With over 20 years of experience in fintech we build things.", None),
+    ("Founded 8 years ago; 1+ years of experience required", "junior"),
+    ("We have been around for 10 years. 2 years of experience", "junior"),
+    ("You have 5+ years of professional experience", "senior"),
+    ("More than 15 years of experience serving clients. Minimum 3 years in Go.", "mid"),
+])
+def test_years_ignore_company_boilerplate(make_lead, body, level):
+    assert lead_level(make_lead(title="Software Engineer", body=body)) == level
+
+
+@pytest.mark.parametrize("region", ["Tunis, TN", "TN", "Berlin, DE", "Casablanca, MA"])
+def test_state_codes_that_are_countries_not_locked(make_lead, region):
+    assert region_status(make_lead(remote_region=region), WF)[0] == "ok"

@@ -11,33 +11,54 @@ from prospector.profile.model import LEVELS, Profile
 _W = r"(?<![\w-])"   # word start that also refuses "early-stage", "co-lead"
 _E = r"(?![\w])"
 
-# Checked against the title in this order: junior and intern words win ("Product Manager intern").
+# A senior or staff word decides first: "Senior engineer (Internships team)" is senior. Then intern and junior words
+# beat "manager" ("Product Manager intern"), and "mid" comes last.
+_LEAD = re.compile(
+    _W + r"(staff|principal|architect|head of|director|vp|cto|(tech|team)\s+lead)" + _E
+    + r"|" + _W + r"lead\s+(\S+\s+)?(engineer|developer|dev|programmer|software|ing[ée]nieur)" + _E
+    + r"|(engineer|developer|dev|programmer|ing[ée]nieur)\s+lead" + _E, re.I)
+_SENIOR = re.compile(_W + r"(senior|sr|confirm[ée]e?|exp[ée]riment[ée]e?)" + _E, re.I)
 _TITLE = [
+    ("lead", _LEAD),
+    ("senior", _SENIOR),
     ("intern", re.compile(_W + r"(intern(ship)?s?|stage|stagiaire|pfe|alternan(ce|t)|apprenti|apprentice(ship)?)" + _E
                           + r"(?!-)", re.I)),
     ("junior", re.compile(_W + r"(junior|jr|graduate|entry[- ]level|new[- ]grad|d[ée]butant)" + _E, re.I)),
-    ("lead", re.compile(
-        _W + r"(staff|principal|architect|head of|director|vp|cto|manager(?!\s+intern)|(tech|team)\s+lead)" + _E
-        + r"|" + _W + r"lead\s+(\S+\s+)?(engineer|developer|dev|programmer|software|ing[ée]nieur)" + _E
-        + r"|(engineer|developer|dev|programmer|ing[ée]nieur)\s+lead" + _E, re.I)),
-    ("senior", re.compile(_W + r"(senior|sr|confirm[ée]e?|exp[ée]riment[ée]e?)" + _E, re.I)),
+    ("lead", re.compile(_W + r"manager" + _E, re.I)),
     ("mid", re.compile(_W + r"(mid|mid[- ]level|intermediate)" + _E, re.I)),
 ]
+# English "stage" after a company-stage word is not the French internship ("seed stage", "Series A stage").
+_COMPANY_STAGE = re.compile(r"\b(seed|early|growth|late|later|any|every|series\s+\w+)\s+stage\b", re.I)
 _YEARS = re.compile(
     r"(?:(?P<pre>minimum|at least|au moins)\s+(?:of\s+)?)?"
-    r"(?P<n>\d{1,2})(?:\s*[-–]\s*\d{1,2})?\s*\+?\s*(?:years?|yrs|ans)\b(?P<post>.{0,30})", re.I | re.S)
+    r"(?P<n>\d{1,2})(?:\s*[-–]\s*\d{1,2})?\s*\+?\s*(?:years?|yrs|ans)\b(?P<post>[^.;\d]{0,30})", re.I | re.S)
 _EXPERIENCE = re.compile(r"exp[ée]rience|professional", re.I)
+# Company history, not a requirement: "founded 8 years ago", "for 10 years", "with over 20 years of experience".
+_HISTORY = re.compile(r"(since|founded|for|depuis|depuis plus de)\s*$", re.I)
+_BOAST = re.compile(r"(over|more than|plus de)\s*$", re.I)
+
+
+def _required_years(body: str) -> list[int]:
+    out = []
+    for m in _YEARS.finditer(body):
+        n, before = int(m["n"]), body[max(0, m.start() - 20):m.start()]
+        if n >= 30 or not (m["pre"] or _EXPERIENCE.search(m["post"])) or _HISTORY.search(before):
+            continue
+        if n >= 10 and _BOAST.search(before):
+            continue
+        out.append(n)
+    return out
 
 
 def lead_level(lead: Lead) -> str | None:
     """The level a lead asks for, or None when neither its title nor the years it asks for say."""
     if lead.kind in (Kind.INTERNSHIP, Kind.PFE):
         return "intern"
+    title = _COMPANY_STAGE.sub(" ", lead.title)
     for level, pattern in _TITLE:
-        if pattern.search(lead.title):
+        if pattern.search(title):
             return level
-    years = [int(m["n"]) for m in _YEARS.finditer(lead.body or "")
-             if int(m["n"]) < 30 and (m["pre"] or _EXPERIENCE.search(m["post"]))]
+    years = _required_years(lead.body or "")
     if not years:
         return None
     n = max(years)
@@ -53,8 +74,8 @@ _STATES = ("alabama alaska arizona arkansas california colorado connecticut dela
            "virginia washington wisconsin wyoming").split() + [
     "new hampshire", "new jersey", "new mexico", "new york", "north carolina", "north dakota", "rhode island",
     "south carolina", "south dakota", "west virginia", "georgia"]
-_STATE_CODES = set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY "
-                   "NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split())
+# US state codes that are not also a country code: "Tunis, TN" is Tunisia, "Berlin, DE" Germany, "CA" ambiguous.
+_STATE_CODES = set("AK CT FL HI IA KS MI NH NJ NM NV NY ND OH OK OR RI TX UT VT WA WV WI WY DC".split())
 _CITIES = ("san francisco", "new york", "nyc", "seattle", "austin", "palo alto", "boston", "chicago", "toronto",
            "london", "bay area", "los angeles")
 # Order matters: the more specific name first ("North America" before "America").

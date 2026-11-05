@@ -82,3 +82,10 @@ def test_feeds_empty_ok():
     respx.get("https://www.golangprojects.com/rss.xml").mock(return_value=httpx.Response(200, text=empty_rss))
     with httpx.Client() as http:
         assert WeWorkRemotely().fetch(http) == [] and Jobicy().fetch(http) == [] and Golangprojects().fetch(http) == []
+
+
+def test_jobicy_pay_tolerates_decimal_strings():
+    from prospector.sources.jobicy import _pay
+    assert _pay({"salaryMin": "55000.50", "salaryMax": "70000", "salaryCurrency": "EUR",
+                 "salaryPeriod": "yearly"}) == "55000-70000 EUR per year"
+    assert _pay({"salaryMin": "n/a", "salaryCurrency": "EUR"}) is None
