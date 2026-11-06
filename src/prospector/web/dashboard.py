@@ -27,6 +27,7 @@ from prospector.worklife.flows import on_applied, on_unapplied
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 PAGE_SIZE = 50
+GONE_KEY = "marked_gone"  # the owner said so; separate from the weekly link check's "gone"
 _ACTIONS = {"star": Status.STARRED, "dismiss": Status.DISMISSED, "applied": Status.APPLIED, "reset": Status.NEW}
 _TOAST = {"star": "Starred", "dismiss": "Dismissed", "applied": "Marked applied · tracking in Work",
           "reset": "Moved back to new"}
@@ -167,6 +168,8 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
             raise HTTPException(404)
         if lead.status == Status.APPLIED and to != Status.APPLIED:
             on_unapplied(ctx, lead_id)
+        if ctx.expiry.flagged_key(lead_id) == GONE_KEY:
+            ctx.expiry.keep_open(lead_id)
         ctx.leads.set_status(lead_id, to)
         ctx.feedback.delete(fb, lead_id)  # so undo does not train the ranker
         return fragment(request, lead_id)
@@ -189,12 +192,16 @@ def make_dashboard_router(ctx: AppContext) -> APIRouter:
         previous = lead.status
         if action == "reset":  # back to new means "still open": don't expire it again for the same reason
             ctx.expiry.keep_open(lead_id)
+        gone = action == "dismiss" and reason == "gone"
+        if gone:  # the listing vanished: it belongs with the expired leads, not the ones you turned down
+            status = Status.EXPIRED
+            ctx.expiry.flag(lead_id, GONE_KEY, "You marked it as no longer on the site.")
         ctx.leads.set_status(lead_id, status)
         if action == "applied":
             on_applied(ctx, lead_id, fx.today())
         fb = ctx.feedback.record(lead_id, action, reason)
         target = "#detail-actions" if request.headers.get("hx-target") == "detail-actions" else f"#lead-{lead_id}"
-        trigger = {"toast": {"msg": _TOAST[action], "target": target,
+        trigger = {"toast": {"msg": "Moved to Expired" if gone else _TOAST[action], "target": target,
                              "undo": f"/lead/{lead_id}/undo?{urlencode({'to': previous.value, 'fb': fb})}"}}
         return fragment(request, lead_id, {"HX-Trigger": json.dumps(trigger)})
 

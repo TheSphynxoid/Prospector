@@ -57,4 +57,4 @@ def test_still_open_on_detail_page(ctx, client, make_lead):
     ctx.leads.set_status(lid, Status.APPLIED)
     ctx.expiry.flag(lid, "gone", "The posting page is gone (404).")
     r = client.post(f"/lead/{lid}/still-open", headers={"HX-Target": "detail-actions"})
-    assert 'id="detail-actions"' in r.text and "gone" not in r.text
+    assert 'id="detail-actions"' in r.text and "The posting page is gone" not in r.text

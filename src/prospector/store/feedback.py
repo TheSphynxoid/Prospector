@@ -11,9 +11,11 @@ REASONS: dict[str, str] = {
     "no_region": "Can't apply from here",
     "wrong_stack": "Wrong stack",
     "not_interested": "Not interested",
+    "gone": "No longer on the site",
     "other": "Other",
 }
 REACH_REASONS = ("too_senior", "no_region")
+NO_TOPIC_SIGNAL = (*REACH_REASONS, "gone")  # dismissed, but says nothing against the topic
 
 _LATEST = ("SELECT f.id, f.lead_id, f.action, r.reason FROM feedback f "
            "LEFT JOIN dismiss_reasons r ON r.feedback_id = f.id WHERE f.id = "
@@ -44,8 +46,8 @@ class FeedbackRepo:
         return [r["lead_id"] for r in self._latest() if r["action"] in ("star", "applied")]
 
     def negative_ids(self) -> list[int]:
-        """Dismissed leads, minus those dismissed for level or region: their topic may be fine."""
-        return [r["lead_id"] for r in self._latest() if r["action"] == "dismiss" and r["reason"] not in REACH_REASONS]
+        """Dismissed leads, minus those dismissed for level, region or a vanished listing: their topic may be fine."""
+        return [r["lead_id"] for r in self._latest() if r["action"] == "dismiss" and r["reason"] not in NO_TOPIC_SIGNAL]
 
     def misses(self, limit: int = 20) -> list[tuple[int, str]]:
         """(lead_id, reason) of the latest level or region dismissals, newest first."""
