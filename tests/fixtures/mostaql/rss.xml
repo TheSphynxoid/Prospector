@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>مستقل</title>
+    <link>https://mostaql.com/rss?category=development</link>
+    <description>منصّة العمل الحر للمستقلين العرب. وظف أفضل المستقلين في العالم العربي أو ابحث عن مشاريع لتنفذها كعامل حر.</description>
+    <item>
+      <title>تصميم اداة تحكم بالمستخدمين والمنصة</title>
+      <link>https://mostaql.com/go/1291414</link>
+      <description>انشاء اداة تتبع اسماء من قواعد بيانات ويصدر لي الملف اكسل بالنتائج اذا احتاجت واحتاج ابني اليوزر بنفسي ويكون التحكم والتطوير عندي احتاج بس يحصي لي كم الاسماء بناء على قواعد البيانات.. وانا تقريبا عملت على هذا ولكن احتاج اجودة بشكل منظم</description>
+      <pubDate>Sat, 07 Nov 2026 14:31:44 +0000</pubDate>
+    </item>
+    <item>
+      <title>تطوير وتصميم موقع إلكتروني شخصي لعرض بورتفوليو معماري وتصميم داخلي</title>
+      <link>https://mostaql.com/go/1291395</link>
+      <description>أبحث عن مطور ويب محترف لتصميم وتنفيذ موقع إلكتروني شخصي (Personal Portfolio Website) يعرض أعمالي في مجال العمارة والتصميم الداخلي والخارجي، بأسلوب بصري احترافي يعكس الهوية الإبداعية والمستوى المهني. أولا: التوجه التصميمي - تصميم عصري وأنيق بطابع Minimal / Editorial. - واجهة احترافية تعتمد على الصور الكبيرة والتكوينات البصرية. - تجربة تصفح سلسة تعتمد على Scrolling وSmooth Transitions. - حركات وانتقالات بسيطة وأنيقة دون التأثير على سرعة الموقع. - ت...</description>
+      <pubDate>Sat, 07 Nov 2026 13:48:13 +0000</pubDate>
+    </item>
+    <item>
+      <title>برمجة سكريبت أتمتة كاملة (API Integration) للربط بين متجر eBay ومنصة Kinguin /Enabe</title>
+      <link>https://mostaql.com/go/1291393</link>
+      <description>السلام عليكم، أريد بناء نظام/سكريبت مخصص لأتمتة عملية بيع المنتجات الرقمية (ألعاب وبطاقات هدايا) بنظام الدروب شيبينغ اللحظي من منصة Kinguin إلى متجري على eBay، دون الحاجة لشراء أو تخزين الأكواد مسبقا. المطلوب من النظام بالتفصيل: 1. الأتمتة اللحظية للطلبات (عدل): بمجرد أن يقوم زبون بالشراء والدفع على متجري في eBay، يجب على النظام سحب بيانات الطلب فورا، والتوجه إلى (Kinguin API) لعمل أمر شراء فوري ومباشر للمنتج مستخدما رصيد محفظتي المشحونة في Kingu...</description>
+      <pubDate>Sat, 07 Nov 2026 12:52:58 +0000</pubDate>
+    </item>
+    <item>
+      <title>بدون رابط</title>
+      <description>عنصر بلا رابط</description>
+      <pubDate>Fri, 06 Nov 2026 12:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

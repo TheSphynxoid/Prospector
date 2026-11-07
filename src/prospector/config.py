@@ -66,7 +66,7 @@ class Settings(BaseSettings):
         "remotive", "remoteok", "himalayas", "arbeitnow",  # adzuna: paid, opt in from Settings
         "hn", "github_bounties", "freelancer", "keejob", "alerts",
         "weworkremotely", "jobicy", "golangprojects", "tunisietravail", "codeur", "gsoc", "outreachy",
-        "company_boards",
+        "company_boards", "mostaql",
     ]
     embed_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
     digest_time: str = "08:00"  # HH:MM, Africa/Tunis
