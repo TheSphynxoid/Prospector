@@ -1,0 +1,119 @@
+[
+ {
+  "id": 10037,
+  "date_gmt": "2026-11-05T15:09:54",
+  "link": "https://pfebooks.com/stages/deploiement-cloud-native-iiot-integration-objects-tunis/",
+  "title": {
+   "rendered": "Cloud-Native Containerized Deployment for an Industrial IoT Platform"
+  },
+  "content": {
+   "rendered": "<p>Au sein de son département Développement, qui fait évoluer la plateforme industrielle IT-OT-IoT SIOTH® et ses services d’IA, Integration Objects propose un stage de fin d’études. Le sujet vise à transformer la plateforme SIOTH® en plateforme cloud-native, conteneurisée, orchestrée par Kubernetes et déployée sur Azure et en edge.</p>\n<h3>Missions</h3>\n<ul>\n<li>Analyser l’architecture de SIOTH et les dépendances entre ses composants</li>\n<li>Concevoir une architecture cible cloud-native (edge, cloud, hybride)</li>\n<li>Conteneuriser les services et connecteurs de la plateforme</li>\n<li>Provisionner l’infrastructure Azure en code (IaC) et packager les versions avec Helm</li>\n<li>Automatiser la CI/CD dans Azure DevOps et valider la disponibilité, la scalabilité et les performances</li>\n</ul>\n<h3>Livrables</h3>\n<ul>\n<li>Images de conteneurs, charts Helm et manifestes Kubernetes de la plateforme</li>\n<li>Modèles Infrastructure-as-Code (Bicep ou Terraform) pour Azure</li>\n<li>Pipelines CI/CD avec analyse de sécurité et déploiement automatisé</li>\n<li>Documentation : rapport, guides d’architecture et de déploiement, résultats de tests</li>\n</ul>\n<h3>Profil recherché</h3>\n<ul>\n<li><strong>Technologies et notions clés du sujet :</strong> Cloud-Native, Docker, Kubernetes, Azure, Edge Computing, IaC, CI/CD, IIoT, .NET/C#</li>\n</ul>\n<h3>Conditions du stage</h3>\n<ul>\n<li><strong>Type :</strong> stage de fin d’études (PFE), année 2026-2027</li>\n<li><strong>Département :</strong> Développement</li>\n<li><strong>Lieu :</strong> Tunis, Tunisie</li>\n<li><strong>Candidature :</strong> envoyez votre CV à <a href=\"mailto:careers@integrationobjects.com\">careers@integrationobjects.com</a> en indiquant le titre du sujet dans l’objet du message</li>\n</ul>\n<p>Cette offre fait partie du <a href=\"https://pfebooks.com/catalogue/2026/integration-objects-2/\">PFE Book Integration Objects 2026-2027</a>.</p>\n",
+   "protected": false
+  },
+  "meta": {
+   "_job_location": "Tunis, Tunisie",
+   "_application": "careers@integrationobjects.com",
+   "_company_name": "Integration Objects",
+   "_company_website": "https://www.integrationobjects.com",
+   "_filled": 0,
+   "_remote_position": 0
+  },
+  "job-categories": [
+   1289,
+   1282
+  ],
+  "job-types": [
+   1374,
+   1382,
+   1275
+  ]
+ },
+ {
+  "id": 10052,
+  "date_gmt": "2026-11-05T15:09:54",
+  "link": "https://pfebooks.com/stages/controle-avance-procedes-apc-ml-mpc-integration-objects-tunis/",
+  "title": {
+   "rendered": "Design and Development of an Intelligent Advanced Process Control (APC) System Integrating Machine Learning, Model Predictive Control, and Fuzzy Logic"
+  },
+  "content": {
+   "rendered": "<p>Au sein de son département Solutions avancées, spécialisé en analyse de données, IA et intégration IT/OT, Integration Objects propose un stage de fin d’études. Le sujet vise à développer une approche intelligente de contrôle avancé des procédés (APC) qui combine modélisation, machine learning, capteurs logiciels, commande prédictive (MPC) et logique floue.</p>\n<h3>Missions</h3>\n<ul>\n<li>Collecter, prétraiter et explorer les données de procédé industriel pour identifier les variables pertinentes, les régimes de fonctionnement, les corrélations et les perturbations</li>\n<li>Construire des modèles de procédé mathématiques et fondés sur les données, intégrant le machine learning, pour caractériser la dynamique et prédire le comportement futur et les variables contrôlées clés</li>\n<li>Développer et valider des capteurs logiciels pour estimer les paramètres difficiles, coûteux ou impossibles à mesurer directement</li>\n<li>Concevoir des stratégies de contrôle avancé (MPC, logique floue, approches hybrides) en tenant compte des CV, MV, consignes, perturbations et contraintes d’exploitation</li>\n<li>Évaluer les modèles prédictifs, les capteurs logiciels et les stratégies de contrôle à l’aide de KPI techniques (précision, stabilité, robustesse, rejet des perturbations, efficacité)</li>\n<li>Réaliser un tableau de bord interactif affichant les données de procédé, les prédictions, les estimations et les KPI</li>\n<li>Rédiger la documentation technique, le rapport final et la présentation</li>\n</ul>\n<h3>Profil recherché</h3>\n<ul>\n<li><strong>Technologies et notions clés du sujet :</strong> APC, Process Modeling, Machine Learning (ML), Soft Sensors, Model Predictive Control (MPC), Fuzzy Logic, System Identification, Multivariable Control, Industrial Data Analytics, Process Optimization, Python</li>\n</ul>\n<h3>Conditions du stage</h3>\n<ul>\n<li><strong>Type :</strong> stage de fin d’études (PFE), année 2026-2027</li>\n<li><strong>Département :</strong> Solutions avancées</li>\n<li><strong>Lieu :</strong> Tunis, Tunisie</li>\n<li><strong>Candidature :</strong> envoyez votre CV à <a href=\"mailto:careers@integrationobjects.com\">careers@integrationobjects.com</a> en indiquant le titre du sujet dans l’objet du message</li>\n</ul>\n<p>Cette offre fait partie du <a href=\"https://pfebooks.com/catalogue/2026/integration-objects-2/\">PFE Book Integration Objects 2026-2027</a>.</p>\n",
+   "protected": false
+  },
+  "meta": {
+   "_job_location": "Tunis, Tunisie",
+   "_application": "careers@integrationobjects.com",
+   "_company_name": "Integration Objects",
+   "_company_website": "https://www.integrationobjects.com",
+   "_filled": 0,
+   "_remote_position": 0
+  },
+  "job-categories": [
+   1284,
+   1285
+  ],
+  "job-types": [
+   1374,
+   1382,
+   1275,
+   1276
+  ]
+ },
+ {
+  "id": 10039,
+  "date_gmt": "2026-11-05T15:09:54",
+  "link": "https://pfebooks.com/stages/copilote-ia-generative-scada-hmi-integration-objects-tunis/",
+  "title": {
+   "rendered": "Generative AI Copilot for SCADA HMI Configuration and Migration"
+  },
+  "content": {
+   "rendered": "<p>Au sein de son département Développement, qui fait évoluer la plateforme industrielle IT-OT-IoT SIOTH® et ses services d’IA, Integration Objects propose un stage de fin d’études. Le sujet vise à créer un assistant de configuration fondé sur un serveur MCP qui expose la configuration SIOTH® aux LLM, ainsi qu’un convertisseur d’écrans HMI existants en vues UHMI.</p>\n<h3>Missions</h3>\n<ul>\n<li>Étudier MCP, l’appel d’outils par les LLM et les API UHMI</li>\n<li>Développer un serveur MCP SIOTH (tags, modèles, vues)</li>\n<li>Concevoir un convertisseur d’écrans SCADA existants en vues UHMI</li>\n<li>Ajouter un assistant en langage naturel avec validation par l’utilisateur</li>\n<li>Valider la précision et la sécurité sur des projets réels</li>\n</ul>\n<h3>Livrables</h3>\n<ul>\n<li>Code source du serveur MCP et du convertisseur de vues</li>\n<li>Assistant de configuration intégré à UHMI</li>\n<li>Documentation : rapport, rapports de conception et de tests</li>\n</ul>\n<h3>Profil recherché</h3>\n<ul>\n<li><strong>Technologies et notions clés du sujet :</strong> SCADA, UHMI, Generative AI, MCP, LLM, .NET/C#, Angular, TypeScript, REST APIs, HMI Migration, Industrial Automation</li>\n</ul>\n<h3>Conditions du stage</h3>\n<ul>\n<li><strong>Type :</strong> stage de fin d’études (PFE), année 2026-2027</li>\n<li><strong>Département :</strong> Développement</li>\n<li><strong>Lieu :</strong> Tunis, Tunisie</li>\n<li><strong>Candidature :</strong> envoyez votre CV à <a href=\"mailto:careers@integrationobjects.com\">careers@integrationobjects.com</a> en indiquant le titre du sujet dans l’objet du message</li>\n</ul>\n<p>Cette offre fait partie du <a href=\"https://pfebooks.com/catalogue/2026/integration-objects-2/\">PFE Book Integration Objects 2026-2027</a>.</p>\n",
+   "protected": false
+  },
+  "meta": {
+   "_job_location": "Tunis, Tunisie",
+   "_application": "careers@integrationobjects.com",
+   "_company_name": "Integration Objects",
+   "_company_website": "https://www.integrationobjects.com",
+   "_filled": 0,
+   "_remote_position": 0
+  },
+  "job-categories": [
+   1285,
+   1282
+  ],
+  "job-types": [
+   1374,
+   1382,
+   1275
+  ]
+ },
+ {
+  "id": 1,
+  "date_gmt": "2026-11-05T15:09:54",
+  "link": "https://pfebooks.com/stages/filled/",
+  "title": {
+   "rendered": "Cloud-Native Containerized Deployment for an Industrial IoT Platform"
+  },
+  "content": {
+   "rendered": "<p>Au sein de son département Développement, qui fait évoluer la plateforme industrielle IT-OT-IoT SIOTH® et ses services d’IA, Integration Objects propose un stage de fin d’études. Le sujet vise à transformer la plateforme SIOTH® en plateforme cloud-native, conteneurisée, orchestrée par Kubernetes et déployée sur Azure et en edge.</p>\n<h3>Missions</h3>\n<ul>\n<li>Analyser l’architecture de SIOTH et les dépendances entre ses composants</li>\n<li>Concevoir une architecture cible cloud-native (edge, cloud, hybride)</li>\n<li>Conteneuriser les services et connecteurs de la plateforme</li>\n<li>Provisionner l’infrastructure Azure en code (IaC) et packager les versions avec Helm</li>\n<li>Automatiser la CI/CD dans Azure DevOps et valider la disponibilité, la scalabilité et les performances</li>\n</ul>\n<h3>Livrables</h3>\n<ul>\n<li>Images de conteneurs, charts Helm et manifestes Kubernetes de la plateforme</li>\n<li>Modèles Infrastructure-as-Code (Bicep ou Terraform) pour Azure</li>\n<li>Pipelines CI/CD avec analyse de sécurité et déploiement automatisé</li>\n<li>Documentation : rapport, guides d’architecture et de déploiement, résultats de tests</li>\n</ul>\n<h3>Profil recherché</h3>\n<ul>\n<li><strong>Technologies et notions clés du sujet :</strong> Cloud-Native, Docker, Kubernetes, Azure, Edge Computing, IaC, CI/CD, IIoT, .NET/C#</li>\n</ul>\n<h3>Conditions du stage</h3>\n<ul>\n<li><strong>Type :</strong> stage de fin d’études (PFE), année 2026-2027</li>\n<li><strong>Département :</strong> Développement</li>\n<li><strong>Lieu :</strong> Tunis, Tunisie</li>\n<li><strong>Candidature :</strong> envoyez votre CV à <a href=\"mailto:careers@integrationobjects.com\">careers@integrationobjects.com</a> en indiquant le titre du sujet dans l’objet du message</li>\n</ul>\n<p>Cette offre fait partie du <a href=\"https://pfebooks.com/catalogue/2026/integration-objects-2/\">PFE Book Integration Objects 2026-2027</a>.</p>\n",
+   "protected": false
+  },
+  "meta": {
+   "_job_location": "Tunis, Tunisie",
+   "_application": "careers@integrationobjects.com",
+   "_company_name": "Integration Objects",
+   "_company_website": "https://www.integrationobjects.com",
+   "_filled": 1,
+   "_remote_position": 0
+  },
+  "job-categories": [
+   1289,
+   1282
+  ],
+  "job-types": [
+   1374,
+   1382,
+   1275
+  ]
+ }
+]

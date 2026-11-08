@@ -14,6 +14,7 @@ from prospector.sources.keejob import Keejob
 from prospector.sources.mostaql import Mostaql
 from prospector.sources.company_boards import CompanyBoards
 from prospector.sources.outreachy import Outreachy
+from prospector.sources.pfebooks import PfeBooks
 from prospector.sources.registry import register
 from prospector.store.companies import CompanyRepo
 from prospector.sources.remoteok import RemoteOK
@@ -39,6 +40,7 @@ register("golangprojects")(lambda s, m: Golangprojects())
 register("tunisietravail")(lambda s, m: TunisieTravail())
 register("codeur")(lambda s, m: Codeur())
 register("mostaql")(lambda s, m: Mostaql())
+register("pfebooks")(lambda s, m: PfeBooks())
 register("gsoc")(lambda s, m: GSoC())
 register("outreachy")(lambda s, m: Outreachy())
 register("company_boards")(lambda s, m: CompanyBoards(CompanyRepo(m.conn)))

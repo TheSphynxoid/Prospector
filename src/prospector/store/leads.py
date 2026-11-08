@@ -53,6 +53,11 @@ def _row(row: sqlite3.Row) -> LeadRow:
     )
 
 
+def _like(text: str) -> str:
+    """A LIKE pattern for `text` anywhere; ! escapes LIKE wildcards."""
+    return "%" + "".join("!" + c if c in "!%_" else c for c in text.strip()) + "%"
+
+
 _SELECT = ("SELECT l.*, s.stage1, s.stage2, f.closed_reason FROM leads l LEFT JOIN scores s ON s.lead_id = l.id "
            "LEFT JOIN lead_flags f ON f.lead_id = l.id")
 
@@ -112,11 +117,12 @@ class LeadRepo:
         self.conn.execute("UPDATE leads SET status = ?, filter_reason = ? WHERE id = ?",
                           (status.value, reason, id))
 
-    def list(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None,
+    def list(self, tab: Status, kind: Kind | Sequence[Kind] | None = None, remote: Remote | None = None,
              source: str | Sequence[str] | None = None, min_score: float | None = None,
              sort: Literal["score", "date"] = "score", limit: int = 50, offset: int = 0,
-             q: str | None = None, skip_sources: Sequence[str] = ()) -> list[LeadRow]:
-        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources)
+             q: str | None = None, skip_sources: Sequence[str] = (), **more) -> list[LeadRow]:
+        """`more`: location, since, verdict, has_email, deep (see _filters)."""
+        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources, **more)
         order = "COALESCE(s.stage1, -1) DESC, l.id DESC" if sort == "score" else "l.id DESC"
         rows = self.conn.execute(
             f"{_SELECT} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ? OFFSET ?",
@@ -124,24 +130,29 @@ class LeadRepo:
         ).fetchall()
         return [_row(r) for r in rows]
 
-    def count(self, tab: Status, kind: Kind | None = None, remote: Remote | None = None,
+    def count(self, tab: Status, kind: Kind | Sequence[Kind] | None = None, remote: Remote | None = None,
               source: str | Sequence[str] | None = None, min_score: float | None = None, q: str | None = None,
-              skip_sources: Sequence[str] = ()) -> int:
+              skip_sources: Sequence[str] = (), **more) -> int:
         """How many leads `list` would return across all pages."""
-        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources)
+        where, args = self._filters(tab, kind, remote, source, min_score, q, skip_sources, **more)
         return self.conn.execute(f"SELECT COUNT(*) AS n FROM ({_SELECT} WHERE {' AND '.join(where)})",
                                  args).fetchone()["n"]
 
     @staticmethod
-    def _filters(tab, kind, remote, source, min_score, q, skip_sources=()) -> tuple[list[str], list]:
+    def _filters(tab, kind, remote, source, min_score, q, skip_sources=(), *, location: str | None = None,
+                 since: datetime | None = None, verdict: str | None = None, has_email: bool = False,
+                 deep: bool = False) -> tuple[list[str], list]:
+        """deep: q also searches the posting text. since: posted (or first seen) at or after."""
         where, args = ["l.status = ?"], [tab.value]
         if q and q.strip():
-            like = "%" + "".join("!" + c if c in "!%_" else c for c in q.strip()) + "%"  # ! escapes LIKE wildcards
-            where.append("(l.title LIKE ? ESCAPE '!' OR l.company LIKE ? ESCAPE '!')")
-            args += [like, like]
-        if kind:
-            where.append("l.kind = ?")
-            args.append(kind.value)
+            like = _like(q)
+            fields = ["l.title", "l.company"] + (["l.body"] if deep else [])
+            where.append("(" + " OR ".join(f"{f} LIKE ? ESCAPE '!'" for f in fields) + ")")
+            args += [like] * len(fields)
+        kinds = [kind] if isinstance(kind, Kind) else list(kind or ())
+        if kinds:
+            where.append(f"l.kind IN ({','.join('?' * len(kinds))})")
+            args += [k.value for k in kinds]
         if remote:
             where.append("l.remote = ?")
             args.append(remote.value)
@@ -156,6 +167,18 @@ class LeadRepo:
         if min_score is not None:
             where.append("s.stage1 >= ?")
             args.append(min_score)
+        if location and location.strip():
+            # decoded values: json.dumps escapes accents, so "Médenine" would not match the raw column
+            where.append("EXISTS (SELECT 1 FROM json_each(l.locations) WHERE value LIKE ? ESCAPE '!')")
+            args.append(_like(location))
+        if since is not None:  # ISO strings; compared in UTC, close enough at the day scale this is used for
+            where.append("COALESCE(l.posted_at, l.created_at) >= ?")
+            args.append(since.astimezone(UTC).isoformat())
+        if verdict:
+            where.append("json_extract(s.stage2, '$.verdict') = ?")
+            args.append(verdict)
+        if has_email:
+            where.append("l.body LIKE '%_@_%._%'")
         return where, args
 
     def new_since(self, ts: datetime, limit: int) -> list[LeadRow]:
